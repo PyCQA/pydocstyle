@@ -1,10 +1,7 @@
-import tokenize as tk
-from io import StringIO
+
 
 def pytest_funcarg__file_1(request):
     return ''.join(open('test_file_1.py'))
-
-
 
 
 def test_parse_docstring(file_1):
@@ -52,6 +49,7 @@ def test_parse_functions():
     assert pf(f2) == ['def foo():\n  pass\n',
                       'def bar():\n  pass']
 
+
 def test_parse_methods():
     from pep257 import parse_methods as pm
     assert pm('') == []
@@ -70,5 +68,3 @@ def test_parse_methods():
         pass'''
     assert pm(m2) == ['def m1():\n        pass\n    ',
                       'def m2():\n        pass']
-
-

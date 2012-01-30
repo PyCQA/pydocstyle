@@ -172,19 +172,16 @@ class Error(object):
         self.end_line, self.end_char = rel_pos(self.end, self.source)
 
     def __str__(self):
-        # pep8.py:203:5 Line break before docstring in function.
-        # pep8.py:234:5 Summary not in imperative mood.
-        # pep8.py:203:5..203:9 CE01 Line break before docstring in function.
-        # pep8.py:234:5..235:10 DW01 Summary not in imperative mood.
         s = self.filename + ':%d:%d' % (self.line, self.char)
         if self.options.range:
             s += '..%d:%d' % (self.end_line, self.end_char)
-        s += ': ' + self.message + '\n'
+        s += ': ' + self.message
         if self.options.explain:
-            s += self.explanation
+            s += '\n' + self.explanation
         if self.options.quote:
-            s += self.source[self.start:self.end]
+            s += '\n    ' + self.source[self.start:self.end]
         return s
+
     def __cmp__(self, other):
         return cmp((self.filename, self.start), (other.filename, other.start))
 
@@ -196,7 +193,7 @@ def parse_options():
     parser.add_option('-r', '--range', action='store_true',
                       help='show error start..end positions')
     parser.add_option('-q', '--quote', action='store_true',
-                      help='quote erroneous line(s)')
+                      help='quote erroneous lines')
     return parser.parse_args()
 
 
@@ -204,9 +201,9 @@ def main(options, arguments):
     Error.options = options
     errors = []
     for filename in arguments:
-        errors.append(check_source(''.join(open(filename)), filename))
+        errors.extend(check_source(''.join(open(filename)), filename))
     for error in sorted(errors):
-        print error[0]
+        print error
 
 
 #
@@ -214,14 +211,57 @@ def main(options, arguments):
 #
 
 
-def check_raises(def_docstring, context):
-    pass
+def check_imperative_mood(def_docstring, context):
+    """PEP257 First line should be in imperative mood ('Do', not 'Does').
 
-def check_attributes(class_docstring, context):
-    pass
+    [Docstring] prescribes the function or method's effect as a command:
+    ("Do this", "Return that"), not as a description; e.g. don't write
+    "Returns the pathname ...".
 
-def check_usage(module_docstring, context):
-    pass
+    """
+    if def_docstring:
+        first_word = eval(def_docstring).strip().split(' ')[0]
+        if first_word.endswith('s') and not first_word.endswith('ss'):
+            return ("PEP257 First line should be in imperative mood "
+                    "('Do', not 'Does').",)
+
+
+def check_ends_with_period(docstring, context):
+    """PEP257 First line should end with a period
+
+    The [first line of a] docstring is a phrase ending in a period.
+
+    """
+    if docstring and not eval(docstring).split('\n')[0].strip()[-1] == '.':
+        return "PEP257 Short description should end with a period.",
+
+
+def check_one_liners(docstring, context):
+    """PEP257 One-liners should fit on one line with quotes.
+
+    The closing quotes are on the same line as the opening quotes.
+    This looks better for one-liners.
+
+    """
+    if not docstring:
+        return
+    lines = docstring.split('\n')
+    if len(lines) > 1:
+        non_empty = [l for l in lines if any([c.isalpha() for c in l])]
+        if len(non_empty) == 1:
+            return "PEP257 One-liners should fit on one line with quotes.",
+
+
+def check_backslashes(docstring, context):
+    '''PEP257 Use r"""... if any backslashes in your docstrings.
+
+    Use r"""raw triple double quotes""" if you use any backslashes (\)
+    in your docstrings.
+
+    '''
+    if docstring and "\\" in docstring:
+        return 'PEP257 Use r""" if any backslashes in your docstrings.',
+
 
 def check_tripple_double_quotes(docstring, context):
     '''PEP257 Use """tripple double quotes""".
@@ -232,11 +272,9 @@ def check_tripple_double_quotes(docstring, context):
     u"""Unicode triple-quoted strings""".
 
     '''
-    if not docstring:
-        return
-    if not (docstring.startswith('"""') or
-            docstring.startswith('r"""') or
-            docstring.startswith('u"""')):
+    if docstring and not (docstring.startswith('"""') or
+                          docstring.startswith('r"""') or
+                          docstring.startswith('u"""')):
         return 'PEP257 Use """tripple double quotes""".',
 
 
