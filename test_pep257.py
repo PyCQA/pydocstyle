@@ -6,36 +6,6 @@ def pytest_funcarg__file_1(request):
 
 
 
-def test_parse_module_docstring(file_1):
-    from pep257 import parse_module_docstrings as pmd
-    out = pmd(file_1)
-    #assert out[0][1] == r"'''Module docstring.\n\t'''"
-
-
-def test_parse_class_docstring(file_1):
-    from pep257 import parse_class_docstrings as pcd
-    out = pcd(file_1)
-
-
-def test_parse_docstrings(file_1):
-    from pep257 import parse_docstrings as pd
-    print pd(file_1, 'def')
-
-
-
-def test_skip_til_scope(file_1):
-    from pep257 import skip_til_scope as sts
-    token_gen = tk.generate_tokens(StringIO(file_1).readline)
-    for i in token_gen:
-        print i
-    token_gen = tk.generate_tokens(StringIO(file_1).readline)
-    print '*' * 30
-    print sts(token_gen, 'class')
-
-#    assert False
-
-
-
 
 def test_parse_docstring(file_1):
     from pep257 import parse_docstring as pd
@@ -54,11 +24,19 @@ def test_parse_docstring(file_1):
     #assert pd("def bar():'doc';pass") == "'doc'"
 
 
-def test_abs_char():
-    from pep257 import abs_char as ac
+def test_abs_pos():
+    from pep257 import abs_pos as ac
     assert ac((1, 0), 'foo') == 0
     assert ac((1, 2), 'foo') == 2
     assert ac((2, 0), 'foo\nbar') == 4
+
+
+def test_rel_pos():
+    from pep257 import rel_pos as rp
+    assert rp(0, 'foo') == (1, 0)
+    assert rp(2, 'foo') == (1, 2)
+    assert rp(4, 'foo\nbar') == (2, 0)
+    assert rp(6, 'foo\nbar') == (2, 2)
 
 
 def test_parse_functions():

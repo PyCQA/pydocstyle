@@ -1,32 +1,45 @@
-import re
+#!/usr/bin/env python
+
 import inspect
-from io import StringIO
+from StringIO import StringIO
+from optparse import OptionParser
 import tokenize as tk
+
 
 def yield_list(f):
     return lambda *arg, **kw: list(f(*arg, **kw))
 
 
-def abs_char(marker, source):
+def abs_pos(marker, source):
     """Get absolute char position in source based on (line, char) marker."""
     line, char = marker
     lines = StringIO(source).readlines()
     return len(''.join(lines[:line - 1])) + char
 
 
-def parse_module_docstrings(source):
+def rel_pos(char, source):
+    """Get relative (line, char) position in source based on absolute char."""
+    lines = StringIO(source).readlines()
+    assert len(''.join(lines)) >= char
+    while len(''.join(lines)) > char:
+        assert len(''.join(lines)) >= char
+        lines.pop()
+    return len(lines) + 1, char - len(''.join(lines))
+
+
+def parse_module_docstring(source):
     for kind, value, _, _, _ in tk.generate_tokens(StringIO(source).readline):
         if kind in [tk.COMMENT, tk.NEWLINE, tk.NL]:
             continue
         elif kind == tk.STRING:
             docstring = value
-            return [(docstring, source)]
-        else:
-            return [(None, source)]
+            return docstring
 
 
-def parse_docstring(source):
+def parse_docstring(source, what=''):
     """Parse docstring given `def` or `class` source."""
+    if what.startswith('module'):
+        return parse_module_docstring(source)
     token_gen = tk.generate_tokens(StringIO(source).readline)
     try:
         kind = None
@@ -52,7 +65,7 @@ def parse_top_level(source, keyword):
         while not (kind == tk.DEDENT and value == '' and char == 0):
             kind, value, (line, char), _, _ = next(token_gen)
         end = line, char
-        yield source[abs_char(start, source): abs_char(end, source)]
+        yield source[abs_pos(start, source): abs_pos(end, source)]
 
 
 def parse_functions(source):
@@ -89,163 +102,115 @@ def parse_methods(source):
         start = line, char
         kind, value, (line, char), _, _ = skip_indented_block(token_gen)
         end = line, char
-        yield source[abs_char(start, source): abs_char(end, source)]
+        yield source[abs_pos(start, source): abs_pos(end, source)]
 
 
 @yield_list
-def parse_docstrings(source, scope):
-    token_gen = tk.generate_tokens(StringIO(source).readline)
-    kind = None
-    while kind != tk.ENDMARKER:
-        kind, value, _, _, _ = skip_til_scope(token_gen, scope)
-        if kind != tk.ENDMARKER:
-            for kind, value, _, _, _ in token_gen:
-                if kind in [tk.COMMENT, tk.NEWLINE, tk.NL, tk.INDENT]:
-                    continue
-                elif kind == tk.STRING:
-                    docstring = value
-                    context = source[:source.find(docstring) + len(docstring)]
-                    #yield (context, docstring)
-                    yield docstring
-                    break
-                else:
-                    break
-        if scope == 'module':
-            return
-
-
-def skip_til_scope(token_gen, scope):
-    kind, value, start, end, line = next(token_gen)
-    if scope == 'module':
-        return kind, value, start, end, line
-    while kind != tk.NAME or value != scope: # and kind != tk.ENDMARKER:
-        kind, value, start, end, line = next(token_gen)
-    while kind != tk.OP or value != ':': # and kind != tk.ENDMARKER:
-        kind, value, start, end, line = next(token_gen)
-    return kind, value, start, end, line
-
-
-def next_docstring(token_gen):
-    kind, value, start, end, line = next(token_gen)
-    while kind in [tk.COMMENT, tk.NEWLINE, tk.NL]:
-        kind, value, start, end, line = next(token_gen)
-
-def parse_class_docstrings(source):
-    g = tk.generate_tokens(StringIO(source).readline)
-    for t in g:
-        print t
-    g = tk.generate_tokens(StringIO(source).readline)
-    kind, value, _, _, _ = next(g)
-    while kind != tk.ENDMARKER:
-        while kind != tk.NAME and value != 'class' or kind != tk.ENDMARKER:
-            kind, value, _, _, _ = next(g)
-        while kind != tk.OP and value != ':' or kind != tk.ENDMARKER:
-            kind, value, _, _, _ = next(g)
-        while kind not in [tk.COMMENT, tk.NEWLINE, tk.NL] or \
-                                           kind != tk.ENDMARKER:
-            kind, value, _, _, _ = next(g)
-            if kind in [tk.COMMENT, tk.NEWLINE, tk.NL]:
-                continue
-            elif kind == tk.STRING:
-                docstring = value
-                context = source[:source.find(docstring) + len(docstring)]
-                yield (context, docstring)
-
-
-def parse_def_docstrings(s):
-    return docstring, context
-
-keywords = ['docstring', 'module_docstring',
-            'class_docstring', 'function_docstring',
-            'context', 'module_context',
-            'class_context', 'function_context']
-
-def checks(keyword):
-    checks = []
+def find_checks(keyword):
     for function in globals().values():
         if not inspect.isfunction(function):
             continue
-        args = inspect.getargspec(function)[0]
-        if len(args) == 1 and args[0] == keyword:
-            checks.append(function)
-    return sorted(checks)
+        arg = inspect.getargspec(function)[0]
+        if arg and arg[0] == keyword:
+            yield function
 
 
-def char_line(char, file):
-    return line, char
+def parse_contexts(source, kind):
+    if kind == 'module_docstring':
+        return [source]
+    if kind == 'function_docstring':
+        return parse_functions(source)
+    if kind == 'class_docstring':
+        return parse_classes(source)
+    if kind == 'method_docstring':
+        return parse_methods(source)
+    if kind == 'def_docstring':
+        return parse_functions(source) + parse_methods(source)
+    if kind == 'docstring':
+        return ([source] + parse_functions(source) +
+                parse_classes(source) + parse_methods(source))
+
+
+@yield_list
+def check_source(source, filename=''):
+    keywords = ['module_docstring', 'function_docstring',
+                'class_docstring', 'method_docstring',
+                'def_docstring', 'docstring']  # TODO? 'nested_docstring']
+    for keyword in keywords:
+        for check in find_checks(keyword):
+            for context in parse_contexts(source, keyword):
+                docstring = parse_docstring(context, keyword)
+                result = check(docstring, context)
+                if result is not None:
+                    yield Error(filename, source, docstring, context,
+                                check.__doc__, *result)
 
 
 class Error(object):
-    def __init__(self, filename, file, start, end, code, message, description):
-        self.filename
-        self.start
-        self.line
-        self.char
-        self.end
-        self.end_line
-        self.end_char
-        self.code
-        self.message
-        self.description
+
+    options = None  # optparse options that define e.g. how errors are printed
+
+    def __init__(self, filename, source, docstring, context,
+                 explanation, message, start=None, end=None):
+        self.filename = filename
+        self.source = source
+        self.docstring = docstring
+        self.context = context
+        self.message = message
+        self.explanation = explanation
+
+        if start is None:
+            self.start = source.find(docstring)
+        else:
+            self.start = source.find(context) + start
+        self.line, self.char = rel_pos(self.start, self.source)
+
+        if end is None:
+            self.end = self.start + len(docstring)
+        else:
+            self.end = source.find(context) + end
+        self.end_line, self.end_char = rel_pos(self.end, self.source)
+
     def __str__(self):
         # pep8.py:203:5 Line break before docstring in function.
         # pep8.py:234:5 Summary not in imperative mood.
         # pep8.py:203:5..203:9 CE01 Line break before docstring in function.
         # pep8.py:234:5..235:10 DW01 Summary not in imperative mood.
-        pass
-    def __cmp__(self):
-        pass
+        s = self.filename + ':%d:%d' % (self.line, self.char)
+        if self.options.range:
+            s += '..%d:%d' % (self.end_line, self.end_char)
+        s += ': ' + self.message + '\n'
+        if self.options.explain:
+            s += self.explanation
+        if self.options.quote:
+            s += self.source[self.start:self.end]
+        return s
+    def __cmp__(self, other):
+        return cmp((self.filename, self.start), (other.filename, other.start))
 
 
-keywords = ['docstring', 'module_docstring',
-            'class_docstring', 'def_docstring',
-            'context', 'module_context',
-            'class_context', 'def_context']
+def parse_options():
+    parser = OptionParser()
+    parser.add_option('-e', '--explain', action='store_true',
+                      help='show explanation of each error')
+    parser.add_option('-r', '--range', action='store_true',
+                      help='show error start..end positions')
+    parser.add_option('-q', '--quote', action='store_true',
+                      help='quote erroneous line(s)')
+    return parser.parse_args()
 
 
-def check_source(source, name=''):
-
-    module_contexts, module_docstrings = zip(*parse_module_docstrings(source))
-    class_contexts, class_docstrings = zip(*parse_class_docstrings(source))
-    def_contexts, def_docstrings = zip(*parse_def_docstrings(source))
-
-    docstrings = module_docstrings + class_docstrings + def_docstrings
-    contexts = module_contexts + class_contexts + def_contexts
-
+def main(options, arguments):
+    Error.options = options
     errors = []
-    errors += run_checks('docstring', docstrings, source, name)
-    errors += run_checks('module_docstring', module_docstrings, source, name)
-    errors += run_checks('class_docstring', class_docstrings, source, name)
-    errors += run_checks('def_docstring', def_docstrings, source, name)
-    errors += run_checks('context', contexts, source, name)
-    errors += run_checks('module_context', module_contexts, source, name)
-    errors += run_checks('class_context', class_contexts, source, name)
-    errors += run_checks('def_context', def_contexts, source, name)
-
-    return sorted(errors)
-
-
-def run_checks(keyword, docstrings, source, name):
-    for check in checks(keyword):
-        for docstring in docstrings:
-            if docstring and check(docstring):
-                start, end, code, message = check(docstring)
-                yield Error(source, name, pos + start, pos + end,
-                            code, message, check.__doc__)
-
-
-
-
+    for filename in arguments:
+        errors.append(check_source(''.join(open(filename)), filename))
+    for error in sorted(errors):
+        print error[0]
 
 
 #
-# Check functions (on docstring context)
-#
-
-
-
-#
-# Check functions (on docstrings themselves)
+# Check functions
 #
 
 
@@ -258,9 +223,25 @@ def check_attributes(class_docstring, context):
 def check_usage(module_docstring, context):
     pass
 
-def check_delimiters(docstring):
-    pass
+def check_tripple_double_quotes(docstring, context):
+    '''PEP257 Use """tripple double quotes""".
+
+    For consistency, always use """triple double quotes""" around
+    docstrings. Use r"""raw triple double quotes""" if you use any
+    backslashes in your docstrings. For Unicode docstrings, use
+    u"""Unicode triple-quoted strings""".
+
+    '''
+    if not docstring:
+        return
+    if not (docstring.startswith('"""') or
+            docstring.startswith('r"""') or
+            docstring.startswith('u"""')):
+        return 'PEP257 Use """tripple double quotes""".',
 
 
 if __name__ == '__main__':
-    main(options, arguments)
+    try:
+        main(*parse_options())
+    except KeyboardInterrupt:
+        pass
