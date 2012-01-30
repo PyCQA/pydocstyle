@@ -6,12 +6,17 @@ from optparse import OptionParser
 import tokenize as tk
 
 
+#
+# Helper functions
+#
+
+
 def yield_list(f):
     return lambda *arg, **kw: list(f(*arg, **kw))
 
 
 def abs_pos(marker, source):
-    """Get absolute char position in source based on (line, char) marker."""
+    """Get absolute char position in source given (line, char) marker."""
     line, char = marker
     lines = StringIO(source).readlines()
     return len(''.join(lines[:line - 1])) + char
@@ -25,6 +30,11 @@ def rel_pos(char, source):
         assert len(''.join(lines)) >= char
         lines.pop()
     return len(lines) + 1, char - len(''.join(lines))
+
+
+#
+# Parsing
+#
 
 
 def parse_module_docstring(source):
@@ -105,16 +115,6 @@ def parse_methods(source):
         yield source[abs_pos(start, source): abs_pos(end, source)]
 
 
-@yield_list
-def find_checks(keyword):
-    for function in globals().values():
-        if not inspect.isfunction(function):
-            continue
-        arg = inspect.getargspec(function)[0]
-        if arg and arg[0] == keyword:
-            yield function
-
-
 def parse_contexts(source, kind):
     if kind == 'module_docstring':
         return [source]
@@ -131,19 +131,9 @@ def parse_contexts(source, kind):
                 parse_classes(source) + parse_methods(source))
 
 
-@yield_list
-def check_source(source, filename=''):
-    keywords = ['module_docstring', 'function_docstring',
-                'class_docstring', 'method_docstring',
-                'def_docstring', 'docstring']  # TODO? 'nested_docstring']
-    for keyword in keywords:
-        for check in find_checks(keyword):
-            for context in parse_contexts(source, keyword):
-                docstring = parse_docstring(context, keyword)
-                result = check(docstring, context)
-                if result is not None:
-                    yield Error(filename, source, docstring, context,
-                                check.__doc__, *result)
+#
+# Framework
+#
 
 
 class Error(object):
@@ -184,6 +174,31 @@ class Error(object):
 
     def __cmp__(self, other):
         return cmp((self.filename, self.start), (other.filename, other.start))
+
+
+@yield_list
+def find_checks(keyword):
+    for function in globals().values():
+        if not inspect.isfunction(function):
+            continue
+        arg = inspect.getargspec(function)[0]
+        if arg and arg[0] == keyword:
+            yield function
+
+
+@yield_list
+def check_source(source, filename=''):
+    keywords = ['module_docstring', 'function_docstring',
+                'class_docstring', 'method_docstring',
+                'def_docstring', 'docstring']  # TODO? 'nested_docstring']
+    for keyword in keywords:
+        for check in find_checks(keyword):
+            for context in parse_contexts(source, keyword):
+                docstring = parse_docstring(context, keyword)
+                result = check(docstring, context)
+                if result is not None:
+                    yield Error(filename, source, docstring, context,
+                                check.__doc__, *result)
 
 
 def parse_options():
