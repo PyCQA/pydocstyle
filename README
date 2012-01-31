@@ -1,0 +1,20 @@
+Static analysis tool for checking docstring conventions and style.
+==================================================================
+
+About
+-----
+
+Currently implemented checks cover most of PEP257:
+http://www.python.org/dev/peps/pep-0257/
+
+After PEP257 is covered and tested, other checks might be added,
+e.g. NumPy docstring conventions is the first candidate:
+https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
+
+The main repository of this program is located at:
+http://github.com/halst/pep257
+
+Creating own checks
+-------------------
+
+See pep257.py

@@ -1,6 +1,70 @@
 #!/usr/bin/env python
 
-"""Static analysis tool for checking docstring conventions and style."""
+"""Static analysis tool for checking docstring conventions and style.
+
+About
+-----
+
+Currently implemented checks cover most of PEP257:
+http://www.python.org/dev/peps/pep-0257/
+
+After PEP257 is covered and tested, other checks might be added,
+e.g. NumPy docstring conventions is the first candidate:
+https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
+
+The main repository of this program is located at:
+http://github.com/halst/pep257
+
+Creating own checks
+-------------------
+
+In order to add your own check, create a function in "Checks functions"
+section below. The function should take 3 parameters:
+
+docstring : str
+    Docstring to check, as it is in file (with quotes).
+context : str
+    Docstring's context (e.g. function's source code).
+is_script : bool
+    Whether the docstring is script with #! or not.
+
+Depending on 1st parameter name, the function will be called with
+different type of docstring:
+
+ * module_docstring
+ * function_docstring
+ * class_docstring
+ * method_docstring
+ * def_docstring (i.e. function-docstrings + method-docstrings)
+ * docstring (i.e. all above docstring types)
+
+E.g. the following function will be fed only class-docstrings:
+
+    def your_check(class_docstring, context, is_script):
+        pass
+
+If for a certain function, class, etc. a docstring does not exist,
+then `None` will be passed, which should be taken into account.
+
+In order to signify a failure of the check, return a tuple consisting
+of (error_message, start_pos, end_pos), where start and end positions
+are integers specifying where in *context* the failure occured.
+The start_pos and end_pos will be then automatically converted to
+be shown correctly, e.g.:
+
+    return "Rasing `IOError` is not documented.", 150, 160
+
+You can skip start/end position; the start/end of docstring will
+be used:
+
+    return "Not all parameters mentioned.",
+
+Note the trailing comma! It signifies that return value is
+a tuple with 1 element.
+
+Also, see examples in "Check functions" section.
+
+"""
 
 import re
 import inspect
@@ -152,7 +216,7 @@ class Error(object):
 
     * Stores relevant data about the error,
     * provides format for printing an error,
-    * provides __cmp__ method to sort errors in a list.
+    * provides __cmp__ method to sort errors.
 
     """
 
