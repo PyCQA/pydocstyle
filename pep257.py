@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
+"""Static analysis tool for checking docstring conventions and style."""
+
+import re
 import inspect
+from curses.ascii import isascii
 from StringIO import StringIO
 from optparse import OptionParser
 import tokenize as tk
@@ -15,21 +19,25 @@ def yield_list(f):
     return lambda *arg, **kw: list(f(*arg, **kw))
 
 
+def remove_comments(s):
+    return re.sub('#[^\n]', '', s)
+
+
 def abs_pos(marker, source):
-    """Get absolute char position in source given (line, char) marker."""
+    """Return absolute position in source given (line, character) marker."""
     line, char = marker
     lines = StringIO(source).readlines()
     return len(''.join(lines[:line - 1])) + char
 
 
-def rel_pos(char, source):
-    """Get relative (line, char) position in source based on absolute char."""
+def rel_pos(abs_pos, source):
+    """Return relative position (line, character) in source based."""
     lines = StringIO(source).readlines()
-    assert len(''.join(lines)) >= char
-    while len(''.join(lines)) > char:
-        assert len(''.join(lines)) >= char
+    assert len(''.join(lines)) >= abs_pos
+    while len(''.join(lines)) > abs_pos:
+        assert len(''.join(lines)) >= abs_pos
         lines.pop()
-    return len(lines) + 1, char - len(''.join(lines))
+    return len(lines) + 1, abs_pos - len(''.join(lines))
 
 
 #
@@ -44,6 +52,8 @@ def parse_module_docstring(source):
         elif kind == tk.STRING:
             docstring = value
             return docstring
+        else:
+            return
 
 
 def parse_docstring(source, what=''):
@@ -138,6 +148,14 @@ def parse_contexts(source, kind):
 
 class Error(object):
 
+    """Error in docstring style.
+
+    * Stores relevant data about the error,
+    * provides format for printing an error,
+    * provides __cmp__ method to sort errors in a list.
+
+    """
+
     options = None  # optparse options that define e.g. how errors are printed
 
     def __init__(self, filename, source, docstring, context,
@@ -181,8 +199,8 @@ def find_checks(keyword):
     for function in globals().values():
         if not inspect.isfunction(function):
             continue
-        arg = inspect.getargspec(function)[0]
-        if arg and arg[0] == keyword:
+        args = inspect.getargspec(function)[0]
+        if args and args[0] == keyword:
             yield function
 
 
@@ -191,11 +209,12 @@ def check_source(source, filename=''):
     keywords = ['module_docstring', 'function_docstring',
                 'class_docstring', 'method_docstring',
                 'def_docstring', 'docstring']  # TODO? 'nested_docstring']
+    is_script = source.startswith('#!')
     for keyword in keywords:
         for check in find_checks(keyword):
             for context in parse_contexts(source, keyword):
                 docstring = parse_docstring(context, keyword)
-                result = check(docstring, context)
+                result = check(docstring, context, is_script)
                 if result is not None:
                     yield Error(filename, source, docstring, context,
                                 check.__doc__, *result)
@@ -213,6 +232,8 @@ def parse_options():
 
 
 def main(options, arguments):
+    print '=' * 80
+    print 'Note: checks are relaxed for scripts (with #!) compared to modules.'
     Error.options = options
     errors = []
     for filename in arguments:
@@ -226,32 +247,95 @@ def main(options, arguments):
 #
 
 
-def check_imperative_mood(def_docstring, context):
-    """PEP257 First line should be in imperative mood ('Do', not 'Does').
+def check_modules_have_docstrings(module_docstring, context, is_script):
+    """PEP257 Modules should have docstrings.
 
-    [Docstring] prescribes the function or method's effect as a command:
-    ("Do this", "Return that"), not as a description; e.g. don't write
-    "Returns the pathname ...".
+    All modules should normally have docstrings.
 
     """
-    if def_docstring:
-        first_word = eval(def_docstring).strip().split(' ')[0]
-        if first_word.endswith('s') and not first_word.endswith('ss'):
-            return ("PEP257 First line should be in imperative mood "
-                    "('Do', not 'Does').",)
+    if not module_docstring:  # or not eval(module_docstring).strip():
+        return "PEP257 Modules should have docstrings.", 0, 79
+    if not eval(module_docstring).strip():
+        return "PEP257 Modules should have docstrings.",
 
 
-def check_ends_with_period(docstring, context):
-    """PEP257 First line should end with a period
+def check_def_has_docstring(def_docstring, context, is_script):
+    """PEP257 Exported definitions should have docstrings.
 
-    The [first line of a] docstring is a phrase ending in a period.
+    ...all functions and classes exported by a module should also have
+    docstrings. Public methods (including the __init__ constructor)
+    should also have docstrings.
 
     """
-    if docstring and not eval(docstring).split('\n')[0].strip()[-1] == '.':
-        return "PEP257 Short description should end with a period.",
+    if is_script:
+        return  # assume nothing is exported
+    def_name = context.split()[1]
+    if def_name.startswith('_') and not def_name.endswith('__'):
+        return  # private, not exported
+    if not def_docstring:
+        return ("PEP257 Exported definitions should have docstrings.",
+                0, len(context.split('\n')[0]))
+    if not eval(def_docstring).strip():
+        return "PEP257 Exported definitions should have docstrings.",
 
 
-def check_one_liners(docstring, context):
+def check_class_has_docstring(class_docstring, context, is_script):
+    """PEP257 Exported classes should have docstrings.
+
+    ...all functions and classes exported by a module should also have
+    docstrings.
+
+    """
+    if is_script:
+        return  # assume nothing is exported
+    class_name = context.split()[1]
+    if class_name.startswith('_'):
+        return  # not exported
+    if not class_docstring:
+        return ("PEP257 Exported classes should have docstrings.",
+                0, len(context.split('\n')[0]))
+    if not eval(class_docstring).strip():
+        return "PEP257 Exported classes should have docstrings.",
+
+
+def check_tripple_double_quotes(docstring, context, is_script):
+    '''PEP257 Use """tripple double quotes""".
+
+    For consistency, always use """triple double quotes""" around
+    docstrings. Use r"""raw triple double quotes""" if you use any
+    backslashes in your docstrings. For Unicode docstrings, use
+    u"""Unicode triple-quoted strings""".
+
+    '''
+    if docstring and not (docstring.startswith('"""') or
+                          docstring.startswith('r"""') or
+                          docstring.startswith('u"""')):
+        return 'PEP257 Use """tripple double quotes""".',
+
+
+def check_backslashes(docstring, context, is_script):
+    '''PEP257 Use r""" if any backslashes in your docstrings.
+
+    Use r"""raw triple double quotes""" if you use any backslashes (\)
+    in your docstrings.
+
+    '''
+    if docstring and "\\" in docstring and not docstring.startswith('r"""'):
+        return 'PEP257 Use r""" if any backslashes in your docstrings.',
+
+
+def check_unicode_docstring(docstring, context, is_script):
+    '''PEP257 Use u""" for Unicode docstrings.
+
+    For Unicode docstrings, use u"""Unicode triple-quoted strings""".
+
+    '''
+    if (docstring and not all(isascii(char) for char in docstring) and
+            not docstring.startswith('u"""')):
+        return 'PEP257 Use u""" for Unicode docstrings.',
+
+
+def check_one_liners(docstring, context, is_script):
     """PEP257 One-liners should fit on one line with quotes.
 
     The closing quotes are on the same line as the opening quotes.
@@ -267,30 +351,146 @@ def check_one_liners(docstring, context):
             return "PEP257 One-liners should fit on one line with quotes.",
 
 
-def check_backslashes(docstring, context):
-    '''PEP257 Use r"""... if any backslashes in your docstrings.
+def check_no_blank_before(def_docstring, context, is_script):
+    """PEP257 No blank line before docstring in definitions.
 
-    Use r"""raw triple double quotes""" if you use any backslashes (\)
-    in your docstrings.
+    There's no blank line either before or after the docstring.
 
-    '''
-    if docstring and "\\" in docstring:
-        return 'PEP257 Use r""" if any backslashes in your docstrings.',
+    """
+    if not def_docstring:
+        return
+    before = remove_comments(context.split(def_docstring)[0])
+    if before.split(':')[-1].count('\n') > 1:
+        return "PEP257 No blank line before docstring in definitions.",
 
 
-def check_tripple_double_quotes(docstring, context):
-    '''PEP257 Use """tripple double quotes""".
+def check_ends_with_period(docstring, context, is_script):
+    """PEP257 First line should end with a period
 
-    For consistency, always use """triple double quotes""" around
-    docstrings. Use r"""raw triple double quotes""" if you use any
-    backslashes in your docstrings. For Unicode docstrings, use
-    u"""Unicode triple-quoted strings""".
+    The [first line of a] docstring is a phrase ending in a period.
 
-    '''
-    if docstring and not (docstring.startswith('"""') or
-                          docstring.startswith('r"""') or
-                          docstring.startswith('u"""')):
-        return 'PEP257 Use """tripple double quotes""".',
+    """
+    if docstring and not eval(docstring).split('\n')[0].strip().endswith('.'):
+        return "PEP257 Short description should end with a period.",
+
+
+def check_imperative_mood(def_docstring, context, is_script):
+    """PEP257 First line should be in imperative mood ('Do', not 'Does').
+
+    [Docstring] prescribes the function or method's effect as a command:
+    ("Do this", "Return that"), not as a description; e.g. don't write
+    "Returns the pathname ...".
+
+    """
+    if def_docstring:
+        first_word = eval(def_docstring).strip().split(' ')[0]
+        if first_word.endswith('s') and not first_word.endswith('ss'):
+            return ("PEP257 First line should be in imperative mood "
+                    "('Do', not 'Does').",)
+
+
+def check_no_signature(def_docstring, context, is_script):
+    """PEP257 First line should not be function's or method's "signature".
+
+    The one-line docstring should NOT be a "signature" reiterating
+    the function/method parameters (which can be obtained by introspection).
+
+    """
+    if not def_docstring:
+        return
+    def_name = context.split(def_docstring)[0].split()[1].split('(')[0]
+    first_line = eval(def_docstring).split('\n')[0]
+    if def_name + '(' in first_line.replace(' ', ''):
+        return "PEP257 First line should not be definitions's \"signature\".",
+
+
+def check_return_type(def_docstring, context, is_script):
+    """PEP257 Return value type should be mentioned.
+
+    However, the nature of the return value cannot be determined by
+    introspection, so it should be mentioned.
+
+    """
+    if (not def_docstring) or is_script:
+        return
+    if 'return' not in def_docstring.lower():
+        tokens = list(tk.generate_tokens(StringIO(context).readline))
+        after_return = [tokens[i + 1][0] for i, token in enumerate(tokens)
+                                                   if token[1] == 'return']
+        # not very precise (tk.OP ';' is not taken into account)
+        if set(after_return) - set([tk.COMMENT, tk.NL, tk.NEWLINE]) != set([]):
+            return "PEP257 Return value type should be mentioned.",
+
+
+def check_blank_after_summary(docstring, context, is_script):
+    """PEP257 Blank line missing after one-line summary.
+    ....................
+    Multi-line docstrings consist of a summary line just like a one-line
+    docstring, followed by a blank line, followed by a more elaborate
+    description. The summary line may be used by automatic indexing tools;
+    it is important that it fits on one line and is separated from the
+    rest of the docstring by a blank line.
+
+    """
+    if not docstring:
+        return
+    lines = eval(docstring).split('\n')
+    if len(lines) > 1 and lines[1].strip() != '':
+        return "PEP257 Blank line missing after one-line summary.",
+
+
+def check_indent(docstring, context, is_script):
+    """PEP257 Docstrings should be indented same as code.
+
+  The entire docstring is indented the same as the quotes at its
+  first line.
+
+    """
+    if (not docstring) or len(eval(docstring).split('\n')) == 1:
+        return
+    non_empty_lines = [line for line in eval(docstring).split('\n')[1:]
+                       if line.strip()]
+    if not non_empty_lines:
+        return
+    indent = min([len(l) - len(l.lstrip()) for l in non_empty_lines])
+    if indent != len(context.split(docstring)[0].split('\n')[-1]):
+        return "PEP257 Docstrings should be indented same as code.",
+
+
+def check_blank_before_after_class(class_docstring, context, is_script):
+    """PEP257 Class docstring should have 1 blank line around them.
+
+    Insert a blank line before and after all docstrings (one-line or
+    multi-line) that document a class -- generally speaking, the class's
+    methods are separated from each other by a single blank line, and the
+    docstring needs to be offset from the first method by a blank line;
+    for symmetry, put a blank line between the class header and the
+    docstring.
+
+    """
+    if not class_docstring:
+        return
+    before, after = context.split(class_docstring)
+    before_blanks = [not line.strip() for line in before.split('\n')]
+    after_blanks = [not line.strip() for line in after.split('\n')]
+    if before_blanks[-3:] != [False, True, True]:
+        return "PEP257 Class docstring should have 1 blank line around them.",
+    if after_blanks[:3] != [True, True, False]:
+        return "PEP257 Class docstring should have 1 blank line around them.",
+
+
+def check_blank_after_last_paragtaph(docstring, context, is_script):
+    """PEP257 Multiline docstring should end with 1 blank line.
+
+    The BDFL recommends inserting a blank line between the last
+    paragraph in a multi-line docstring and its closing quotes,
+    placing the closing quotes on a line by themselves.
+    """
+    if (not docstring) or len(eval(docstring).split('\n')) == 1:
+        return
+    blanks = [not line.strip() for line in eval(docstring).split('\n')]
+    if blanks[-3:] != [False, True, True]:
+        return "PEP257 Multiline docstring should end with 1 blank line.",
 
 
 if __name__ == '__main__':

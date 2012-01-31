@@ -17,5 +17,10 @@ class OhHai(object):
 
 def foo(bar):
     """Def docstring"""
-
+    if bar:
+        return bar
+    elif foo:
+        return; bar
+    else:
+        return # sdjflsjdf
     return
