@@ -69,7 +69,11 @@ Also, see examples in "Check functions" section.
 import re
 import inspect
 from curses.ascii import isascii
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    # python 3.0 and later
+    from io import StringIO
 from optparse import OptionParser
 import tokenize as tk
 
@@ -224,7 +228,7 @@ class Error(object):
 
     * Stores relevant data about the error,
     * provides format for printing an error,
-    * provides __cmp__ method to sort errors.
+    * provides __lt__ method to sort errors.
 
     """
 
@@ -262,8 +266,8 @@ class Error(object):
             s += '\n    ' + self.source[self.start:self.end]
         return s
 
-    def __cmp__(self, other):
-        return cmp((self.filename, self.start), (other.filename, other.start))
+    def __lt__(self, other):
+        return (self.filename, self.start) < (other.filename, other.start)
 
 
 @yield_list
@@ -304,14 +308,14 @@ def parse_options():
 
 
 def main(options, arguments):
-    print '=' * 80
-    print 'Note: checks are relaxed for scripts (with #!) compared to modules.'
+    print('=' * 80)
+    print('Note: checks are relaxed for scripts (with #!) compared to modules.')
     Error.options = options
     errors = []
     for filename in arguments:
         errors.extend(check_source(''.join(open(filename)), filename))
     for error in sorted(errors):
-        print error
+        print(error)
 
 
 #
