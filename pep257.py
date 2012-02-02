@@ -74,6 +74,14 @@ from optparse import OptionParser
 import tokenize as tk
 
 
+try:
+    next
+except NameError:
+    # python 2.5 and earlier
+    def next(obj):
+        return obj.next()
+
+
 #
 # Helper functions
 #
