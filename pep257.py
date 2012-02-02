@@ -232,7 +232,7 @@ class Error(object):
         self.explanation = explanation
 
         if start is None:
-            self.start = source.find(docstring)
+            self.start = source.find(context) + context.find(docstring)
         else:
             self.start = source.find(context) + start
         self.line, self.char = rel_pos(self.start, self.source)
