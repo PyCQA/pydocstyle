@@ -447,7 +447,7 @@ def check_imperative_mood(def_docstring, context, is_script):
 
     """
     if def_docstring:
-        first_word = eval(def_docstring).strip().split(' ')[0]
+        first_word = eval(def_docstring).strip().split()[0]
         if first_word.endswith('s') and not first_word.endswith('ss'):
             return ("PEP257 First line should be in imperative mood "
                     "('Do', not 'Does').",)
