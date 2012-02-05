@@ -232,7 +232,7 @@ class Error(object):
 
     """
 
-    options = None  # optparse options that define e.g. how errors are printed
+    options = None  # optparse options that define how errors are printed
 
     def __init__(self, filename, source, docstring, context,
                  explanation, message, start=None, end=None):
@@ -273,11 +273,10 @@ class Error(object):
 @yield_list
 def find_checks(keyword):
     for function in globals().values():
-        if not inspect.isfunction(function):
-            continue
-        args = inspect.getargspec(function)[0]
-        if args and args[0] == keyword:
-            yield function
+        if inspect.isfunction(function):
+            args = inspect.getargspec(function)[0]
+            if args and args[0] == keyword:
+                yield function
 
 
 @yield_list
@@ -285,7 +284,7 @@ def check_source(source, filename=''):
     keywords = ['module_docstring', 'function_docstring',
                 'class_docstring', 'method_docstring',
                 'def_docstring', 'docstring']  # TODO? 'nested_docstring']
-    is_script = source.startswith('#!')
+    is_script = source.startswith('#!') or filename.startswith('test_')
     for keyword in keywords:
         for check in find_checks(keyword):
             for context in parse_contexts(source, keyword):
