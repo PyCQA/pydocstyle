@@ -1,10 +1,6 @@
 
 
-def pytest_funcarg__file_1(request):
-    return ''.join(open('test_file_1.py'))
-
-
-def test_parse_docstring(file_1):
+def test_parse_docstring():
     from pep257 import parse_docstring as pd
 
     d1 = '''def foo():  # o hai comment
