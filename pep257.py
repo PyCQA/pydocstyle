@@ -329,7 +329,8 @@ def check_modules_have_docstrings(module_docstring, context, is_script):
 
     """
     if not module_docstring:  # or not eval(module_docstring).strip():
-        return "PEP257 Modules should have docstrings.", 0, 79
+        return ("PEP257 Modules should have docstrings.",
+                0, min(79, len(context)))
     if not eval(module_docstring).strip():
         return "PEP257 Modules should have docstrings.",
 
@@ -457,7 +458,7 @@ def check_imperative_mood(def_docstring, context, is_script):
     "Returns the pathname ...".
 
     """
-    if def_docstring:
+    if def_docstring and eval(def_docstring).strip():
         first_word = eval(def_docstring).strip().split()[0]
         if first_word.endswith('s') and not first_word.endswith('ss'):
             return ("PEP257 First line should be in imperative mood "
