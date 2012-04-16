@@ -312,7 +312,7 @@ def main(options, arguments):
     Error.options = options
     errors = []
     for filename in arguments:
-        errors.extend(check_source(''.join(open(filename)), filename))
+        errors.extend(check_source(open(filename).read(), filename))
     for error in sorted(errors):
         print(error)
 
