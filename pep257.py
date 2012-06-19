@@ -88,6 +88,7 @@ except NameError:
             if not element:
                 return False
         return True
+
     def any(iterable):
         for element in iterable:
             if element:
@@ -509,7 +510,7 @@ def check_return_type(def_docstring, context, is_script):
     if 'return' not in def_docstring.lower():
         tokens = list(tk.generate_tokens(StringIO(context).readline))
         after_return = [tokens[i + 1][0] for i, token in enumerate(tokens)
-                                                   if token[1] == 'return']
+                        if token[1] == 'return']
         # not very precise (tk.OP ';' is not taken into account)
         if set(after_return) - set([tk.COMMENT, tk.NL, tk.NEWLINE]) != set([]):
             return "PEP257 Return value type should be mentioned.",
