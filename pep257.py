@@ -393,14 +393,14 @@ def check_class_has_docstring(class_docstring, context, is_script):
 
 
 def check_triple_double_quotes(docstring, context, is_script):
-    '''PEP257 Use """triple double quotes""".
+    r"""PEP257 Use \"\"\"triple double quotes\"\"\".
 
-    For consistency, always use """triple double quotes""" around
-    docstrings. Use r"""raw triple double quotes""" if you use any
+    For consistency, always use \"\"\"triple double quotes\"\"\" around
+    docstrings. Use r\"\"\"raw triple double quotes\"\"\" if you use any
     backslashes in your docstrings. For Unicode docstrings, use
-    u"""Unicode triple-quoted strings""".
+    u\"\"\"Unicode triple-quoted strings\"\"\".
 
-    '''
+    """
     if docstring and not (docstring.startswith('"""') or
                           docstring.startswith('r"""') or
                           docstring.startswith('u"""')):
@@ -408,22 +408,22 @@ def check_triple_double_quotes(docstring, context, is_script):
 
 
 def check_backslashes(docstring, context, is_script):
-    '''PEP257 Use r""" if any backslashes in your docstrings.
+    r"""PEP257 Use r\"\"\" if any backslashes in your docstrings.
 
-    Use r"""raw triple double quotes""" if you use any backslashes (\)
-    in your docstrings.
+    Use r\"\"\"raw triple double quotes\"\"\" if you use any backslashes
+    (\\) in your docstrings.
 
-    '''
+    """
     if docstring and "\\" in docstring and not docstring.startswith('r"""'):
         return 'PEP257 Use r""" if any backslashes in your docstrings.',
 
 
 def check_unicode_docstring(docstring, context, is_script):
-    '''PEP257 Use u""" for Unicode docstrings.
+    r"""PEP257 Use u\"\"\" for Unicode docstrings.
 
-    For Unicode docstrings, use u"""Unicode triple-quoted strings""".
+    For Unicode docstrings, use u\"\"\"Unicode triple-quoted stringsr\"\"\".
 
-    '''
+    """
     if (docstring and not all(isascii(char) for char in docstring) and
             not docstring.startswith('u"""')):
         return 'PEP257 Use u""" for Unicode docstrings.',
@@ -459,7 +459,7 @@ def check_no_blank_before(def_docstring, context, is_script):
 
 
 def check_ends_with_period(docstring, context, is_script):
-    """PEP257 First line should end with a period
+    """PEP257 First line should end with a period.
 
     The [first line of a] docstring is a phrase ending in a period.
 
@@ -518,7 +518,7 @@ def check_return_type(def_docstring, context, is_script):
 
 def check_blank_after_summary(docstring, context, is_script):
     """PEP257 Blank line missing after one-line summary.
-    ....................
+
     Multi-line docstrings consist of a summary line just like a one-line
     docstring, followed by a blank line, followed by a more elaborate
     description. The summary line may be used by automatic indexing tools;
@@ -536,8 +536,8 @@ def check_blank_after_summary(docstring, context, is_script):
 def check_indent(docstring, context, is_script):
     """PEP257 Docstrings should be indented same as code.
 
-  The entire docstring is indented the same as the quotes at its
-  first line.
+    The entire docstring is indented the same as the quotes at its
+    first line.
 
     """
     if (not docstring) or len(eval(docstring).split('\n')) == 1:
@@ -579,6 +579,7 @@ def check_blank_after_last_paragtaph(docstring, context, is_script):
     The BDFL recommends inserting a blank line between the last
     paragraph in a multi-line docstring and its closing quotes,
     placing the closing quotes on a line by themselves.
+
     """
     if (not docstring) or len(eval(docstring).split('\n')) == 1:
         return
