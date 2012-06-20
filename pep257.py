@@ -392,8 +392,8 @@ def check_class_has_docstring(class_docstring, context, is_script):
         return "PEP257 Exported classes should have docstrings.",
 
 
-def check_tripple_double_quotes(docstring, context, is_script):
-    '''PEP257 Use """tripple double quotes""".
+def check_triple_double_quotes(docstring, context, is_script):
+    '''PEP257 Use """triple double quotes""".
 
     For consistency, always use """triple double quotes""" around
     docstrings. Use r"""raw triple double quotes""" if you use any
@@ -404,7 +404,7 @@ def check_tripple_double_quotes(docstring, context, is_script):
     if docstring and not (docstring.startswith('"""') or
                           docstring.startswith('r"""') or
                           docstring.startswith('u"""')):
-        return 'PEP257 Use """tripple double quotes""".',
+        return 'PEP257 Use """triple double quotes""".',
 
 
 def check_backslashes(docstring, context, is_script):
