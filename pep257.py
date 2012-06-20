@@ -330,7 +330,10 @@ def main(options, arguments):
     Error.options = options
     errors = []
     for filename in arguments:
-        errors.extend(check_source(open(filename).read(), filename))
+        try:
+            errors.extend(check_source(open(filename).read(), filename))
+        except IOError:
+            print "Error opening file %s" % filename
     for error in sorted(errors):
         print(error)
 
