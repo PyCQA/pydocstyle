@@ -573,7 +573,7 @@ def check_blank_before_after_class(class_docstring, context, is_script):
         return "PEP257 Class docstring should have 1 blank line around them.",
 
 
-def check_blank_after_last_paragtaph(docstring, context, is_script):
+def check_blank_after_last_paragraph(docstring, context, is_script):
     """PEP257 Multiline docstring should end with 1 blank line.
 
     The BDFL recommends inserting a blank line between the last
