@@ -10,9 +10,9 @@ def test_parse_docstring():
 
     d2 = '''def foo():  # o hai comment
     2 + 2'''
-    assert pd(d2) == None
+    assert pd(d2) is None
 
-    assert pd("def foo():pass") == None
+    assert pd("def foo():pass") is None
     # TODO
     #assert pd("def bar():'doc';pass") == "'doc'"
 
@@ -64,3 +64,73 @@ def test_parse_methods():
         pass'''
     assert pm(m2) == ['def m1():\n        pass\n    ',
                       'def m2():\n        pass']
+
+
+def test_check_triple_double_quotes():
+    from pep257 import check_triple_double_quotes as check
+    d1 = """\'\'\'Not using triple douple quotes\'\'\'"""
+    d2 = """\"\"\"Using triple double quotes\"\"\""""
+    d3 = """r\"\"\"Using raw triple double quotes\"\"\""""
+    d4 = """u\"\"\"Using unicode triple double quotes\"\"\""""
+    assert check(d1, None, None) is not None
+    assert check(d2, None, None) is None
+    assert check(d3, None, None) is None
+    assert check(d4, None, None) is None
+
+
+def test_check_backslashes():
+    from pep257 import check_backslashes as check
+    d1 = """\"\"\"ABC\\DEF"\"\"\""""
+    d2 = """r\"\"\"ABC\\DEF"\"\"\""""
+    assert check(d1, None, None) is not None
+    assert check(d2, None, None) is None
+
+
+def test_check_unicode_docstring():
+    # TODO
+    pass
+
+
+def test_check_ends_with_period():
+    from pep257 import check_ends_with_period as check
+    d1 = """\"\"\"PEP257 First line should end with a period\"\"\""""
+    d2 = """\"\"\"PEP257 First line should end with a period.\"\"\""""
+    assert check(d1, None, None) is not None
+    assert check(d2, None, None) is None
+
+
+def test_check_blank_after_summary():
+    from pep257 import check_blank_after_summary as check
+    d1 = """\"\"\"PEP257 Blank line missing after one-line summary.
+    ....................
+    \"\"\""""
+    d2 = """\"\"\"PEP257 Blank line missing after one-line summary.
+
+    \"\"\""""
+    assert check(d1, None, None) is not None
+    assert check(d2, None, None) is None
+
+
+def test_check_indent():
+    # TODO
+    pass
+
+
+def test_check_blank_after_last_paragraph():
+    from pep257 import check_blank_after_last_paragraph as check
+    d1 = """\"\"\"PEP257 Multiline docstring should end with 1 blank line.
+
+    The BDFL recommends inserting a blank line between the last
+    paragraph in a multi-line docstring and its closing quotes,
+    placing the closing quotes on a line by themselves.
+
+    \"\"\""""
+
+    d2 = """\"\"\"PEP257 Multiline docstring should end with 1 blank line.
+
+    The BDFL recommends inserting a blank line between the last
+    paragraph in a multi-line docstring and its closing quotes,
+    placing the closing quotes on a line by themselves.
+    \"\"\""""
+    assert check(d1, None, None) is None
+    assert check(d2, None, None) is not None
