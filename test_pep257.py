@@ -1,16 +1,17 @@
+# -*- coding: utf-8 -*-
 
 
 def test_parse_docstring():
     from pep257 import parse_docstring as pd
 
-    d1 = '''def foo():  # o hai comment
+    s1 = '''def foo():  # o hai comment
     """docstring"""
     2 + 2'''
-    assert pd(d1) == '"""docstring"""'
+    assert pd(s1) == '"""docstring"""'
 
-    d2 = '''def foo():  # o hai comment
+    s2 = '''def foo():  # o hai comment
     2 + 2'''
-    assert pd(d2) is None
+    assert pd(s2) is None
 
     assert pd("def foo():pass") is None
     # TODO
@@ -18,10 +19,10 @@ def test_parse_docstring():
 
 
 def test_abs_pos():
-    from pep257 import abs_pos as ac
-    assert ac((1, 0), 'foo') == 0
-    assert ac((1, 2), 'foo') == 2
-    assert ac((2, 0), 'foo\nbar') == 4
+    from pep257 import abs_pos as ap
+    assert ap((1, 0), 'foo') == 0
+    assert ap((1, 2), 'foo') == 2
+    assert ap((2, 0), 'foo\nbar') == 4
 
 
 def test_rel_pos():
@@ -68,72 +69,76 @@ def test_parse_methods():
 
 def test_check_triple_double_quotes():
     from pep257 import check_triple_double_quotes as check
-    d1 = """\'\'\'Not using triple douple quotes\'\'\'"""
-    d2 = """\"\"\"Using triple double quotes\"\"\""""
-    d3 = """r\"\"\"Using raw triple double quotes\"\"\""""
-    d4 = """u\"\"\"Using unicode triple double quotes\"\"\""""
-    assert check(d1, None, None) is not None
-    assert check(d2, None, None) is None
-    assert check(d3, None, None) is None
-    assert check(d4, None, None) is None
+    assert check("'''Not using triple douple quotes'''", None, None)
+    assert not check('"""Using triple double quotes"""', None, None)
+    assert not check('r"""Using raw triple double quotes"""', None, None)
+    assert not check('u"""Using unicode triple double quotes"""', None, None)
 
 
 def test_check_backslashes():
     from pep257 import check_backslashes as check
-    d1 = """\"\"\"ABC\\DEF"\"\"\""""
-    d2 = """r\"\"\"ABC\\DEF"\"\"\""""
-    assert check(d1, None, None) is not None
-    assert check(d2, None, None) is None
+    assert check('"""backslash\\here""""', None, None)
+    assert not check('r"""backslash\\here""""', None, None)
 
 
 def test_check_unicode_docstring():
-    # TODO
-    pass
+    from pep257 import check_unicode_docstring as check
+    assert not check('"""No Unicode here."""', None, None)
+    assert not check('u"""Здесь Юникод: øπΩ≈ç√∫˜µ≤"""', None, None)
+    assert check('"""Здесь Юникод: øπΩ≈ç√∫˜µ≤"""', None, None)
 
 
 def test_check_ends_with_period():
     from pep257 import check_ends_with_period as check
-    d1 = """\"\"\"PEP257 First line should end with a period\"\"\""""
-    d2 = """\"\"\"PEP257 First line should end with a period.\"\"\""""
-    assert check(d1, None, None) is not None
-    assert check(d2, None, None) is None
+    assert check('"""Should end with a period"""', None, None)
+    assert not check('"""Should end with a period."""', None, None)
 
 
 def test_check_blank_after_summary():
     from pep257 import check_blank_after_summary as check
-    d1 = """\"\"\"PEP257 Blank line missing after one-line summary.
+    s1 = '''"""Blank line missing after one-line summary.
     ....................
-    \"\"\""""
-    d2 = """\"\"\"PEP257 Blank line missing after one-line summary.
+    """'''
+    s2 = '''"""Blank line missing after one-line summary.
 
-    \"\"\""""
-    assert check(d1, None, None) is not None
-    assert check(d2, None, None) is None
+    """'''
+    assert check(s1, None, None)
+    assert not check(s2, None, None)
 
 
 def test_check_indent():
-    # TODO
-    pass
+    from pep257 import check_indent as check
+    context = '''def foo():
+    """Docstring.
+
+    Properly indented.
+
+    """
+    pass'''
+    assert not check('"""%s"""' % context.split('"""')[1], context, None)
+    context = '''def foo():
+    """Docstring.
+
+Not Properly indented.
+
+    """
+    pass'''
+    assert check('"""%s"""' % context.split('"""')[1], context, None)
 
 
 def test_check_blank_after_last_paragraph():
     from pep257 import check_blank_after_last_paragraph as check
-    d1 = """\"\"\"PEP257 Multiline docstring should end with 1 blank line.
+    s1 = '''"""Multiline docstring should end with 1 blank line.
 
-    The BDFL recommends inserting a blank line between the last
-    paragraph in a multi-line docstring and its closing quotes,
-    placing the closing quotes on a line by themselves.
+    Blank here:
 
-    \"\"\""""
+    """'''
+    s2 = '''"""Multiline docstring should end with 1 blank line.
 
-    d2 = """\"\"\"PEP257 Multiline docstring should end with 1 blank line.
-
-    The BDFL recommends inserting a blank line between the last
-    paragraph in a multi-line docstring and its closing quotes,
-    placing the closing quotes on a line by themselves.
-    \"\"\""""
-    assert check(d1, None, None) is None
-    assert check(d2, None, None) is not None
+    No blank here.
+    """'''
+    assert not check(s1, None, None)
+    assert check(s2, None, None)
 
 
 def test_pep257():
