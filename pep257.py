@@ -250,7 +250,10 @@ class Error(object):
 
     """
 
-    options = None  # optparse options that define how errors are printed
+    # options that define how errors are printed
+    explain = False
+    range = False
+    quote = False
 
     def __init__(self, filename, source, docstring, context,
                  explanation, message, start=None, end=None):
@@ -275,12 +278,12 @@ class Error(object):
 
     def __str__(self):
         s = self.filename + ':%d:%d' % (self.line, self.char)
-        if self.options.range:
+        if self.range:
             s += '..%d:%d' % (self.end_line, self.end_char)
         s += ': ' + self.message
-        if self.options.explain:
+        if self.explain:
             s += '\n' + self.explanation
-        if self.options.quote:
+        if self.quote:
             s += '\n    ' + self.source[self.start:self.end]
         return s
 
@@ -313,6 +316,22 @@ def check_source(source, filename=''):
                                 check.__doc__, *result)
 
 
+def check_files(filenames):
+    """Return list of docstring style errors found in files.
+
+    Example
+    -------
+    >>> import pep257
+    >>> pep257.check_files(['one.py', 'two.py'])
+    ['one.py:23:1 PEP257 Use u\"\"\" for Unicode docstrings.']
+
+    """
+    errors = []
+    for filename in filenames:
+        errors.extend(check_source(open(filename).read(), filename))
+    return [str(e) for e in errors]
+
+
 def parse_options():
     parser = OptionParser()
     parser.add_option('-e', '--explain', action='store_true',
@@ -327,7 +346,9 @@ def parse_options():
 def main(options, arguments):
     print('=' * 80)
     print('Note: checks are relaxed for scripts (with #!) compared to modules.')
-    Error.options = options
+    Error.explain = options.explain
+    Error.range = options.range
+    Error.quote = options.quote
     errors = []
     for filename in arguments:
         try:
