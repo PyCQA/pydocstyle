@@ -69,26 +69,27 @@ Also, see examples in "Check functions" section.
 import re
 import inspect
 from curses.ascii import isascii
+from optparse import OptionParser
+import tokenize as tk
+
+
 try:
     from StringIO import StringIO
 except ImportError:
-    # python 3.0 and later
+    # Python 3.0 and later
     from io import StringIO
-from optparse import OptionParser
-import tokenize as tk
 
 
 try:
     all
     any
 except NameError:
-    # python 2.4 and earlier
+    # Python 2.4 and earlier
     def all(iterable):
         for element in iterable:
             if not element:
                 return False
         return True
-
     def any(iterable):
         for element in iterable:
             if element:
@@ -99,7 +100,7 @@ except NameError:
 try:
     next
 except NameError:
-    # python 2.5 and earlier
+    # Python 2.5 and earlier
     def next(obj):
         return obj.next()
 
