@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 
 """Static analysis tool for checking docstring conventions and style.
 
@@ -13,7 +13,7 @@ e.g. NumPy docstring conventions is the first candidate:
 https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 
 The main repository of this program is located at:
-http://github.com/halst/pep257
+http://github.com/GreenSteam/pep257
 
 Creating own checks
 -------------------
@@ -333,7 +333,7 @@ def main(options, arguments):
         try:
             errors.extend(check_source(open(filename).read(), filename))
         except IOError:
-            print "Error opening file %s" % filename
+            print("Error opening file %s" % filename)
     for error in sorted(errors):
         print(error)
 

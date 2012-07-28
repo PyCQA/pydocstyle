@@ -1,0 +1,9 @@
+#! /usr/bin/env python
+from pep257 import main, parse_options
+
+
+if __name__ == '__main__':
+    try:
+        main(*parse_options())
+    except KeyboardInterrupt:
+        pass
