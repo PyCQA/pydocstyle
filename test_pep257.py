@@ -134,3 +134,8 @@ def test_check_blank_after_last_paragraph():
     \"\"\""""
     assert check(d1, None, None) is None
     assert check(d2, None, None) is not None
+
+
+def test_pep257():
+    from pep257 import check_files
+    assert [] == check_files(['pep257.py'])
