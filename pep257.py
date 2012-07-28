@@ -317,7 +317,7 @@ def check_source(source, filename=''):
 
 
 def check_files(filenames):
-    """Return list of docstring style errors found in files.
+    r"""Return list of docstring style errors found in files.
 
     Example
     -------
