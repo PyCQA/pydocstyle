@@ -109,6 +109,22 @@ except NameError:
 # Helper functions
 #
 
+def cached(f):
+    """A decorator that caches function results.
+
+    No cache expiration is currently done.
+    """
+    cache = {}
+    def cached_func(*args, **kwargs):
+        key = (args, tuple(kwargs.items()))
+        if key in cache:
+            return cache[key]
+        else:
+            res = f(*args, **kwargs)
+            cache[key] = res
+            return res
+    return cached_func
+
 
 def yield_list(f):
     return lambda *arg, **kw: list(f(*arg, **kw))
@@ -205,6 +221,7 @@ def skip_indented_block(token_gen):
             return kind, value, start, end, raw
 
 
+@cached
 @yield_list
 def parse_methods(source):
     source = ''.join(parse_classes(source))
