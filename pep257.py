@@ -113,6 +113,7 @@ def cached(f):
     """A decorator that caches function results.
 
     No cache expiration is currently done.
+
     """
     cache = {}
     def cached_func(*args, **kwargs):
