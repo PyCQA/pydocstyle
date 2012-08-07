@@ -353,9 +353,15 @@ def main(options, arguments):
     errors = []
     for filename in arguments:
         try:
-            errors.extend(check_source(open(filename).read(), filename))
+            f = open(filename)
         except IOError:
             print("Error opening file %s" % filename)
+        try:
+            errors.extend(check_source(f.read(), filename))
+        except IOError:
+            print("Error reading file %s" % filename)
+        finally:
+            f.close()
     for error in sorted(errors):
         print(error)
 
