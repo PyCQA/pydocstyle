@@ -144,9 +144,11 @@ def abs_pos(marker, source):
 def rel_pos(abs_pos, source):
     """Return relative position (line, character) in source based."""
     lines = StringIO(source).readlines()
-    assert len(''.join(lines)) >= abs_pos
-    while len(''.join(lines)) > abs_pos:
-        assert len(''.join(lines)) >= abs_pos
+    nchars = len(source)
+    assert nchars >= abs_pos
+    while nchars > abs_pos:
+        assert nchars >= abs_pos
+        nchars -= len(lines[-1])
         lines.pop()
     return len(lines) + 1, abs_pos - len(''.join(lines))
 
