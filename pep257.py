@@ -202,10 +202,12 @@ def parse_top_level(source, keyword):
         yield source[abs_pos(start, source): abs_pos(end, source)]
 
 
+@cached
 def parse_functions(source):
     return parse_top_level(source, 'def')
 
 
+@cached
 def parse_classes(source):
     return parse_top_level(source, 'class')
 
