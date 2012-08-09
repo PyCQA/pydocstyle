@@ -1,7 +1,7 @@
 PEP 257 docstring style checker
 ===============================================================================
 
-**pep275** is a static analysis tool for checking compliance with
+**pep257** is a static analysis tool for checking compliance with
 Python PEP 257: <http://www.python.org/dev/peps/pep-0257/>.
 
 The framework for checking docstring style is flexible, and custom checks
