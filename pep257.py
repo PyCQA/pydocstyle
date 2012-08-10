@@ -302,7 +302,7 @@ def find_checks(keyword):
 
 
 @yield_list
-def check_source(source, filename=''):
+def check_source(source, filename):
     keywords = ['module_docstring', 'function_docstring',
                 'class_docstring', 'method_docstring',
                 'def_docstring', 'docstring']  # TODO? 'nested_docstring']
