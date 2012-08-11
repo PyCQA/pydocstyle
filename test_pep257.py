@@ -207,3 +207,24 @@ def test_failed_read():
                                  ' (with #!) compared to modules.')
     assert captured_lines[2] == 'Error reading file dummy-file.py'
     assert captured_lines[3] == ''
+
+
+def test_opened_files_are_closed():
+    import mock
+    files_opened = []
+    real_open = open
+    def open_wrapper(*args, **kw):
+        opened_file = mock.MagicMock(wraps=real_open(*args, **kw))
+        files_opened.append(opened_file)
+        return opened_file
+    open_mock = mock.MagicMock(side_effect=open_wrapper)
+    open_mock.__enter__.side_effect = open_wrapper
+
+    with mock.patch('__builtin__.open', open_mock, create=True):
+        import pep257
+        pep257.main(*pep257.parse_options(['pep257.py']))
+
+    open_mock.assert_called_once_with(('pep257.py'))
+    assert len(files_opened) == 1
+    for opened_file in files_opened:
+        opened_file.close.assert_called_once_with()
