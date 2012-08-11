@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import contextlib
 
 
 def test_parse_docstring():
@@ -144,3 +145,33 @@ def test_check_blank_after_last_paragraph():
 def test_pep257():
     from pep257 import check_files
     assert [] == check_files(['pep257.py'])
+
+
+@contextlib.contextmanager
+def capture_stdout(destination):
+    import sys
+    real_stdout = sys.stdout
+    sys.stdout = destination
+    yield
+    sys.stdout = real_stdout
+
+
+def test_failed_open():
+    import os.path
+    filename = "non-existent-file.py"
+    assert not os.path.exists(filename)
+
+    import StringIO
+    captured = StringIO.StringIO()
+    with capture_stdout(captured):
+        import pep257
+        pep257.main(*pep257.parse_options([filename]))
+
+    captured_lines = captured.getvalue().split('\n')
+    captured_lines = [line.strip() for line in captured_lines]
+    assert len(captured_lines) == 4
+    assert captured_lines[0] == ('='*80)
+    assert captured_lines[1] == ('Note: checks are relaxed for scripts'
+                                 ' (with #!) compared to modules.')
+    assert captured_lines[2] == 'Error opening file non-existent-file.py'
+    assert captured_lines[3] == ''

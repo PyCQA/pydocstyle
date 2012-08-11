@@ -333,7 +333,7 @@ def check_files(filenames):
     return [str(e) for e in errors]
 
 
-def parse_options():
+def parse_options(custom_args=None):
     parser = OptionParser()
     parser.add_option('-e', '--explain', action='store_true',
                       help='show explanation of each error')
@@ -341,7 +341,11 @@ def parse_options():
                       help='show error start..end positions')
     parser.add_option('-q', '--quote', action='store_true',
                       help='quote erroneous lines')
-    return parser.parse_args()
+    if custom_args is not None:
+        assert isinstance(custom_args, list)
+        return parser.parse_args(custom_args)
+    else:
+        return parser.parse_args()
 
 
 def main(options, arguments):
