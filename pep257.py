@@ -109,6 +109,23 @@ except NameError:
 # Helper functions
 #
 
+def cached(f):
+    """A decorator that caches function results.
+
+    No cache expiration is currently done.
+
+    """
+    cache = {}
+    def cached_func(*args, **kwargs):
+        key = (args, tuple(kwargs.items()))
+        if key in cache:
+            return cache[key]
+        else:
+            res = f(*args, **kwargs)
+            cache[key] = res
+            return res
+    return cached_func
+
 
 def yield_list(f):
     return lambda *arg, **kw: list(f(*arg, **kw))
@@ -128,9 +145,11 @@ def abs_pos(marker, source):
 def rel_pos(abs_pos, source):
     """Return relative position (line, character) in source based."""
     lines = StringIO(source).readlines()
-    assert len(''.join(lines)) >= abs_pos
-    while len(''.join(lines)) > abs_pos:
-        assert len(''.join(lines)) >= abs_pos
+    nchars = len(source)
+    assert nchars >= abs_pos
+    while nchars > abs_pos:
+        assert nchars >= abs_pos
+        nchars -= len(lines[-1])
         lines.pop()
     return len(lines) + 1, abs_pos - len(''.join(lines))
 
@@ -183,10 +202,12 @@ def parse_top_level(source, keyword):
         yield source[abs_pos(start, source): abs_pos(end, source)]
 
 
+@cached
 def parse_functions(source):
     return parse_top_level(source, 'def')
 
 
+@cached
 def parse_classes(source):
     return parse_top_level(source, 'class')
 
@@ -205,6 +226,7 @@ def skip_indented_block(token_gen):
             return kind, value, start, end, raw
 
 
+@cached
 @yield_list
 def parse_methods(source):
     source = ''.join(parse_classes(source))
