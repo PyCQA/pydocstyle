@@ -17,4 +17,5 @@ setup(name='pep257',
                    'License :: OSI Approved :: MIT License'],
       keywords='PEP 257, pep257, PEP 8, pep8, docstrings',
       py_modules=['pep257'],
-      scripts=['pep257'])
+      scripts=['pep257'],
+      tests_require=['mock==0.8'])
