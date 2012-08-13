@@ -355,7 +355,7 @@ def check_files(filenames):
     return [str(e) for e in errors]
 
 
-def parse_options():
+def parse_options(custom_args=None):
     parser = OptionParser()
     parser.add_option('-e', '--explain', action='store_true',
                       help='show explanation of each error')
@@ -363,7 +363,11 @@ def parse_options():
                       help='show error start..end positions')
     parser.add_option('-q', '--quote', action='store_true',
                       help='quote erroneous lines')
-    return parser.parse_args()
+    if custom_args is not None:
+        assert isinstance(custom_args, list)
+        return parser.parse_args(custom_args)
+    else:
+        return parser.parse_args()
 
 
 def main(options, arguments):
@@ -375,9 +379,16 @@ def main(options, arguments):
     errors = []
     for filename in arguments:
         try:
-            errors.extend(check_source(open(filename).read(), filename))
+            f = open(filename)
         except IOError:
             print("Error opening file %s" % filename)
+        else:
+            try:
+                errors.extend(check_source(f.read(), filename))
+            except IOError:
+                print("Error reading file %s" % filename)
+            finally:
+                f.close()
     for error in sorted(errors):
         print(error)
 

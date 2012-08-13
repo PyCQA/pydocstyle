@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import contextlib
+from mock import MagicMock
 
 
 def test_parse_docstring():
@@ -144,3 +146,85 @@ def test_check_blank_after_last_paragraph():
 def test_pep257():
     from pep257 import check_files
     assert [] == check_files(['pep257.py'])
+
+
+@contextlib.contextmanager
+def capture_stdout(destination):
+    import sys
+    real_stdout = sys.stdout
+    sys.stdout = destination
+    yield
+    sys.stdout = real_stdout
+
+
+def test_failed_open():
+    import os.path
+    filename = "non-existent-file.py"
+    assert not os.path.exists(filename)
+
+    import StringIO
+    captured = StringIO.StringIO()
+    with capture_stdout(captured):
+        import pep257
+        pep257.main(*pep257.parse_options([filename]))
+
+    captured_lines = captured.getvalue().split('\n')
+    captured_lines = [line.strip() for line in captured_lines]
+    assert len(captured_lines) == 4
+    assert captured_lines[0] == ('='*80)
+    assert captured_lines[1] == ('Note: checks are relaxed for scripts'
+                                 ' (with #!) compared to modules.')
+    assert captured_lines[2] == 'Error opening file non-existent-file.py'
+    assert captured_lines[3] == ''
+
+
+def test_failed_read():
+    import StringIO
+    captured = StringIO.StringIO()
+
+    import mock
+    open_mock = mock.MagicMock()
+    handle = mock.MagicMock()
+    handle.read.side_effect = IOError('Stubbed read error')
+    open_mock.__enter__.return_value = handle
+    open_mock.return_value = handle
+
+    with capture_stdout(captured):
+        with mock.patch('__builtin__.open', open_mock, create=True):
+            # Double nesting to support older versions of Python
+            import pep257
+            pep257.main(*pep257.parse_options(['dummy-file.py']))
+
+    open_mock.assert_called_once_with(('dummy-file.py'))
+    handle.close.assert_called_once_with()
+
+    captured_lines = captured.getvalue().split('\n')
+    captured_lines = [line.strip() for line in captured_lines]
+    assert len(captured_lines) == 4
+
+    assert captured_lines[0] == ('='*80)
+    assert captured_lines[1] == ('Note: checks are relaxed for scripts'
+                                 ' (with #!) compared to modules.')
+    assert captured_lines[2] == 'Error reading file dummy-file.py'
+    assert captured_lines[3] == ''
+
+
+def test_opened_files_are_closed():
+    import mock
+    files_opened = []
+    real_open = open
+    def open_wrapper(*args, **kw):
+        opened_file = mock.MagicMock(wraps=real_open(*args, **kw))
+        files_opened.append(opened_file)
+        return opened_file
+    open_mock = mock.MagicMock(side_effect=open_wrapper)
+    open_mock.__enter__.side_effect = open_wrapper
+
+    with mock.patch('__builtin__.open', open_mock, create=True):
+        import pep257
+        pep257.main(*pep257.parse_options(['pep257.py']))
+
+    open_mock.assert_called_once_with(('pep257.py'))
+    assert len(files_opened) == 1
+    for opened_file in files_opened:
+        opened_file.close.assert_called_once_with()
