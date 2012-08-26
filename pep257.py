@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-
 """Static analysis tool for checking docstring conventions and style.
 
 About

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import contextlib
-from mock import MagicMock
 
 
 def test_parse_docstring():
