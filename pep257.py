@@ -89,6 +89,7 @@ except NameError:
             if not element:
                 return False
         return True
+
     def any(iterable):
         for element in iterable:
             if element:
@@ -115,6 +116,7 @@ def cached(f):
 
     """
     cache = {}
+
     def cached_func(*args, **kwargs):
         key = (args, tuple(kwargs.items()))
         if key in cache:
