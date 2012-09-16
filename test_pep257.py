@@ -1,5 +1,20 @@
+"""Test-suite uses py.test (pip install pytest)."""
 # -*- coding: utf-8 -*-
 import contextlib
+
+
+FILES = ['pep257.py', 'test_pep257.py']
+
+
+def test_pep257_conformance():
+    from pep257 import check_files
+    assert check_files(FILES) == []
+
+
+def test_pep8_conformance():
+    import pep8
+    pep8style = pep8.StyleGuide()
+    assert pep8style.check_files(FILES).total_errors == 0
 
 
 def test_parse_docstring():
@@ -142,11 +157,6 @@ def test_check_blank_after_last_paragraph():
     assert check(s2, None, None)
 
 
-def test_pep257():
-    from pep257 import check_files
-    assert [] == check_files(['pep257.py'])
-
-
 @contextlib.contextmanager
 def capture_stdout(destination):
     import sys
@@ -170,9 +180,9 @@ def test_failed_open():
     captured_lines = captured.getvalue().split('\n')
     captured_lines = [line.strip() for line in captured_lines]
     assert len(captured_lines) == 4
-    assert captured_lines[0] == ('='*80)
+    assert captured_lines[0] == ('=' * 80)
     assert captured_lines[1] == ('Note: checks are relaxed for scripts'
-                                 ' (with #!) compared to modules.')
+                                 ' (with #!) compared to modules')
     assert captured_lines[2] == 'Error opening file non-existent-file.py'
     assert captured_lines[3] == ''
 
@@ -201,9 +211,9 @@ def test_failed_read():
     captured_lines = [line.strip() for line in captured_lines]
     assert len(captured_lines) == 4
 
-    assert captured_lines[0] == ('='*80)
+    assert captured_lines[0] == ('=' * 80)
     assert captured_lines[1] == ('Note: checks are relaxed for scripts'
-                                 ' (with #!) compared to modules.')
+                                 ' (with #!) compared to modules')
     assert captured_lines[2] == 'Error reading file dummy-file.py'
     assert captured_lines[3] == ''
 
@@ -212,6 +222,7 @@ def test_opened_files_are_closed():
     import mock
     files_opened = []
     real_open = open
+
     def open_wrapper(*args, **kw):
         opened_file = mock.MagicMock(wraps=real_open(*args, **kw))
         files_opened.append(opened_file)
