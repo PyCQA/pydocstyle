@@ -1,4 +1,26 @@
-#! /usr/bin/env python
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+# Copyright (c) 2012 GreenSteam, <http://greensteam.dk/>
+#
+#    Permission is hereby granted, free of charge, to any person
+#    obtaining a copy of this software and associated documentation files
+#    (the "Software"), to deal in the Software without restriction,
+#    including without limitation the rights to use, copy, modify, merge,
+#    publish, distribute, sublicense, and/or sell copies of the Software,
+#    and to permit persons to whom the Software is furnished to do so,
+#    subject to the following conditions:
+#
+#    The above copyright notice and this permission notice shall be included
+#    in all copies or substantial portions of the Software.
+#
+#    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+#    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+#    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+#    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
+#    THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 """Static analysis tool for checking docstring conventions and style.
 
 About
@@ -70,6 +92,7 @@ import inspect
 from curses.ascii import isascii
 from optparse import OptionParser
 import tokenize as tk
+import os
 
 
 try:
@@ -279,9 +302,9 @@ class Error(object):
     range = False
     quote = False
 
-    def __init__(self, filename, source, docstring, context,
+    def __init__(self, filepath, source, docstring, context,
                  explanation, message, start=None, end=None):
-        self.filename = filename.split('/')[-1]
+        self.filepath = filepath
         self.source = source
         self.docstring = docstring
         self.context = context
@@ -301,7 +324,7 @@ class Error(object):
         self.end_line, self.end_char = rel_pos(self.end, self.source)
 
     def __str__(self):
-        s = self.filename + ':%d:%d' % (self.line, self.char)
+        s = self.filepath + ':%d:%d' % (self.line, self.char)
         if self.range:
             s += '..%d:%d' % (self.end_line, self.end_char)
         s += ': ' + self.message
@@ -312,7 +335,7 @@ class Error(object):
         return s
 
     def __lt__(self, other):
-        return (self.filename, self.start) < (other.filename, other.start)
+        return (self.filepath, self.start) < (other.filepath, other.start)
 
 
 @yield_list
@@ -325,10 +348,11 @@ def find_checks(keyword):
 
 
 @yield_list
-def check_source(source, filename):
+def check_source(source, filepath):
     keywords = ['module_docstring', 'function_docstring',
                 'class_docstring', 'method_docstring',
                 'def_docstring', 'docstring']  # TODO? 'nested_docstring']
+    filename = os.path.split(filepath)[1]
     is_script = source.startswith('#!') or filename.startswith('test_')
     for keyword in keywords:
         for check in find_checks(keyword):
@@ -336,11 +360,11 @@ def check_source(source, filename):
                 docstring = parse_docstring(context, keyword)
                 result = check(docstring, context, is_script)
                 if result is not None:
-                    yield Error(filename, source, docstring, context,
+                    yield Error(filepath, source, docstring, context,
                                 check.__doc__, *result)
 
 
-def check_files(filenames):
+def check_files(filepaths):
     r"""Return list of docstring style errors found in files.
 
     Example
@@ -351,8 +375,8 @@ def check_files(filenames):
 
     """
     errors = []
-    for filename in filenames:
-        errors.extend(check_source(open(filename).read(), filename))
+    for filepath in filepaths:
+        errors.extend(check_source(open(filepath).read(), filepath))
     return [str(e) for e in errors]
 
 
@@ -378,16 +402,16 @@ def main(options, arguments):
     Error.range = options.range
     Error.quote = options.quote
     errors = []
-    for filename in arguments:
+    for filepath in arguments:
         try:
-            f = open(filename)
+            f = open(filepath)
         except IOError:
-            print("Error opening file %s" % filename)
+            print("Error opening file %s" % filepath)
         else:
             try:
-                errors.extend(check_source(f.read(), filename))
+                errors.extend(check_source(f.read(), filepath))
             except IOError:
-                print("Error reading file %s" % filename)
+                print("Error reading file %s" % filepath)
             finally:
                 f.close()
     for error in sorted(errors):
