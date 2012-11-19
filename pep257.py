@@ -65,6 +65,7 @@ Also, see examples in "Check functions" section.
 
 """
 
+import os.path
 import re
 import inspect
 from curses.ascii import isascii
@@ -329,7 +330,8 @@ def check_source(source, filename):
     keywords = ['module_docstring', 'function_docstring',
                 'class_docstring', 'method_docstring',
                 'def_docstring', 'docstring']  # TODO? 'nested_docstring']
-    is_script = source.startswith('#!') or filename.startswith('test_')
+    basename = os.path.basename(filename)
+    is_script = source.startswith('#!') or basename.startswith('test_')
     for keyword in keywords:
         for check in find_checks(keyword):
             for context in parse_contexts(source, keyword):

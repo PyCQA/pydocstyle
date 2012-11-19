@@ -238,3 +238,25 @@ def test_opened_files_are_closed():
     assert len(files_opened) == 1
     for opened_file in files_opened:
         opened_file.close.assert_called_once_with()
+
+
+def test_ignore_scripts():
+    import mock
+
+    def check_is_script(doc_string, context, is_script):
+        assert is_script
+        return None
+
+    mock_check = mock.MagicMock(side_effect=check_is_script)
+
+    with mock.patch('pep257.find_checks', return_value=[mock_check]):
+        from pep257 import check_source
+        # files that start with a shabang are ignored
+        check_source('#! /usr/bin/env python\n\nprint "This is a script"',
+                     'somefilename.py')
+        # files that start with 'test_' are ignored
+        check_source('"""Some docstring"""', 'test_filename.py')
+        # files that start with 'test_' but inside some other directories are
+        # ignored
+        check_source('"""Some docstring"""', '/module/mod/mo/test_filename.py')
+        assert len(mock_check.mock_calls) > 1
