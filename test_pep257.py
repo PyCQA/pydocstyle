@@ -110,6 +110,41 @@ def test_check_ends_with_period():
     assert not check('"""Should end with a period."""', None, None)
 
 
+def test_check_blank_before_after_class():
+    from pep257 import check_blank_before_after_class as check
+    c1 = '''class Perfect(object):
+
+    """This should work perfectly."""
+
+    pass'''
+    assert not check('"""This should work perfectly."""', c1, False)
+
+    c2 = '''class BadTop(object):
+    """This should fail due to a lack of whitespace above."""
+
+    pass'''
+    assert check('"""This should fail due to a lack of whitespace above."""',
+                 c2, False)
+    c3 = '''class BadBottom(object):
+
+    """This should fail due to a lack of whitespace below."""
+    pass'''
+    assert check('"""This should fail due to a lack of whitespace below."""',
+                 c3, False)
+    c4 = '''class GoodWithNoFollowingWhiteSpace(object):
+
+    """This should work."""'''
+    assert not check('"""This should work."""',
+                     c4, False)
+    c5 = '''class GoodWithFollowingWhiteSpace(object):
+
+    """This should work."""
+
+
+'''
+    assert not check('"""This should work."""', c5, False)
+
+
 def test_check_blank_after_summary():
     from pep257 import check_blank_after_summary as check
     s1 = '''"""Blank line missing after one-line summary.

@@ -628,7 +628,7 @@ def check_blank_before_after_class(class_docstring, context, is_script):
     after_blanks = [not line.strip() for line in after.split('\n')]
     if before_blanks[-3:] != [False, True, True]:
         return "PEP257 Class docstring should have 1 blank line around them.",
-    if after_blanks[:3] != [True, True, False]:
+    if not all(after_blanks) and after_blanks[:3] != [True, True, False]:
         return "PEP257 Class docstring should have 1 blank line around them.",
 
 
