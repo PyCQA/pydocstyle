@@ -129,6 +129,7 @@ def cached(f):
 
 
 def yield_list(f):
+    """Convert generator into list-returning function (decorator)."""
     return lambda *arg, **kw: list(f(*arg, **kw))
 
 
@@ -144,7 +145,7 @@ def abs_pos(marker, source):
 
 
 def rel_pos(abs_pos, source):
-    """Return relative position (line, character) in source based."""
+    """Given absolute position, return relative (line, character) in source."""
     lines = StringIO(source).readlines()
     nchars = len(source)
     assert nchars >= abs_pos
@@ -164,11 +165,10 @@ def parse_module_docstring(source):
     for kind, value, _, _, _ in tk.generate_tokens(StringIO(source).readline):
         if kind in [tk.COMMENT, tk.NEWLINE, tk.NL]:
             continue
-        elif kind == tk.STRING:
-            docstring = value
-            return docstring
+        elif kind == tk.STRING:  # first STRING should be docstring
+            return value
         else:
-            return
+            return None
 
 
 def parse_docstring(source, what=''):
@@ -181,7 +181,7 @@ def parse_docstring(source, what=''):
         while kind != tk.INDENT:
             kind, _, _, _, _ = next(token_gen)
         kind, value, _, _, _ = next(token_gen)
-        if kind == tk.STRING:
+        if kind == tk.STRING:  # STRING after INDENT is a docstring
             return value
     except StopIteration:
         pass
@@ -356,7 +356,7 @@ def check_files(filenames):
     return [str(e) for e in errors]
 
 
-def parse_options(custom_args=None):
+def parse_options():
     parser = OptionParser()
     parser.add_option('-e', '--explain', action='store_true',
                       help='show explanation of each error')
@@ -364,11 +364,7 @@ def parse_options(custom_args=None):
                       help='show error start..end positions')
     parser.add_option('-q', '--quote', action='store_true',
                       help='quote erroneous lines')
-    if custom_args is not None:
-        assert isinstance(custom_args, list)
-        return parser.parse_args(custom_args)
-    else:
-        return parser.parse_args()
+    return parser.parse_args()
 
 
 def main(options, arguments):
