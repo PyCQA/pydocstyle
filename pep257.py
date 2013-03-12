@@ -388,7 +388,7 @@ def main(options, arguments):
 
 
 def check_modules_have_docstrings(module_docstring, context, is_script):
-    """PEP257 Modules should have docstrings.
+    """Modules should have docstrings.
 
     All modules should normally have docstrings.
 
@@ -400,7 +400,7 @@ def check_modules_have_docstrings(module_docstring, context, is_script):
 
 
 def check_def_has_docstring(def_docstring, context, is_script):
-    """PEP257 Exported definitions should have docstrings.
+    """Exported definitions should have docstrings.
 
     ...all functions and classes exported by a module should also have
     docstrings. Public methods (including the __init__ constructor)
@@ -419,7 +419,7 @@ def check_def_has_docstring(def_docstring, context, is_script):
 
 
 def check_class_has_docstring(class_docstring, context, is_script):
-    """PEP257 Exported classes should have docstrings.
+    """Exported classes should have docstrings.
 
     ...all functions and classes exported by a module should also have
     docstrings.
@@ -437,7 +437,7 @@ def check_class_has_docstring(class_docstring, context, is_script):
 
 
 def check_triple_double_quotes(docstring, context, is_script):
-    r"""PEP257 Use \"\"\"triple double quotes\"\"\".
+    r"""Use \"\"\"triple double quotes\"\"\".
 
     For consistency, always use \"\"\"triple double quotes\"\"\" around
     docstrings. Use r\"\"\"raw triple double quotes\"\"\" if you use any
@@ -452,7 +452,7 @@ def check_triple_double_quotes(docstring, context, is_script):
 
 
 def check_backslashes(docstring, context, is_script):
-    r"""PEP257 Use r\"\"\" if any backslashes in your docstrings.
+    r"""Use r\"\"\" if any backslashes in your docstrings.
 
     Use r\"\"\"raw triple double quotes\"\"\" if you use any backslashes
     (\\) in your docstrings.
@@ -463,7 +463,7 @@ def check_backslashes(docstring, context, is_script):
 
 
 def check_unicode_docstring(docstring, context, is_script):
-    r"""PEP257 Use u\"\"\" for Unicode docstrings.
+    r"""Use u\"\"\" for Unicode docstrings.
 
     For Unicode docstrings, use u\"\"\"Unicode triple-quoted stringsr\"\"\".
 
@@ -474,7 +474,7 @@ def check_unicode_docstring(docstring, context, is_script):
 
 
 def check_one_liners(docstring, context, is_script):
-    """PEP257 One-liners should fit on one line with quotes.
+    """One-liners should fit on one line with quotes.
 
     The closing quotes are on the same line as the opening quotes.
     This looks better for one-liners.
@@ -490,7 +490,7 @@ def check_one_liners(docstring, context, is_script):
 
 
 def check_no_blank_before(def_docstring, context, is_script):
-    """PEP257 No blank line before docstring in definitions.
+    """No blank line before docstring in definitions.
 
     There's no blank line either before or after the docstring.
 
@@ -503,7 +503,7 @@ def check_no_blank_before(def_docstring, context, is_script):
 
 
 def check_ends_with_period(docstring, context, is_script):
-    """PEP257 First line should end with a period.
+    """First line should end with a period.
 
     The [first line of a] docstring is a phrase ending in a period.
 
@@ -513,7 +513,7 @@ def check_ends_with_period(docstring, context, is_script):
 
 
 def check_imperative_mood(def_docstring, context, is_script):
-    """PEP257 First line should be in imperative mood ('Do', not 'Does').
+    """First line should be in imperative mood ('Do', not 'Does').
 
     [Docstring] prescribes the function or method's effect as a command:
     ("Do this", "Return that"), not as a description; e.g. don't write
@@ -527,7 +527,7 @@ def check_imperative_mood(def_docstring, context, is_script):
 
 
 def check_no_signature(def_docstring, context, is_script):
-    """PEP257 First line should not be function's or method's "signature".
+    """First line should not be function's or method's "signature".
 
     The one-line docstring should NOT be a "signature" reiterating
     the function/method parameters (which can be obtained by introspection).
@@ -542,7 +542,7 @@ def check_no_signature(def_docstring, context, is_script):
 
 
 def check_return_type(def_docstring, context, is_script):
-    """PEP257 Return value type should be mentioned.
+    """Return value type should be mentioned.
 
     However, the nature of the return value cannot be determined by
     introspection, so it should be mentioned.
@@ -560,7 +560,7 @@ def check_return_type(def_docstring, context, is_script):
 
 
 def check_blank_after_summary(docstring, context, is_script):
-    """PEP257 Blank line missing after one-line summary.
+    """Blank line missing after one-line summary.
 
     Multi-line docstrings consist of a summary line just like a one-line
     docstring, followed by a blank line, followed by a more elaborate
@@ -577,7 +577,7 @@ def check_blank_after_summary(docstring, context, is_script):
 
 
 def check_indent(docstring, context, is_script):
-    """PEP257 Docstrings should be indented same as code.
+    """Docstrings should be indented same as code.
 
     The entire docstring is indented the same as the quotes at its
     first line.
@@ -595,7 +595,7 @@ def check_indent(docstring, context, is_script):
 
 
 def check_blank_before_after_class(class_docstring, context, is_script):
-    """PEP257 Class docstring should have 1 blank line around them.
+    """Class docstring should have 1 blank line around them.
 
     Insert a blank line before and after all docstrings (one-line or
     multi-line) that document a class -- generally speaking, the class's
@@ -617,7 +617,7 @@ def check_blank_before_after_class(class_docstring, context, is_script):
 
 
 def check_blank_after_last_paragraph(docstring, context, is_script):
-    """PEP257 Multiline docstring should end with 1 blank line.
+    """Multiline docstring should end with 1 blank line.
 
     The BDFL recommends inserting a blank line between the last
     paragraph in a multi-line docstring and its closing quotes,
