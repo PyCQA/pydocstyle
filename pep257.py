@@ -45,21 +45,11 @@ E.g. the following function will be fed only class-docstrings:
 If for a certain function, class, etc. a docstring does not exist,
 then `None` will be passed, which should be taken into account.
 
-In order to signify a failure of the check, return a tuple consisting
-of (error_message, start_pos, end_pos), where start and end positions
-are integers specifying where in *context* the failure occured.
-The start_pos and end_pos will be then automatically converted to
-be shown correctly, e.g.:
-
-    return "Rasing `IOError` is not documented.", 150, 160
-
-You can skip start/end position; the start/end of docstring will
-be used:
-
-    return "Not all parameters mentioned.",
-
-Note the trailing comma! It signifies that return value is
-a tuple with 1 element.
+To signify that a check passed successfully simply `return` from the
+check function.  If a check failed, return `True`.  If a check failed
+and you can provide the precise position where it failed, return a
+tuple (start_position, end_position), where start and end positions
+are integers specifying where in `context` the failure occured.
 
 Also, see examples in "Check functions" section.
 
@@ -280,13 +270,13 @@ class Error(object):
     quote = False
 
     def __init__(self, filename, source, docstring, context,
-                 explanation, message, start=None, end=None):
+                 explanation, start=None, end=None):
         self.filename = filename.split('/')[-1]
         self.source = source
         self.docstring = docstring
         self.context = context
-        self.message = message
         self.explanation = explanation
+        self.message = explanation.split('\n')[0]
 
         if start is None:
             self.start = source.find(context) + context.find(docstring)
@@ -335,9 +325,10 @@ def check_source(source, filename):
             for context in parse_contexts(source, keyword):
                 docstring = parse_docstring(context, keyword)
                 result = check(docstring, context, is_script)
-                if result is not None:
+                if result:
+                    positions = [] if result is True else result
                     yield Error(filename, source, docstring, context,
-                                check.__doc__, *result)
+                                check.__doc__, *positions)
 
 
 def check_files(filenames):
@@ -402,10 +393,9 @@ def check_modules_have_docstrings(module_docstring, context, is_script):
 
     """
     if not module_docstring:  # or not eval(module_docstring).strip():
-        return ("PEP257 Modules should have docstrings.",
-                0, min(79, len(context)))
+        return 0, min(79, len(context))
     if not eval(module_docstring).strip():
-        return "PEP257 Modules should have docstrings.",
+        return True
 
 
 def check_def_has_docstring(def_docstring, context, is_script):
@@ -422,10 +412,9 @@ def check_def_has_docstring(def_docstring, context, is_script):
     if def_name.startswith('_') and not def_name.endswith('__'):
         return  # private, not exported
     if not def_docstring:
-        return ("PEP257 Exported definitions should have docstrings.",
-                0, len(context.split('\n')[0]))
+        return 0, len(context.split('\n')[0])
     if not eval(def_docstring).strip():
-        return "PEP257 Exported definitions should have docstrings.",
+        return True
 
 
 def check_class_has_docstring(class_docstring, context, is_script):
@@ -441,10 +430,9 @@ def check_class_has_docstring(class_docstring, context, is_script):
     if class_name.startswith('_'):
         return  # not exported
     if not class_docstring:
-        return ("PEP257 Exported classes should have docstrings.",
-                0, len(context.split('\n')[0]))
+        return 0, len(context.split('\n')[0])
     if not eval(class_docstring).strip():
-        return "PEP257 Exported classes should have docstrings.",
+        return True
 
 
 def check_triple_double_quotes(docstring, context, is_script):
@@ -459,7 +447,7 @@ def check_triple_double_quotes(docstring, context, is_script):
     if docstring and not (docstring.startswith('"""') or
                           docstring.startswith('r"""') or
                           docstring.startswith('u"""')):
-        return 'PEP257 Use """triple double quotes""".',
+        return True
 
 
 def check_backslashes(docstring, context, is_script):
@@ -470,7 +458,7 @@ def check_backslashes(docstring, context, is_script):
 
     """
     if docstring and "\\" in docstring and not docstring.startswith('r"""'):
-        return 'PEP257 Use r""" if any backslashes in your docstrings.',
+        return True
 
 
 def check_unicode_docstring(docstring, context, is_script):
@@ -481,7 +469,7 @@ def check_unicode_docstring(docstring, context, is_script):
     """
     if (docstring and not all(isascii(char) for char in docstring) and
             not docstring.startswith('u"""')):
-        return 'PEP257 Use u""" for Unicode docstrings.',
+        return True
 
 
 def check_one_liners(docstring, context, is_script):
@@ -497,7 +485,7 @@ def check_one_liners(docstring, context, is_script):
     if len(lines) > 1:
         non_empty = [l for l in lines if any([c.isalpha() for c in l])]
         if len(non_empty) == 1:
-            return "PEP257 One-liners should fit on one line with quotes.",
+            return True
 
 
 def check_no_blank_before(def_docstring, context, is_script):
@@ -510,7 +498,7 @@ def check_no_blank_before(def_docstring, context, is_script):
         return
     before = remove_comments(context.split(def_docstring)[0])
     if before.split(':')[-1].count('\n') > 1:
-        return "PEP257 No blank line before docstring in definitions.",
+        return True
 
 
 def check_ends_with_period(docstring, context, is_script):
@@ -520,7 +508,7 @@ def check_ends_with_period(docstring, context, is_script):
 
     """
     if docstring and not eval(docstring).split('\n')[0].strip().endswith('.'):
-        return "PEP257 Short description should end with a period.",
+        return True
 
 
 def check_imperative_mood(def_docstring, context, is_script):
@@ -534,8 +522,7 @@ def check_imperative_mood(def_docstring, context, is_script):
     if def_docstring and eval(def_docstring).strip():
         first_word = eval(def_docstring).strip().split()[0]
         if first_word.endswith('s') and not first_word.endswith('ss'):
-            return ("PEP257 First line should be in imperative mood "
-                    "('Do', not 'Does').",)
+            return True
 
 
 def check_no_signature(def_docstring, context, is_script):
@@ -550,7 +537,7 @@ def check_no_signature(def_docstring, context, is_script):
     def_name = context.split(def_docstring)[0].split()[1].split('(')[0]
     first_line = eval(def_docstring).split('\n')[0]
     if def_name + '(' in first_line.replace(' ', ''):
-        return "PEP257 First line should not be definitions's \"signature\".",
+        return True
 
 
 def check_return_type(def_docstring, context, is_script):
@@ -568,7 +555,7 @@ def check_return_type(def_docstring, context, is_script):
                         if token[1] == 'return']
         # not very precise (tk.OP ';' is not taken into account)
         if set(after_return) - set([tk.COMMENT, tk.NL, tk.NEWLINE]) != set([]):
-            return "PEP257 Return value type should be mentioned.",
+            return True
 
 
 def check_blank_after_summary(docstring, context, is_script):
@@ -585,7 +572,7 @@ def check_blank_after_summary(docstring, context, is_script):
         return
     lines = eval(docstring).split('\n')
     if len(lines) > 1 and lines[1].strip() != '':
-        return "PEP257 Blank line missing after one-line summary.",
+        return True
 
 
 def check_indent(docstring, context, is_script):
@@ -603,7 +590,7 @@ def check_indent(docstring, context, is_script):
         return
     indent = min([len(l) - len(l.lstrip()) for l in non_empty_lines])
     if indent != len(context.split(docstring)[0].split('\n')[-1]):
-        return "PEP257 Docstrings should be indented same as code.",
+        return True
 
 
 def check_blank_before_after_class(class_docstring, context, is_script):
@@ -623,9 +610,9 @@ def check_blank_before_after_class(class_docstring, context, is_script):
     before_blanks = [not line.strip() for line in before.split('\n')]
     after_blanks = [not line.strip() for line in after.split('\n')]
     if before_blanks[-3:] != [False, True, True]:
-        return "PEP257 Class docstring should have 1 blank line around them.",
+        return True
     if not all(after_blanks) and after_blanks[:3] != [True, True, False]:
-        return "PEP257 Class docstring should have 1 blank line around them.",
+        return True
 
 
 def check_blank_after_last_paragraph(docstring, context, is_script):
@@ -640,7 +627,7 @@ def check_blank_after_last_paragraph(docstring, context, is_script):
         return
     blanks = [not line.strip() for line in eval(docstring).split('\n')]
     if blanks[-3:] != [False, True, True]:
-        return "PEP257 Multiline docstring should end with 1 blank line.",
+        return True
 
 
 if __name__ == '__main__':
