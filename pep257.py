@@ -275,8 +275,7 @@ class Error(object):
         self.source = source
         self.docstring = docstring
         self.context = context
-        self.explanation = explanation
-        self.message = explanation.split('\n')[0]
+        self.explanation = explanation.strip()
 
         if start is None:
             self.start = source.find(context) + context.find(docstring)
@@ -294,11 +293,13 @@ class Error(object):
         s = self.filename + ':%d:%d' % (self.line, self.char)
         if self.range:
             s += '..%d:%d' % (self.end_line, self.end_char)
-        s += ': ' + self.message
         if self.explain:
-            s += '\n' + self.explanation
+            s += ': ' + self.explanation + '\n'
+        else:
+            s += ': ' + self.explanation.split('\n')[0].strip()
         if self.quote:
-            s += '\n    ' + self.source[self.start:self.end]
+            quote = self.source[self.start:self.end].strip()
+            s += '\n>     ' + '\n> '.join(quote.split('\n')) + '\n'
         return s
 
     def __lt__(self, other):
