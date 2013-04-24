@@ -55,10 +55,11 @@ Also, see examples in "Check functions" section.
 
 """
 
-import re
-import inspect
 from curses.ascii import isascii
+import inspect
 from optparse import OptionParser
+import re
+import sys
 import tokenize as tk
 
 
@@ -359,6 +360,12 @@ def parse_options():
     return parser.parse_args()
 
 
+def print_error(message):
+    sys.stderr.write(message)
+    sys.stderr.write('\n')
+    sys.stderr.flush()
+
+
 def main(options, arguments):
     print('=' * 80)
     print('Note: checks are relaxed for scripts (with #!) compared to modules')
@@ -370,16 +377,16 @@ def main(options, arguments):
         try:
             f = open(filename)
         except IOError:
-            print("Error opening file %s" % filename)
+            print_error("Error opening file %s" % filename)
         else:
             try:
                 errors.extend(check_source(f.read(), filename))
             except IOError:
-                print("Error reading file %s" % filename)
+                print_error("Error reading file %s" % filename)
             finally:
                 f.close()
     for error in sorted(errors):
-        print(error)
+        print_error(str(error))
 
 
 #
