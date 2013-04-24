@@ -356,12 +356,16 @@ def parse_options():
                       help='show error start..end positions')
     parser.add_option('-q', '--quote', action='store_true',
                       help='quote erroneous lines')
+    parser.add_option('-v', '--verbose', action='store_true',
+                      help='enable verbose mode')
     return parser.parse_args()
 
 
 def main(options, arguments):
-    print('=' * 80)
-    print('Note: checks are relaxed for scripts (with #!) compared to modules')
+    if options.verbose:
+        print('=' * 80)
+        print('Note: checks are relaxed for scripts (with #!) '
+              'compared to modules')
     Error.explain = options.explain
     Error.range = options.range
     Error.quote = options.quote
