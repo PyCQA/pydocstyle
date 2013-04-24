@@ -395,7 +395,7 @@ def main(options, arguments):
 
 
 def check_modules_have_docstrings(module_docstring, context, is_script):
-    """Modules should have docstrings.
+    """All modules should have docstrings.
 
     All modules should normally have docstrings.
 
@@ -481,7 +481,7 @@ def check_unicode_docstring(docstring, context, is_script):
 
 
 def check_one_liners(docstring, context, is_script):
-    """One-liners should fit on one line with quotes.
+    """One-liner docstrings should fit on one line with quotes.
 
     The closing quotes are on the same line as the opening quotes.
     This looks better for one-liners.
@@ -584,7 +584,7 @@ def check_blank_after_summary(docstring, context, is_script):
 
 
 def check_indent(docstring, context, is_script):
-    """Docstrings should be indented same as code.
+    """The entire docstring should be indented same as code.
 
     The entire docstring is indented the same as the quotes at its
     first line.
