@@ -412,6 +412,8 @@ def main(options, arguments):
                 errors.extend(check_source(f.read(), filename))
             except IOError:
                 print_error("Error reading file %s" % filename)
+            except tk.TokenError:
+                print_error("Error parsing file %s" % filename)
             finally:
                 f.close()
     for error in sorted(errors):
