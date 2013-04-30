@@ -58,7 +58,9 @@ Also, see examples in "Check functions" section.
 from curses.ascii import isascii
 import inspect
 from optparse import OptionParser
-import os
+from os import walk
+from os.path import basename, isdir, isfile
+from os.path import join as path_join
 import re
 import sys
 import tokenize as tk
@@ -322,8 +324,8 @@ def check_source(source, filename):
     keywords = ['module_docstring', 'function_docstring',
                 'class_docstring', 'method_docstring',
                 'def_docstring', 'docstring']  # TODO? 'nested_docstring']
-    filename = os.path.basename(filename)
-    is_script = source.startswith('#!') or filename.startswith('test_')
+    is_script = source.startswith('#!') or \
+        basename(filename).startswith('test_')
     for keyword in keywords:
         for check in find_checks(keyword):
             for context in parse_contexts(source, keyword):
@@ -346,11 +348,11 @@ def find_input_files(filenames):
     input_files = []
 
     for filename in filenames:
-        if os.path.isdir(filename):
-            for root, _dirs, files in os.walk(filename):
-                input_files += [os.path.join(root, f) for f in sorted(files)
+        if isdir(filename):
+            for root, _dirs, files in walk(filename):
+                input_files += [path_join(root, f) for f in sorted(files)
                                 if f.endswith(".py")]
-        elif os.path.isfile(filename):
+        elif isfile(filename):
             input_files += [filename]
         else:
             print_error("%s is not a file or directory" % filename)
