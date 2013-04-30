@@ -58,7 +58,9 @@ Also, see examples in "Check functions" section.
 from curses.ascii import isascii
 import inspect
 from optparse import OptionParser
-import os
+from os import walk
+from os.path import abspath, basename, expanduser, isdir, isfile
+from os.path import join as path_join
 import re
 import sys
 import tokenize as tk
@@ -322,7 +324,8 @@ def check_source(source, filename):
     keywords = ['module_docstring', 'function_docstring',
                 'class_docstring', 'method_docstring',
                 'def_docstring', 'docstring']  # TODO? 'nested_docstring']
-    is_script = source.startswith('#!') or filename.startswith('test_')
+    is_script = source.startswith('#!') or \
+        basename(filename).startswith('test_')
     for keyword in keywords:
         for check in find_checks(keyword):
             for context in parse_contexts(source, keyword):
@@ -332,6 +335,30 @@ def check_source(source, filename):
                     positions = [] if result is True else result
                     yield Error(filename, source, docstring, context,
                                 check.__doc__, *positions)
+
+
+def find_input_files(filenames):
+    """ Return a list of input files.
+
+    `filenames` is a list of filenames, which may be either files
+    or directories.  Files within subdirectories are added
+    recursively.
+
+    """
+    input_files = []
+
+    filenames = [abspath(expanduser(f)) for f in filenames]
+    for filename in filenames:
+        if isdir(filename):
+            for root, _dirs, files in walk(filename):
+                input_files += [path_join(root, f) for f in sorted(files)
+                                if f.endswith(".py")]
+        elif isfile(filename):
+            input_files += [filename]
+        else:
+            print_error("%s is not a file or directory" % filename)
+
+    return input_files
 
 
 def check_files(filenames):
@@ -345,7 +372,7 @@ def check_files(filenames):
 
     """
     errors = []
-    for filename in filenames:
+    for filename in find_input_files(filenames):
         errors.extend(check_source(open(filename).read(), filename))
     return [str(e) for e in errors]
 
@@ -374,19 +401,8 @@ def main(options, arguments):
     Error.range = options.range
     Error.quote = options.quote
     errors = []
-    input_files = []
 
-    for arg in arguments:
-        if os.path.isdir(arg):
-            for root, _dirs, files in os.walk(arg):
-                input_files += [os.path.join(root, f) for f in sorted(files)
-                                if f.endswith(".py")]
-        elif os.path.isfile(arg):
-            input_files += [arg]
-        else:
-            print_error("%s is not a file or directory" % arg)
-
-    for filename in input_files:
+    for filename in find_input_files(arguments):
         try:
             f = open(filename)
         except IOError:
@@ -396,6 +412,8 @@ def main(options, arguments):
                 errors.extend(check_source(f.read(), filename))
             except IOError:
                 print_error("Error reading file %s" % filename)
+            except tk.TokenError:
+                print_error("Error parsing file %s" % filename)
             finally:
                 f.close()
     for error in sorted(errors):
