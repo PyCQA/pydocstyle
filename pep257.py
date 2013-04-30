@@ -59,7 +59,7 @@ from curses.ascii import isascii
 import inspect
 from optparse import OptionParser
 from os import walk
-from os.path import basename, isdir, isfile
+from os.path import abspath, basename, expanduser, isdir, isfile
 from os.path import join as path_join
 import re
 import sys
@@ -347,6 +347,7 @@ def find_input_files(filenames):
     """
     input_files = []
 
+    filenames = [abspath(expanduser(f)) for f in filenames]
     for filename in filenames:
         if isdir(filename):
             for root, _dirs, files in walk(filename):
