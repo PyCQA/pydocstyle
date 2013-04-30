@@ -322,6 +322,7 @@ def check_source(source, filename):
     keywords = ['module_docstring', 'function_docstring',
                 'class_docstring', 'method_docstring',
                 'def_docstring', 'docstring']  # TODO? 'nested_docstring']
+    filename = os.path.basename(filename)
     is_script = source.startswith('#!') or filename.startswith('test_')
     for keyword in keywords:
         for check in find_checks(keyword):
