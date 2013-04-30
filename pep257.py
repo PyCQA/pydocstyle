@@ -58,6 +58,7 @@ Also, see examples in "Check functions" section.
 from curses.ascii import isascii
 import inspect
 from optparse import OptionParser
+import os
 import re
 import sys
 import tokenize as tk
@@ -373,7 +374,19 @@ def main(options, arguments):
     Error.range = options.range
     Error.quote = options.quote
     errors = []
-    for filename in arguments:
+    input_files = []
+
+    for arg in arguments:
+        if os.path.isdir(arg):
+            for root, _dirs, files in os.walk(arg):
+                input_files += [os.path.join(root, f) for f in sorted(files)
+                                if f.endswith(".py")]
+        elif os.path.isfile(arg):
+            input_files += [arg]
+        else:
+            print_error("%s is not a file or directory" % arg)
+
+    for filename in input_files:
         try:
             f = open(filename)
         except IOError:
