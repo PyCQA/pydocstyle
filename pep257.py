@@ -334,6 +334,29 @@ def check_source(source, filename):
                                 check.__doc__, *positions)
 
 
+def find_input_files(filenames):
+    """ Return a list of input files.
+
+    `filenames` is a list of filenames, which may be either files
+    or directories.  Files within subdirectories are added
+    recursively.
+
+    """
+    input_files = []
+
+    for filename in filenames:
+        if os.path.isdir(filename):
+            for root, _dirs, files in os.walk(filename):
+                input_files += [os.path.join(root, f) for f in sorted(files)
+                                if f.endswith(".py")]
+        elif os.path.isfile(filename):
+            input_files += [filename]
+        else:
+            print_error("%s is not a file or directory" % filename)
+
+    return input_files
+
+
 def check_files(filenames):
     r"""Return list of docstring style errors found in files.
 
@@ -345,7 +368,7 @@ def check_files(filenames):
 
     """
     errors = []
-    for filename in filenames:
+    for filename in find_input_files(filenames):
         errors.extend(check_source(open(filename).read(), filename))
     return [str(e) for e in errors]
 
@@ -374,19 +397,8 @@ def main(options, arguments):
     Error.range = options.range
     Error.quote = options.quote
     errors = []
-    input_files = []
 
-    for arg in arguments:
-        if os.path.isdir(arg):
-            for root, _dirs, files in os.walk(arg):
-                input_files += [os.path.join(root, f) for f in sorted(files)
-                                if f.endswith(".py")]
-        elif os.path.isfile(arg):
-            input_files += [arg]
-        else:
-            print_error("%s is not a file or directory" % arg)
-
-    for filename in input_files:
+    for filename in find_input_files(arguments):
         try:
             f = open(filename)
         except IOError:
