@@ -34,3 +34,4 @@ docs/_*
 # Eclipse files
 .project
 .pydevproject
+.settings
