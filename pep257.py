@@ -150,6 +150,23 @@ def rel_pos(abs_pos, source):
     return len(lines) + 1, abs_pos - len(''.join(lines))
 
 
+def get_summary_line_info(thedocstring):
+    """Get the (summary_line, line_number) tuple for the given docstring.
+
+    The returned 'summary_line' is the pep257 summary line and 'line_number' is
+    the zero-based docstring line number containing the summary line, which
+    will be either 0 (zeroth line) or 1 (first line). Any docstring checks
+    relating to the summary line should use this method to ensure consistent
+    treatment of the summary line.
+
+    """
+    lines = eval(thedocstring).split('\n')
+    first_line = lines[0].strip()
+    if len(lines) == 1 or len(first_line) > 0:
+        return first_line, 0
+    return lines[1].strip(), 1
+
+
 #
 # Parsing
 #
@@ -546,7 +563,10 @@ def check_ends_with_period(docstring, context, is_script):
     The [first line of a] docstring is a phrase ending in a period.
 
     """
-    if docstring and not eval(docstring).split('\n')[0].strip().endswith('.'):
+    if not docstring:
+        return
+    (summary_line, line_number) = get_summary_line_info(docstring)
+    if not summary_line.endswith('.'):
         return True
 
 
@@ -610,8 +630,10 @@ def check_blank_after_summary(docstring, context, is_script):
     if not docstring:
         return
     lines = eval(docstring).split('\n')
-    if len(lines) > 1 and lines[1].strip() != '':
-        return True
+    if len(lines) > 1:
+        (summary_line, line_number) = get_summary_line_info(docstring)
+        if len(lines) <= (line_number+1) or lines[line_number+1].strip() != '':
+            return True
 
 
 def check_indent(docstring, context, is_script):
