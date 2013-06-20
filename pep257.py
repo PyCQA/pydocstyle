@@ -418,6 +418,7 @@ def main(options, arguments):
                 f.close()
     for error in sorted(errors):
         print_error(str(error))
+    return 1 if errors else 0
 
 
 #
@@ -671,6 +672,6 @@ def check_blank_after_last_paragraph(docstring, context, is_script):
 
 if __name__ == '__main__':
     try:
-        main(*parse_options())
+        sys.exit(main(*parse_options()))
     except KeyboardInterrupt:
         pass
