@@ -158,6 +158,17 @@ def test_check_blank_before_after_class():
 '''
     assert not check('"""This should work."""', c5, False)
 
+    c6 = '''class Perfect(object):
+
+    """This should work perfectly."""
+
+    def foo(self):
+        """This should work perfectly."""
+        pass
+
+    '''
+    assert not check('"""This should work perfectly."""', c6, False)
+
 
 def test_check_blank_after_summary():
     check = pep257.check_blank_after_summary
