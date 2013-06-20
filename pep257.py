@@ -645,7 +645,7 @@ def check_blank_before_after_class(class_docstring, context, is_script):
     """
     if not class_docstring:
         return
-    before, after = context.split(class_docstring)
+    before, after = context.split(class_docstring)[:2]
     before_blanks = [not line.strip() for line in before.split('\n')]
     after_blanks = [not line.strip() for line in after.split('\n')]
     if before_blanks[-3:] != [False, True, True]:
