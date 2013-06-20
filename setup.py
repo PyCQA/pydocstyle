@@ -3,7 +3,7 @@ from distutils.core import setup
 
 
 setup(name='pep257',
-      version='0.2.2',
+      version='0.2.3',
       description="Python docstring style checker",
       long_description=__doc__,
       license='MIT',
