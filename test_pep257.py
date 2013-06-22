@@ -35,6 +35,26 @@ def test_pep8_conformance():
     assert pep8.StyleGuide().check_files(FILES).total_errors == 0
 
 
+def test_get_summary_line_info():
+    s1 = '''"""First line summary."""'''
+    s2 = '''"""First line summary.
+    With subsequent line.
+    """'''
+    s3 = '''""""""'''
+    s4 = '''"""
+    Second line summary.
+    """'''
+    s5 = '''"""
+    Second line summary.
+    With subsquent line.
+    """'''
+    assert pep257.get_summary_line_info(s1) == ('First line summary.', 0)
+    assert pep257.get_summary_line_info(s2) == ('First line summary.', 0)
+    assert pep257.get_summary_line_info(s3) == ('', 0)
+    assert pep257.get_summary_line_info(s4) == ('Second line summary.', 1)
+    assert pep257.get_summary_line_info(s5) == ('Second line summary.', 1)
+
+
 def test_parse_docstring():
     s1 = '''def foo():  # o hai comment
     """docstring"""
@@ -120,8 +140,18 @@ def test_check_unicode_docstring():
 
 def test_check_ends_with_period():
     check = pep257.check_ends_with_period
-    assert check('"""Should end with a period"""', None, None)
-    assert not check('"""Should end with a period."""', None, None)
+    s1 = '"""Should end with a period"""'
+    s2 = '"""Should end with a period."""'
+    s3 = '''"""
+        Should end with a period
+        """'''
+    s4 = '''"""
+        Should end with a period.
+        """'''
+    assert check(s1, None, None)
+    assert not check(s2, None, None)
+    assert check(s3, None, None)
+    assert not check(s4, None, None)
 
 
 def test_check_blank_before_after_class():
@@ -178,8 +208,18 @@ def test_check_blank_after_summary():
     s2 = '''"""Blank line missing after one-line summary.
 
     """'''
+    s3 = '''"""
+    Blank line missing after one-line summary.
+    ....................
+    """'''
+    s4 = '''"""
+    Blank line missing after one-line summary.
+
+    """'''
     assert check(s1, None, None)
     assert not check(s2, None, None)
+    assert check(s3, None, None)
+    assert not check(s4, None, None)
 
 
 def test_check_indent():
