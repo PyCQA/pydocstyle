@@ -25,6 +25,7 @@ class PyTest(TestCommand):
         errno = pytest.main(self.test_args)
         sys.exit(errno)
 
+
 def get_version():
     with open('pep257.py') as f:
         for line in f:
