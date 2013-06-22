@@ -184,8 +184,11 @@ def parse_module_docstring(source):
 
 def parse_docstring(source, what=''):
     """Parse docstring given `def` or `class` source."""
+    module_docstring = parse_module_docstring(source)
     if what.startswith('module'):
-        return parse_module_docstring(source)
+        return module_docstring
+    if module_docstring:
+        return module_docstring
     token_gen = tk.generate_tokens(StringIO(source).readline)
     try:
         kind = None
@@ -266,7 +269,7 @@ def parse_contexts(source, kind):
     if kind == 'def_docstring':
         return parse_functions(source) + parse_methods(source)
     if kind == 'docstring':
-        return ([source] + parse_functions(source) +
+        return ([parse_module_docstring(source)] + parse_functions(source) +
                 parse_classes(source) + parse_methods(source))
 
 
