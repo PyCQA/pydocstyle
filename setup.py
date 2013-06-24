@@ -1,9 +1,15 @@
 """`pep257` lives on `GitHub <http://github.com/GreenSteam/pep257/>`_."""
 from distutils.core import setup
 
+def get_version():
+    with open('pep257.py') as f:
+        for line in f:
+            if line.startswith('__version__'):
+                return eval(line.split('=')[-1])
+
 
 setup(name='pep257',
-      version='0.2.3',
+      version=get_version(),
       description="Python docstring style checker",
       long_description=__doc__,
       license='MIT',
