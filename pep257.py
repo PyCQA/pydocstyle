@@ -54,6 +54,7 @@ are integers specifying where in `context` the failure occured.
 Also, see examples in "Check functions" section.
 
 """
+__version__ = '0.2.3'
 
 from curses.ascii import isascii
 import inspect
@@ -398,7 +399,7 @@ def check_files(filenames):
 
 
 def parse_options():
-    parser = OptionParser()
+    parser = OptionParser(version=__version__)
     parser.add_option('-e', '--explain', action='store_true',
                       help='show explanation of each error')
     parser.add_option('-r', '--range', action='store_true',
