@@ -437,9 +437,6 @@ def main(options, arguments):
     Error.range = options.range
     Error.quote = options.quote
     ignored_errors = options.ignore or []
-    for error in ignored_errors:
-        # TODO: validate
-        pass
     errors = []
 
     for filename in find_input_files(arguments):
