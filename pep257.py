@@ -293,14 +293,16 @@ class Error(object):
     explain = False
     range = False
     quote = False
+    code = ''
 
     def __init__(self, filename, source, docstring, context,
-                 explanation, start=None, end=None):
+                 explanation, code, start=None, end=None):
         self.filename = filename
         self.source = source
         self.docstring = docstring
         self.context = context
         self.explanation = explanation.strip()
+        self.code = code
 
         if start is None:
             self.start = source.find(context) + context.find(docstring)
@@ -637,7 +639,7 @@ def check_blank_after_summary(docstring, context, is_script):
     lines = eval(docstring).split('\n')
     if len(lines) > 1:
         (summary_line, line_number) = get_summary_line_info(docstring)
-        if len(lines) <= (line_number+1) or lines[line_number+1].strip() != '':
+        if len(lines) <= (line_number + 1) or lines[line_number + 1].strip() != '':
             return True
 
 
