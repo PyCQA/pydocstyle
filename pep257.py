@@ -436,7 +436,7 @@ def main(options, arguments):
     Error.explain = options.explain
     Error.range = options.range
     Error.quote = options.quote
-    ignored_errors = options.ignore
+    ignored_errors = options.ignore or []
     for error in ignored_errors:
         # TODO: validate
         pass
