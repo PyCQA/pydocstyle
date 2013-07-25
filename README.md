@@ -107,10 +107,12 @@ Errors
 All **pep257** errors have unique codes. All codes start with a capital D and
 are grouped as follows:
 
+| Code | Group                                                                |
 |------|----------------------------------------------------------------------|
 | D1xx | Missing docstrings                                                   |
 | D2xx | Whitespace issues                                                    |
 | D3xx | Docstring formatting                                                 |
+| D4xx | Docstring content issues                                             |
 
 
 
@@ -120,9 +122,20 @@ are grouped as follows:
 | D101 | Exported definitions should have docstrings.                         |
 | D102 | Exported classes should have docstrings                              |
 | D103 | Exported classes should have docstrings                              |
-| D201 | One-liner docstrings should fit on one line with quotes.             |
+| D200 | One-liner docstrings should fit on one line with quotes.             |
+| D201 | No blank line before docstring in definitions.                       |
+| D202 | Blank line missing after one-line summary.                           |
+| D203 | The entire docstring should be indented same as code.                |
+| D204 | Class docstring should have 1 blank line around them.                |
+| D205 | Multiline docstring should end with 1 blank line.                    |
+| D300 | Use """triple double quotes""".                                      |
 | D301 | Use r""" if any backslashes in your docstring.                       |
 | D302 | Use u""" for Unicode docstrings.                                     |
+| D400 | First line should end with a period.                                 |
+| D401 | First line should be in imperative mood.                             |
+| D402 | First line should not be the function's or method's "signature".     |
+| D403 | Return value type should be mentioned.                               |
+
 
 
 
