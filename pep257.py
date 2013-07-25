@@ -657,7 +657,8 @@ def check_blank_after_summary(docstring, context, is_script):
     lines = eval(docstring).split('\n')
     if len(lines) > 1:
         (summary_line, line_number) = get_summary_line_info(docstring)
-        if len(lines) <= (line_number + 1) or lines[line_number + 1].strip() != '':
+        next_line = line_number + 1
+        if len(lines) <= next_line or lines[next_line].strip() != '':
             return True
 
 
