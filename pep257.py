@@ -356,8 +356,10 @@ def check_source(source, filename):
                 result = check(docstring, context, is_script)
                 if result:
                     positions = [] if result is True else result
+                    error_code = check.__doc__[:4]
+                    explanation = check.__doc__  # [5:]
                     yield Error(filename, source, docstring, context,
-                                check.__doc__, *positions)
+                                explanation, error_code, *positions)
 
 
 def find_input_files(filenames):
@@ -384,8 +386,10 @@ def find_input_files(filenames):
     return input_files
 
 
-def check_files(filenames):
+def check_files(filenames, ignore=None):
     r"""Return list of docstring style errors found in files.
+
+    `ignore` is a list of error codes that should not be returned.
 
     Example
     -------
@@ -394,10 +398,16 @@ def check_files(filenames):
     ['one.py:23:1 PEP257 Use u\"\"\" for Unicode docstrings.']
 
     """
+    if ignore is None:
+        ignore = []
     errors = []
     for filename in find_input_files(filenames):
         errors.extend(check_source(open(filename).read(), filename))
-    return [str(e) for e in errors]
+    return [str(e) for e in errors if e.code not in ignore]
+
+
+def args_list(option, _opt, value, parser):
+    setattr(parser.values, option.dest, value.split(','))
 
 
 def parse_options():
@@ -408,6 +418,9 @@ def parse_options():
                       help='show error start..end positions')
     parser.add_option('-q', '--quote', action='store_true',
                       help='quote erroneous lines')
+    parser.add_option('-i', '--ignore', action='callback',
+                      type="string", callback=args_list,
+                      help='ignore a list comma-separated error codes')
     return parser.parse_args()
 
 
@@ -423,6 +436,10 @@ def main(options, arguments):
     Error.explain = options.explain
     Error.range = options.range
     Error.quote = options.quote
+    ignored_errors = options.ignore
+    for error in ignored_errors:
+        # TODO: validate
+        pass
     errors = []
 
     for filename in find_input_files(arguments):
@@ -439,6 +456,7 @@ def main(options, arguments):
                 print_error("Error parsing file %s" % filename)
             finally:
                 f.close()
+    errors = [error for error in errors if error.code not in ignored_errors]
     for error in sorted(errors):
         print_error(str(error))
     return 1 if errors else 0
