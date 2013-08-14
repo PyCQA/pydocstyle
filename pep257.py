@@ -54,7 +54,7 @@ are integers specifying where in `context` the failure occured.
 Also, see examples in "Check functions" section.
 
 """
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 from curses.ascii import isascii
 import inspect
