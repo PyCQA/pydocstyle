@@ -1,5 +1,8 @@
 """`pep257` lives on `GitHub <http://github.com/GreenSteam/pep257/>`_."""
-from distutils.core import setup
+from ez_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup
 
 def get_version():
     with open('pep257.py') as f:
