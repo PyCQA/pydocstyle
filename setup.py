@@ -49,5 +49,5 @@ setup(name='pep257',
       keywords='PEP 257, pep257, PEP 8, pep8, docstrings',
       py_modules=['pep257'],
       scripts=['pep257'],
-      tests_require=['pytest==2.2.4', 'mock>=0.8', 'pep8==1.4.5'],
+      tests_require=['pytest', 'mock>=0.8', 'pep8==1.4.5'],
       cmdclass = {'test': PyTest},)
