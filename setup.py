@@ -2,7 +2,28 @@
 from ez_setup import use_setuptools
 use_setuptools()
 
+import sys
+
 from setuptools import setup
+from setuptools.command.test import test as TestCommand
+
+
+class PyTest(TestCommand):
+    """Test runner that executes py.test.
+
+    Having this class makes it possible to run tests by invoking:
+        python setup.py test
+    """
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        # imported here, cause outside the eggs aren't loaded
+        import pytest
+        errno = pytest.main(self.test_args)
+        sys.exit(errno)
 
 def get_version():
     with open('pep257.py') as f:
@@ -27,4 +48,5 @@ setup(name='pep257',
       keywords='PEP 257, pep257, PEP 8, pep8, docstrings',
       py_modules=['pep257'],
       scripts=['pep257'],
-      tests_require=['mock==0.8'])
+      tests_require=['pytest==2.2.4', 'mock==0.8', 'pep8==1.4.5'],
+      cmdclass = {'test': PyTest},)
