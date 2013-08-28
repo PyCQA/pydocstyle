@@ -75,24 +75,6 @@ except ImportError:
 
 
 try:
-    all
-    any
-except NameError:
-    # Python 2.4 and earlier
-    def all(iterable):
-        for element in iterable:
-            if not element:
-                return False
-        return True
-
-    def any(iterable):
-        for element in iterable:
-            if element:
-                return True
-        return False
-
-
-try:
     next
 except NameError:
     # Python 2.5 and earlier
