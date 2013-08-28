@@ -1,5 +1,7 @@
 """`pep257` lives on `GitHub <http://github.com/GreenSteam/pep257/>`_."""
+from __future__ import with_statement
 from distutils.core import setup
+
 
 def get_version():
     with open('pep257.py') as f:
@@ -23,5 +25,4 @@ setup(name='pep257',
                    'License :: OSI Approved :: MIT License'],
       keywords='PEP 257, pep257, PEP 8, pep8, docstrings',
       py_modules=['pep257'],
-      scripts=['pep257'],
-      tests_require=['mock==0.8'])
+      scripts=['pep257'])

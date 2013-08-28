@@ -1,5 +1,6 @@
 """Test-suite uses py.test (pip install pytest)."""
 # -*- coding: utf-8 -*-
+from __future__ import with_statement
 import os
 import sys
 from contextlib import contextmanager
