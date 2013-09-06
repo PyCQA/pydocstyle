@@ -11,7 +11,6 @@ except ImportError:
     from io import StringIO
 
 import mock
-import pep8
 
 import pep257
 
@@ -30,10 +29,6 @@ def capture_stdout(destination):
 
 def test_pep257_conformance():
     assert pep257.check_files(FILES) == []
-
-
-def test_pep8_conformance():
-    assert pep8.StyleGuide().check_files(FILES).total_errors == 0
 
 
 def test_get_summary_line_info():
