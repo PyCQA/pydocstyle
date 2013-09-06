@@ -293,14 +293,16 @@ class Error(object):
     explain = False
     range = False
     quote = False
+    code = ''
 
     def __init__(self, filename, source, docstring, context,
-                 explanation, start=None, end=None):
+                 explanation, code, start=None, end=None):
         self.filename = filename
         self.source = source
         self.docstring = docstring
         self.context = context
         self.explanation = explanation.strip()
+        self.code = code
 
         if start is None:
             self.start = source.find(context) + context.find(docstring)
@@ -354,8 +356,10 @@ def check_source(source, filename):
                 result = check(docstring, context, is_script)
                 if result:
                     positions = [] if result is True else result
+                    error_code = check.__doc__[:4]
+                    explanation = check.__doc__  # [5:]
                     yield Error(filename, source, docstring, context,
-                                check.__doc__, *positions)
+                                explanation, error_code, *positions)
 
 
 def find_input_files(filenames):
@@ -382,8 +386,10 @@ def find_input_files(filenames):
     return input_files
 
 
-def check_files(filenames):
+def check_files(filenames, ignore=None):
     r"""Return list of docstring style errors found in files.
+
+    `ignore` is a list of error codes that should not be returned.
 
     Example
     -------
@@ -392,10 +398,16 @@ def check_files(filenames):
     ['one.py:23:1 PEP257 Use u\"\"\" for Unicode docstrings.']
 
     """
+    if ignore is None:
+        ignore = []
     errors = []
     for filename in find_input_files(filenames):
         errors.extend(check_source(open(filename).read(), filename))
-    return [str(e) for e in errors]
+    return [str(e) for e in errors if e.code not in ignore]
+
+
+def args_list(option, _opt, value, parser):
+    setattr(parser.values, option.dest, value.split(','))
 
 
 def parse_options():
@@ -406,6 +418,9 @@ def parse_options():
                       help='show error start..end positions')
     parser.add_option('-q', '--quote', action='store_true',
                       help='quote erroneous lines')
+    parser.add_option('-i', '--ignore', action='callback',
+                      type="string", callback=args_list,
+                      help='ignore a list comma-separated error codes')
     return parser.parse_args()
 
 
@@ -421,6 +436,7 @@ def main(options, arguments):
     Error.explain = options.explain
     Error.range = options.range
     Error.quote = options.quote
+    ignored_errors = options.ignore or []
     errors = []
 
     for filename in find_input_files(arguments):
@@ -437,6 +453,7 @@ def main(options, arguments):
                 print_error("Error parsing file %s" % filename)
             finally:
                 f.close()
+    errors = [error for error in errors if error.code not in ignored_errors]
     for error in sorted(errors):
         print_error(str(error))
     return 1 if errors else 0
@@ -448,7 +465,7 @@ def main(options, arguments):
 
 
 def check_modules_have_docstrings(module_docstring, context, is_script):
-    """All modules should have docstrings.
+    """D100: All modules should have docstrings.
 
     All modules should normally have docstrings.
 
@@ -460,7 +477,7 @@ def check_modules_have_docstrings(module_docstring, context, is_script):
 
 
 def check_def_has_docstring(def_docstring, context, is_script):
-    """Exported definitions should have docstrings.
+    """D101: Exported definitions should have docstrings.
 
     ...all functions and classes exported by a module should also have
     docstrings. Public methods (including the __init__ constructor)
@@ -479,7 +496,7 @@ def check_def_has_docstring(def_docstring, context, is_script):
 
 
 def check_class_has_docstring(class_docstring, context, is_script):
-    """Exported classes should have docstrings.
+    """D102: Exported classes should have docstrings.
 
     ...all functions and classes exported by a module should also have
     docstrings.
@@ -497,7 +514,7 @@ def check_class_has_docstring(class_docstring, context, is_script):
 
 
 def check_triple_double_quotes(docstring, context, is_script):
-    r"""Use \"\"\"triple double quotes\"\"\".
+    r"""D300: Use \"\"\"triple double quotes\"\"\".
 
     For consistency, always use \"\"\"triple double quotes\"\"\" around
     docstrings. Use r\"\"\"raw triple double quotes\"\"\" if you use any
@@ -512,7 +529,7 @@ def check_triple_double_quotes(docstring, context, is_script):
 
 
 def check_backslashes(docstring, context, is_script):
-    r"""Use r\"\"\" if any backslashes in your docstrings.
+    r"""D301: Use r\"\"\" if any backslashes in your docstrings.
 
     Use r\"\"\"raw triple double quotes\"\"\" if you use any backslashes
     (\\) in your docstrings.
@@ -523,7 +540,7 @@ def check_backslashes(docstring, context, is_script):
 
 
 def check_unicode_docstring(docstring, context, is_script):
-    r"""Use u\"\"\" for Unicode docstrings.
+    r"""D302: Use u\"\"\" for Unicode docstrings.
 
     For Unicode docstrings, use u\"\"\"Unicode triple-quoted stringsr\"\"\".
 
@@ -534,7 +551,7 @@ def check_unicode_docstring(docstring, context, is_script):
 
 
 def check_one_liners(docstring, context, is_script):
-    """One-liner docstrings should fit on one line with quotes.
+    """D200: One-liner docstrings should fit on one line with quotes.
 
     The closing quotes are on the same line as the opening quotes.
     This looks better for one-liners.
@@ -550,7 +567,7 @@ def check_one_liners(docstring, context, is_script):
 
 
 def check_no_blank_before(def_docstring, context, is_script):
-    """No blank line before docstring in definitions.
+    """D201: No blank line before docstring in definitions.
 
     There's no blank line either before or after the docstring.
 
@@ -563,7 +580,7 @@ def check_no_blank_before(def_docstring, context, is_script):
 
 
 def check_ends_with_period(docstring, context, is_script):
-    """First line should end with a period.
+    """D400: First line should end with a period.
 
     The [first line of a] docstring is a phrase ending in a period.
 
@@ -576,7 +593,7 @@ def check_ends_with_period(docstring, context, is_script):
 
 
 def check_imperative_mood(def_docstring, context, is_script):
-    """First line should be in imperative mood ('Do', not 'Does').
+    """D401: First line should be in imperative mood ('Do', not 'Does').
 
     [Docstring] prescribes the function or method's effect as a command:
     ("Do this", "Return that"), not as a description; e.g. don't write
@@ -590,7 +607,7 @@ def check_imperative_mood(def_docstring, context, is_script):
 
 
 def check_no_signature(def_docstring, context, is_script):
-    """First line should not be function's or method's "signature".
+    """D402: First line should not be function's or method's "signature".
 
     The one-line docstring should NOT be a "signature" reiterating
     the function/method parameters (which can be obtained by introspection).
@@ -605,7 +622,7 @@ def check_no_signature(def_docstring, context, is_script):
 
 
 def check_return_type(def_docstring, context, is_script):
-    """Return value type should be mentioned.
+    """D403: Return value type should be mentioned.
 
     However, the nature of the return value cannot be determined by
     introspection, so it should be mentioned.
@@ -623,7 +640,7 @@ def check_return_type(def_docstring, context, is_script):
 
 
 def check_blank_after_summary(docstring, context, is_script):
-    """Blank line missing after one-line summary.
+    """D202: Blank line missing after one-line summary.
 
     Multi-line docstrings consist of a summary line just like a one-line
     docstring, followed by a blank line, followed by a more elaborate
@@ -637,12 +654,13 @@ def check_blank_after_summary(docstring, context, is_script):
     lines = eval(docstring).split('\n')
     if len(lines) > 1:
         (summary_line, line_number) = get_summary_line_info(docstring)
-        if len(lines) <= (line_number+1) or lines[line_number+1].strip() != '':
+        next_line = line_number + 1
+        if len(lines) <= next_line or lines[next_line].strip() != '':
             return True
 
 
 def check_indent(docstring, context, is_script):
-    """The entire docstring should be indented same as code.
+    """D203: The entire docstring should be indented same as code.
 
     The entire docstring is indented the same as the quotes at its
     first line.
@@ -660,7 +678,7 @@ def check_indent(docstring, context, is_script):
 
 
 def check_blank_before_after_class(class_docstring, context, is_script):
-    """Class docstring should have 1 blank line around them.
+    """D204: Class docstring should have 1 blank line around them.
 
     Insert a blank line before and after all docstrings (one-line or
     multi-line) that document a class -- generally speaking, the class's
@@ -682,7 +700,7 @@ def check_blank_before_after_class(class_docstring, context, is_script):
 
 
 def check_blank_after_last_paragraph(docstring, context, is_script):
-    """Multiline docstring should end with 1 blank line.
+    """D205: Multiline docstring should end with 1 blank line.
 
     The BDFL recommends inserting a blank line between the last
     paragraph in a multi-line docstring and its closing quotes,

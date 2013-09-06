@@ -17,7 +17,7 @@ import pep257
 
 
 FILES = ['pep257.py', 'test_pep257.py']
-default_options = mock.Mock(explain=False, range=False, quote=False)
+default_options = mock.Mock(explain=False, range=False, quote=False, ignore=[])
 
 
 @contextmanager
@@ -68,7 +68,7 @@ def test_parse_docstring():
 
     assert pep257.parse_docstring("def foo():pass") is None
     # TODO
-    #assert pep257.parse_docstring("def bar():'doc';pass") == "'doc'"
+    # assert pep257.parse_docstring("def bar():'doc';pass") == "'doc'"
 
 
 def test_abs_pos():
@@ -315,3 +315,28 @@ def test_opened_files_are_closed():
 
     assert len(files_opened) == 1
     assert files_opened[0].endswith('pep257.py')
+
+
+@mock.patch('pep257.find_input_files')
+def test_ignore_list(find_input_mock):
+    function_to_check = """def function_with_bad_docstring(foo):
+    \"\"\" does spacing without a period in the end
+    no blank line after one-liner is bad. Also this - \"\"\"
+    return foo
+    """
+    mock_file = mock.MagicMock()
+    mock_file.read.return_value = function_to_check
+    find_input_mock.return_value = ['filepath']
+    open_mock = mock.MagicMock()
+    open_mock.return_value = mock_file
+    with mock.patch('__builtin__.open', open_mock, create=True):
+        errors = pep257.check_files(['filepath'])
+        errors_str = '\n'.join(errors)
+        for error in 'D100', 'D400', 'D202':
+            assert error in errors_str
+
+        errors = pep257.check_files(['filepath'], ignore=['D100', 'D202'])
+        errors_str = '\n'.join(errors)
+        assert 'D400' in errors_str
+        for error in 'D100', 'D202':
+            assert error not in errors_str
