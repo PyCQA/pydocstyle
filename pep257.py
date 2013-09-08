@@ -474,7 +474,7 @@ def main(options, arguments):
 
 
 #
-# Check functions
+# D1xx: Missing docstrings
 #
 
 
@@ -527,48 +527,9 @@ def check_class_has_docstring(class_docstring, context, public):
         return True
 
 
-def check_triple_double_quotes(docstring, context, public):
-    r'''D300: Use """triple double quotes""".
-
-    For consistency, always use """triple double quotes""" around
-    docstrings. Use r"""raw triple double quotes""" if you use any
-    backslashes in your docstrings. For Unicode docstrings, use
-    u"""Unicode triple-quoted strings""".
-
-    '''
-    if docstring and '"""' in eval(docstring) and docstring.startswith(
-            ("'''", "r'''", "u'''")):
-        # Allow ''' quotes if docstring contains """, because otherwise
-        # """ quotes could not be expressed inside docstring.  Not in PEP 257.
-        return
-    if docstring and not docstring.startswith(('"""', 'r"""', 'u"""')):
-        return True
-
-
-def check_backslashes(docstring, context, public):
-    r'''D301: Use r""" if any backslashes in your docstrings.
-
-    Use r"""raw triple double quotes""" if you use any backslashes
-    (\) in your docstrings.
-
-    '''
-    # Check that docstring is raw, check_triple_double_quotes
-    # ensures the correct quotes.
-    if docstring and '\\' in docstring and not docstring.startswith('r'):
-        return True
-
-
-def check_unicode_docstring(docstring, context, public):
-    r'''D302: Use u""" for Unicode docstrings.
-
-    For Unicode docstrings, use u"""Unicode triple-quoted stringsr""".
-
-    '''
-    is_ascii = lambda string: all(isascii(char) for char in string)
-    # Check that docstring is unicode, check_triple_double_quotes
-    # ensures the correct quotes.
-    if docstring and not is_ascii(docstring) and not docstring.startswith('u'):
-        return True
+#
+# D2xx: Whitespace issues
+#
 
 
 def check_one_liners(docstring, context, public):
@@ -598,68 +559,6 @@ def check_no_blank_before(def_docstring, context, public):
     before = remove_comments(context.split(def_docstring)[0])
     if before.split(':')[-1].count('\n') > 1:
         return True
-
-
-def check_ends_with_period(docstring, context, public):
-    """D400: First line should end with a period.
-
-    The [first line of a] docstring is a phrase ending in a period.
-
-    """
-    if not docstring:
-        return
-    summary_line, line_number = get_summary_line_info(docstring)
-    if not summary_line.endswith('.'):
-        return True
-
-
-def check_imperative_mood(def_docstring, context, public):
-    """D401: First line should be in imperative mood ('Do', not 'Does').
-
-    [Docstring] prescribes the function or method's effect as a command:
-    ("Do this", "Return that"), not as a description; e.g. don't write
-    "Returns the pathname ...".
-
-    """
-    if def_docstring and eval(def_docstring).strip():
-        first_word = eval(def_docstring).strip().split()[0]
-        if first_word.endswith('s') and not first_word.endswith('ss'):
-            return True
-
-
-def check_no_signature(def_docstring, context, public):
-    """D402: First line should not be function's or method's "signature".
-
-    The one-line docstring should NOT be a "signature" reiterating
-    the function/method parameters (which can be obtained by introspection).
-
-    """
-    if not def_docstring:
-        return
-    def_name = context.split(def_docstring)[0].split()[1].split('(')[0]
-    first_line = eval(def_docstring).split('\n')[0]
-    if def_name + '(' in first_line.replace(' ', ''):
-        return True
-
-
-# Silence for time being, since too many false positives.
-def SKIP_check_return_type(def_docstring, context, public):
-    """D403: Return value type should be mentioned.
-
-    However, the nature of the return value cannot be determined by
-    introspection, so it should be mentioned.
-
-    """
-    if (not def_docstring) or not public:
-        return
-    if 'return' not in def_docstring.lower():
-        tokens = list(tk.generate_tokens(StringIO(context).readline))
-        after_return = [tokens[i + 1][0] for i, token in enumerate(tokens)
-                        if token[1] == 'return']
-        # Not very precise (tk.OP ';' is not taken into account).
-        # Does this take into account nested functions?
-        if set(after_return) - set([tk.COMMENT, tk.NL, tk.NEWLINE]) != set([]):
-            return True
 
 
 def check_blank_after_summary(docstring, context, public):
@@ -735,6 +634,122 @@ def check_blank_after_last_paragraph(docstring, context, public):
     blanks = [not line.strip() for line in eval(docstring).split('\n')]
     if blanks[-3:] != [False, True, True]:
         return True
+
+
+#
+# D3xx: Docstring formatting
+#
+
+
+def check_triple_double_quotes(docstring, context, public):
+    r'''D300: Use """triple double quotes""".
+
+    For consistency, always use """triple double quotes""" around
+    docstrings. Use r"""raw triple double quotes""" if you use any
+    backslashes in your docstrings. For Unicode docstrings, use
+    u"""Unicode triple-quoted strings""".
+
+    '''
+    if docstring and '"""' in eval(docstring) and docstring.startswith(
+            ("'''", "r'''", "u'''")):
+        # Allow ''' quotes if docstring contains """, because otherwise
+        # """ quotes could not be expressed inside docstring.  Not in PEP 257.
+        return
+    if docstring and not docstring.startswith(('"""', 'r"""', 'u"""')):
+        return True
+
+
+def check_backslashes(docstring, context, public):
+    r'''D301: Use r""" if any backslashes in your docstrings.
+
+    Use r"""raw triple double quotes""" if you use any backslashes
+    (\) in your docstrings.
+
+    '''
+    # Check that docstring is raw, check_triple_double_quotes
+    # ensures the correct quotes.
+    if docstring and '\\' in docstring and not docstring.startswith('r'):
+        return True
+
+
+def check_unicode_docstring(docstring, context, public):
+    r'''D302: Use u""" for Unicode docstrings.
+
+    For Unicode docstrings, use u"""Unicode triple-quoted stringsr""".
+
+    '''
+    is_ascii = lambda string: all(isascii(char) for char in string)
+    # Check that docstring is unicode, check_triple_double_quotes
+    # ensures the correct quotes.
+    if docstring and not is_ascii(docstring) and not docstring.startswith('u'):
+        return True
+
+
+#
+# D4xx: Docstring content issues
+#
+
+
+def check_ends_with_period(docstring, context, public):
+    """D400: First line should end with a period.
+
+    The [first line of a] docstring is a phrase ending in a period.
+
+    """
+    if not docstring:
+        return
+    summary_line, line_number = get_summary_line_info(docstring)
+    if not summary_line.endswith('.'):
+        return True
+
+
+def check_imperative_mood(def_docstring, context, public):
+    """D401: First line should be in imperative mood ('Do', not 'Does').
+
+    [Docstring] prescribes the function or method's effect as a command:
+    ("Do this", "Return that"), not as a description; e.g. don't write
+    "Returns the pathname ...".
+
+    """
+    if def_docstring and eval(def_docstring).strip():
+        first_word = eval(def_docstring).strip().split()[0]
+        if first_word.endswith('s') and not first_word.endswith('ss'):
+            return True
+
+
+def check_no_signature(def_docstring, context, public):
+    """D402: First line should not be function's or method's "signature".
+
+    The one-line docstring should NOT be a "signature" reiterating
+    the function/method parameters (which can be obtained by introspection).
+
+    """
+    if not def_docstring:
+        return
+    def_name = context.split(def_docstring)[0].split()[1].split('(')[0]
+    first_line = eval(def_docstring).split('\n')[0]
+    if def_name + '(' in first_line.replace(' ', ''):
+        return True
+
+
+# Silence for time being, since too many false positives.
+def SKIP_check_return_type(def_docstring, context, public):
+    """D403: Return value type should be mentioned.
+
+    However, the nature of the return value cannot be determined by
+    introspection, so it should be mentioned.
+
+    """
+    if (not def_docstring) or not public:
+        return
+    if 'return' not in def_docstring.lower():
+        tokens = list(tk.generate_tokens(StringIO(context).readline))
+        after_return = [tokens[i + 1][0] for i, token in enumerate(tokens)
+                        if token[1] == 'return']
+        # Not very precise (tk.OP ';' is not taken into account).
+        # Does this take into account nested functions?
+        if set(after_return) - set([tk.COMMENT, tk.NL, tk.NEWLINE]) != set([]):
+            return True
 
 
 if __name__ == '__main__':
