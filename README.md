@@ -121,8 +121,7 @@ are grouped as follows:
 | D100 | All modules should have docstrings.                                  |
 | D101 | Exported definitions should have docstrings.                         |
 | D102 | Exported classes should have docstrings                              |
-| D103 | Exported classes should have docstrings                              |
-| D200 | One-liner docstrings should fit on one line with quotes.             |
+| D200 | One-line docstrings should fit on one line with quotes.              |
 | D201 | No blank line before docstring in definitions.                       |
 | D202 | Blank line missing after one-line summary.                           |
 | D203 | The entire docstring should be indented same as code.                |
@@ -135,7 +134,3 @@ are grouped as follows:
 | D401 | First line should be in imperative mood.                             |
 | D402 | First line should not be the function's or method's "signature".     |
 | D403 | Return value type should be mentioned.                               |
-
-
-
-
