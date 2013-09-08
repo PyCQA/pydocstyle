@@ -410,6 +410,9 @@ def parse_options():
            help='show error start..end positions')
     option('-q', '--quote', action='store_true',
            help='quote erroneous lines')
+    option('--ignore', metavar='<codes>', default='',
+           help='ignore a list comma-separated error codes, '
+                'for example: --ignore=D101,D202')
     option('--match', metavar='<pattern>', default='(?!test_).*\.py',
            help="check only files that exactly match <pattern> regular "
                 "expression; default is --match='(?!test_).*\.py' which "
@@ -445,14 +448,25 @@ def collect(names, match=lambda name: True, match_dir=lambda name: True):
             yield name
 
 
-def check(filenames):
-    """Generate PEP 257 errors that exist in `filenames` files."""
+def check(filenames, ignore=()):
+    """Generate PEP 257 errors that exist in `filenames` iterable.
+
+    Skips errors with error-codes defined in `ignore` iterable.
+
+    Example
+    -------
+    >>> check(['pep257.py'], ignore=['D100'])
+    <generator object check at 0x...>
+
+    """
     for filename in filenames:
         try:
             with open(filename) as file:
                 source = file.read()
             for error in check_source(source, filename):
-                yield error
+                code = getattr(error, 'code', None)
+                if code is not None and code not in ignore:
+                    yield error
         except (EnvironmentError, AllError):
             yield sys.exc_info()[1]
         except tk.TokenError:
@@ -466,7 +480,7 @@ def main(options, arguments):
     collected = collect(arguments or ['.'],
                         match=re(options.match + '$').match,
                         match_dir=re(options.match_dir + '$').match)
-    for error in check(collected):
+    for error in check(collected, ignore=options.ignore.split(',')):
         sys.stderr.write('%s\n' % error)
     else:
         return 0
