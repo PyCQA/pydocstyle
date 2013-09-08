@@ -37,3 +37,6 @@ docs/_*
 .project
 .pydevproject
 .settings
+
+# virtualenv
+venv/

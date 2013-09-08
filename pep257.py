@@ -272,14 +272,16 @@ class Error(object):
     explain = False
     range = False
     quote = False
+    code = ''
 
     def __init__(self, filename, source, docstring, context,
-                 explanation, start=None, end=None):
+                 explanation, code, start=None, end=None):
         self.filename = filename
         self.source = source
         self.docstring = docstring
         self.context = context
         self.explanation = explanation.strip()
+        self.code = code
 
         if start is None:
             self.start = source.find(context) + context.find(docstring)
@@ -392,8 +394,10 @@ def check_source(source, filename):
                 result = check(docstring, context, public)
                 if result:
                     positions = [] if result is True else result
+                    error_code = check.__doc__[:4]
+                    explanation = check.__doc__  # [5:]
                     yield Error(filename, source, docstring, context,
-                                check.__doc__, *positions)
+                                explanation, error_code, *positions)
 
 
 def parse_options():
@@ -420,6 +424,8 @@ def parse_options():
 
 def collect(names, match=lambda name: True, match_dir=lambda name: True):
     """Walk dir trees under `names` and generate filnames that `match`.
+
+    `ignore` is a list of error codes that should not be returned.
 
     Example
     -------
@@ -673,7 +679,8 @@ def check_blank_after_summary(docstring, context, public):
     lines = eval(docstring).split('\n')
     if len(lines) > 1:
         (summary_line, line_number) = get_summary_line_info(docstring)
-        if len(lines) <= (line_number+1) or lines[line_number+1].strip() != '':
+        next_line = line_number + 1
+        if len(lines) <= next_line or lines[next_line].strip() != '':
             return True
 
 

@@ -46,7 +46,7 @@ def test_parse_docstring():
 
     assert pep257.parse_docstring("def foo():pass") is None
     # TODO
-    #assert pep257.parse_docstring("def bar():'doc';pass") == "'doc'"
+    # assert pep257.parse_docstring("def bar():'doc';pass") == "'doc'"
 
 
 def test_abs_pos():
