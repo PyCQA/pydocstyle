@@ -1,83 +1,84 @@
 #! /usr/bin/env python
 """Static analysis tool for checking docstring conventions and style.
 
-About
------
-
-Currently implemented checks cover most of PEP257:
+Implemented checks cover PEP257:
 http://www.python.org/dev/peps/pep-0257/
 
-After PEP257 is covered and tested, other checks might be added,
-e.g. NumPy docstring conventions is the first candidate:
+Other checks can be added, e.g. NumPy docstring
+conventions:
+
 https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 
 The main repository of this program is located at:
 http://github.com/GreenSteam/pep257
 
-Creating own checks
--------------------
+Adding new checks
+-----------------
 
-In order to add your own check, create a function in "Checks functions"
-section below. The function should take 3 parameters:
+In order to add your own check, create a function with name
+that starts with `check_`. The function should take 3
+parameters:
 
-docstring : str
-    Docstring to check, as it is in file (with quotes).
+docstring : str or None
+  Docstring (if present), as it is in file (with quotes).
 context : str
-    Docstring's context (e.g. function's source code).
-is_script : bool
-    Whether the docstring is script with #! or not.
+  Docstring's context (e.g. function's source code).
+public : bool Whether
+  docstring belongs to a definition listed in __all__
+  variable, or (if __all__ is not defined) if it does not
+  start with underscore.
 
-Depending on 1st parameter name, the function will be called with
-different type of docstring:
+Depending on 1st parameter name, the function will be
+called with different type of docstring:
 
  * module_docstring
- * function_docstring
  * class_docstring
  * method_docstring
+ * function_docstring
  * def_docstring (i.e. function-docstrings + method-docstrings)
  * docstring (i.e. all above docstring types)
 
 E.g. the following function will be fed only class-docstrings:
 
-    def your_check(class_docstring, context, is_script):
+    def check_something(class_docstring, context, public):
         pass
 
-If for a certain function, class, etc. a docstring does not exist,
-then `None` will be passed, which should be taken into account.
+If for a certain function, class, etc. a docstring does not
+exist, then `None` will be passed, which should be taken
+into account.
 
-To signify that a check passed successfully simply `return` from the
-check function.  If a check failed, return `True`.  If a check failed
-and you can provide the precise position where it failed, return a
-tuple (start_position, end_position), where start and end positions
-are integers specifying where in `context` the failure occured.
+To signify that a check passed successfully simply `return`
+from the check function.  If a check failed, return `True`.
+If a check failed and you can provide the precise position
+where it failed, return a tuple (start_position,
+end_position), where start and end positions are integers
+specifying where in `context` the failure occured.
 
 Also, see examples in "Check functions" section.
 
 """
-__version__ = '0.2.4'
-
-from curses.ascii import isascii
 import inspect
-from optparse import OptionParser
-from os import walk
-from os.path import abspath, basename, expanduser, isdir, isfile
-from os.path import join as path_join
-import re
+import os
 import sys
 import tokenize as tk
+from curses.ascii import isascii
+from optparse import OptionParser
+from re import compile as re
+
+
+__version__ = '0.2.4'
+__all__ = ['check', 'collect']
 
 
 try:
     from StringIO import StringIO
-except ImportError:
-    # Python 3.0 and later
+except ImportError:  # Python 3.0 and later
     from io import StringIO
 
 
 try:
     next
-except NameError:
-    # Python 2.5 and earlier
+except NameError:  # Python 2.5 and earlier
     def next(obj):
         return obj.next()
 
@@ -87,11 +88,7 @@ except NameError:
 #
 
 def cached(f):
-    """A decorator that caches function results.
-
-    No cache expiration is currently done.
-
-    """
+    """Memoization decorator with no cache expiration."""
     cache = {}
 
     def cached_func(*args, **kwargs):
@@ -111,7 +108,7 @@ def yield_list(f):
 
 
 def remove_comments(s):
-    return re.sub('#[^\n]', '', s)
+    return re('#[^\n]').sub('', s)
 
 
 def abs_pos(marker, source):
@@ -309,119 +306,167 @@ class Error(object):
             s += '\n>     ' + '\n> '.join(quote.split('\n')) + '\n'
         return s
 
+    __repr__ = __str__
+
     def __lt__(self, other):
         return (self.filename, self.start) < (other.filename, other.start)
 
 
-@yield_list
-def find_checks(keyword):
+def find_checks(kind):
+    mapping = {
+        'module_docstring':   ['module_docstring'],
+        'class_docstring':    ['class_docstring'],
+        'method_docstring':   ['method_docstring'],
+        'function_docstring': ['function_docstring'],
+        'def_docstring':      ['method_docstring', 'function_docstring'],
+        'docstring':          ['module_docstring', 'class_docstring',
+                               'method_docstring', 'function_docstring']
+    }
     for function in globals().values():
         if inspect.isfunction(function):
-            args = inspect.getargspec(function)[0]
-            if args and args[0] == keyword:
-                yield function
+            if function.__name__.startswith('check_'):
+                args = inspect.getargspec(function)[0]
+                if args and kind in mapping.get(args[0], []):
+                    yield function
 
 
-@yield_list
+find_alls = re('(?ms)^__all__[\t ]*=(.*?])').findall
+
+
+class AllError(Exception):
+
+    def __init__(self, message):
+        Exception.__init__(
+            self, message +
+            'That means pep257 cannot decide which definitions are public. '
+            'Variable __all__ should be present at most once in each file, '
+            "in form `__all__ = ['a_public_function', 'APublicClass', ...]`. "
+            'More info on __all__: http://stackoverflow.com/q/44834/. ')
+
+
+def eval_all(source, filename):
+    """Try to find and evaluate contents of __all__."""
+    tokens = tk.generate_tokens(StringIO(source).readline)
+    all_count = sum(1 for t in tokens if t[1] == '__all__')
+    if all_count == 0:
+        return None
+    elif all_count == 1:
+        alls = find_alls(source)
+        if len(alls) == 1:
+            try:
+                return list(eval(alls[0], {}))
+            except BaseException:
+                pass
+        raise AllError('Variable __all__ is found in file %s, but could '
+                       'not be evaluated. ' % filename)
+    else:
+        raise AllError('Variable __all__ is found multiple times in file %s. '
+                       % filename)
+
+
+def parse_name(context, context_type):
+    """Parse name of a class/function/method, fail if module."""
+    def_context = ['function_docstring', 'method_docstring', 'def_docstring']
+    if context_type in def_context:
+        return re('\s*def\s*(.*?)\(').findall(context)[0]
+    if context_type == 'class_docstring':
+        return re('\s*class\s*(.*?)\(').findall(context)[0]
+    assert False
+
+
 def check_source(source, filename):
-    keywords = ['module_docstring', 'function_docstring',
-                'class_docstring', 'method_docstring',
-                'def_docstring', 'docstring']  # TODO? 'nested_docstring']
-    is_script = source.startswith('#!') or \
-        basename(filename).startswith('test_')
-    for keyword in keywords:
-        for check in find_checks(keyword):
-            for context in parse_contexts(source, keyword):
-                docstring = parse_docstring(context, keyword)
-                result = check(docstring, context, is_script)
+    kinds = ['module_docstring', 'function_docstring',
+             'class_docstring', 'method_docstring']
+            # TODO? 'nested_docstring']
+    all = eval_all(source, filename)
+    for kind in kinds:
+        for check in find_checks(kind):
+            for context in parse_contexts(source, kind):
+                docstring = parse_docstring(context, kind)
+                if kind == 'module_docstring':
+                    public = True
+                else:
+                    name = parse_name(context, kind)
+                    public = (name in all if all is not None
+                              else not name.startswith('_'))
+                result = check(docstring, context, public)
                 if result:
                     positions = [] if result is True else result
                     yield Error(filename, source, docstring, context,
                                 check.__doc__, *positions)
 
 
-def find_input_files(filenames):
-    """ Return a list of input files.
-
-    `filenames` is a list of filenames, which may be either files
-    or directories.  Files within subdirectories are added
-    recursively.
-
-    """
-    input_files = []
-
-    filenames = [abspath(expanduser(f)) for f in filenames]
-    for filename in filenames:
-        if isdir(filename):
-            for root, _dirs, files in walk(filename):
-                input_files += [path_join(root, f) for f in sorted(files)
-                                if f.endswith(".py")]
-        elif isfile(filename):
-            input_files += [filename]
-        else:
-            print_error("%s is not a file or directory" % filename)
-
-    return input_files
-
-
-def check_files(filenames):
-    r"""Return list of docstring style errors found in files.
-
-    Example
-    -------
-    >>> import pep257
-    >>> pep257.check_files(['one.py', 'two.py'])
-    ['one.py:23:1 PEP257 Use u\"\"\" for Unicode docstrings.']
-
-    """
-    errors = []
-    for filename in find_input_files(filenames):
-        errors.extend(check_source(open(filename).read(), filename))
-    return [str(e) for e in errors]
-
-
 def parse_options():
-    parser = OptionParser(version=__version__)
-    parser.add_option('-e', '--explain', action='store_true',
-                      help='show explanation of each error')
-    parser.add_option('-r', '--range', action='store_true',
-                      help='show error start..end positions')
-    parser.add_option('-q', '--quote', action='store_true',
-                      help='quote erroneous lines')
+    parser = OptionParser(version=__version__,
+                          usage='Usage: pep257 [options] [<file|dir>...]')
+    option = parser.add_option
+    option('-e', '--explain', action='store_true',
+           help='show explanation of each error')
+    option('-r', '--range', action='store_true',
+           help='show error start..end positions')
+    option('-q', '--quote', action='store_true',
+           help='quote erroneous lines')
+    option('--match', metavar='<pattern>', default='(?!test_).*\.py',
+           help="check only files that exactly match <pattern> regular "
+                "expression; default is --match='(?!test_).*\.py' which "
+                "matches files that don't start with 'test_' but end with "
+                "'.py'")
+    option('--match-dir', metavar='<pattern>', default='[^\.].*',
+           help="search only dirs that exactly match <pattern> regular "
+                "expression; default is --match-dir='[^\.].*', which matches "
+                "all dirs that don't start with a dot")
     return parser.parse_args()
 
 
-def print_error(message):
-    sys.stderr.write(message)
-    sys.stderr.write('\n')
-    sys.stderr.flush()
+def collect(names, match=lambda name: True, match_dir=lambda name: True):
+    """Walk dir trees under `names` and generate filnames that `match`.
+
+    Example
+    -------
+    >>> sorted(collect(['non-dir.txt', './'],
+    ...                match=lambda name: name.endswith('.py')))
+    ['non-dir.txt', './pep257.py', './setup.py', './test_pep257.py']
+
+    """
+    for name in names:  # map(expanduser, names):
+        if os.path.isdir(name):
+            for root, dirs, filenames in os.walk(name):
+                for dir in dirs:
+                    if not match_dir(dir):
+                        dirs.remove(dir)  # do not visit those dirs
+                for filename in filenames:
+                    if match(filename):
+                        yield os.path.join(root, filename)
+        else:
+            yield name
+
+
+def check(filenames):
+    """Generate PEP 257 errors that exist in `filenames` files."""
+    for filename in filenames:
+        try:
+            with open(filename) as file:
+                source = file.read()
+            for error in check_source(source, filename):
+                yield error
+        except (EnvironmentError, AllError):
+            yield sys.exc_info()[1]
+        except tk.TokenError:
+            yield SyntaxError('invalid syntax in file %s' % filename)
 
 
 def main(options, arguments):
-    print('=' * 80)
-    print('Note: checks are relaxed for scripts (with #!) compared to modules')
     Error.explain = options.explain
     Error.range = options.range
     Error.quote = options.quote
-    errors = []
-
-    for filename in find_input_files(arguments):
-        try:
-            f = open(filename)
-        except IOError:
-            print_error("Error opening file %s" % filename)
-        else:
-            try:
-                errors.extend(check_source(f.read(), filename))
-            except IOError:
-                print_error("Error reading file %s" % filename)
-            except tk.TokenError:
-                print_error("Error parsing file %s" % filename)
-            finally:
-                f.close()
-    for error in sorted(errors):
-        print_error(str(error))
-    return 1 if errors else 0
+    collected = collect(arguments or ['.'],
+                        match=re(options.match + '$').match,
+                        match_dir=re(options.match_dir + '$').match)
+    for error in check(collected):
+        sys.stderr.write('%s\n' % error)
+    else:
+        return 0
+    return 1
 
 
 #
@@ -429,93 +474,100 @@ def main(options, arguments):
 #
 
 
-def check_modules_have_docstrings(module_docstring, context, is_script):
+def check_modules_have_docstrings(module_docstring, context, public):
     """All modules should have docstrings.
 
     All modules should normally have docstrings.
 
     """
-    if not module_docstring:  # or not eval(module_docstring).strip():
+    if not module_docstring:
         return 0, min(79, len(context))
     if not eval(module_docstring).strip():
         return True
 
 
-def check_def_has_docstring(def_docstring, context, is_script):
+def check_def_has_docstring(def_docstring, context, public):
     """Exported definitions should have docstrings.
 
     ...all functions and classes exported by a module should also have
     docstrings. Public methods (including the __init__ constructor)
     should also have docstrings.
 
+    Note: exported/public definitions are either those listed in
+    __all__ variable, or those that do not start with undescore.
+
     """
-    if is_script:
-        return  # assume nothing is exported
-    def_name = context.split()[1]
-    if def_name.startswith('_') and not def_name.endswith('__'):
-        return  # private, not exported
+    if not public:
+        return
     if not def_docstring:
         return 0, len(context.split('\n')[0])
     if not eval(def_docstring).strip():
         return True
 
 
-def check_class_has_docstring(class_docstring, context, is_script):
+def check_class_has_docstring(class_docstring, context, public):
     """Exported classes should have docstrings.
 
     ...all functions and classes exported by a module should also have
     docstrings.
 
+    Note: exported/public definitions are either those listed in
+    __all__ variable, or those that do not start with undescore.
+
     """
-    if is_script:
-        return  # assume nothing is exported
-    class_name = context.split()[1]
-    if class_name.startswith('_'):
-        return  # not exported
+    if not public:
+        return
     if not class_docstring:
         return 0, len(context.split('\n')[0])
     if not eval(class_docstring).strip():
         return True
 
 
-def check_triple_double_quotes(docstring, context, is_script):
-    r"""Use \"\"\"triple double quotes\"\"\".
+def check_triple_double_quotes(docstring, context, public):
+    r'''Use """triple double quotes""".
 
-    For consistency, always use \"\"\"triple double quotes\"\"\" around
-    docstrings. Use r\"\"\"raw triple double quotes\"\"\" if you use any
+    For consistency, always use """triple double quotes""" around
+    docstrings. Use r"""raw triple double quotes""" if you use any
     backslashes in your docstrings. For Unicode docstrings, use
-    u\"\"\"Unicode triple-quoted strings\"\"\".
+    u"""Unicode triple-quoted strings""".
 
-    """
-    if docstring and not (docstring.startswith('"""') or
-                          docstring.startswith('r"""') or
-                          docstring.startswith('u"""')):
+    '''
+    if docstring and '"""' in eval(docstring) and docstring.startswith(
+            ("'''", "r'''", "u'''")):
+        # Allow ''' quotes if docstring contains """, because otherwise
+        # """ quotes could not be expressed inside docstring.  Not in PEP 257.
+        return
+    if docstring and not docstring.startswith(('"""', 'r"""', 'u"""')):
         return True
 
 
-def check_backslashes(docstring, context, is_script):
-    r"""Use r\"\"\" if any backslashes in your docstrings.
+def check_backslashes(docstring, context, public):
+    r'''Use r""" if any backslashes in your docstrings.
 
-    Use r\"\"\"raw triple double quotes\"\"\" if you use any backslashes
-    (\\) in your docstrings.
+    Use r"""raw triple double quotes""" if you use any backslashes
+    (\) in your docstrings.
 
-    """
-    if docstring and "\\" in docstring and not docstring.startswith('r"""'):
+    '''
+    # Check that docstring is raw, check_triple_double_quotes
+    # ensures the correct quotes.
+    if docstring and '\\' in docstring and not docstring.startswith('r'):
         return True
 
 
-def check_unicode_docstring(docstring, context, is_script):
-    r"""Use u\"\"\" for Unicode docstrings.
+def check_unicode_docstring(docstring, context, public):
+    r'''Use u""" for Unicode docstrings.
 
-    For Unicode docstrings, use u\"\"\"Unicode triple-quoted stringsr\"\"\".
+    For Unicode docstrings, use u"""Unicode triple-quoted stringsr""".
 
-    """
-    if (docstring and not all(isascii(char) for char in docstring) and
-            not docstring.startswith('u"""')):
+    '''
+    is_ascii = lambda string: all(isascii(char) for char in string)
+    # Check that docstring is unicode, check_triple_double_quotes
+    # ensures the correct quotes.
+    if docstring and not is_ascii(docstring) and not docstring.startswith('u'):
         return True
 
 
-def check_one_liners(docstring, context, is_script):
+def check_one_liners(docstring, context, public):
     """One-liner docstrings should fit on one line with quotes.
 
     The closing quotes are on the same line as the opening quotes.
@@ -531,7 +583,7 @@ def check_one_liners(docstring, context, is_script):
             return True
 
 
-def check_no_blank_before(def_docstring, context, is_script):
+def check_no_blank_before(def_docstring, context, public):
     """No blank line before docstring in definitions.
 
     There's no blank line either before or after the docstring.
@@ -544,7 +596,7 @@ def check_no_blank_before(def_docstring, context, is_script):
         return True
 
 
-def check_ends_with_period(docstring, context, is_script):
+def check_ends_with_period(docstring, context, public):
     """First line should end with a period.
 
     The [first line of a] docstring is a phrase ending in a period.
@@ -552,12 +604,12 @@ def check_ends_with_period(docstring, context, is_script):
     """
     if not docstring:
         return
-    (summary_line, line_number) = get_summary_line_info(docstring)
+    summary_line, line_number = get_summary_line_info(docstring)
     if not summary_line.endswith('.'):
         return True
 
 
-def check_imperative_mood(def_docstring, context, is_script):
+def check_imperative_mood(def_docstring, context, public):
     """First line should be in imperative mood ('Do', not 'Does').
 
     [Docstring] prescribes the function or method's effect as a command:
@@ -571,7 +623,7 @@ def check_imperative_mood(def_docstring, context, is_script):
             return True
 
 
-def check_no_signature(def_docstring, context, is_script):
+def check_no_signature(def_docstring, context, public):
     """First line should not be function's or method's "signature".
 
     The one-line docstring should NOT be a "signature" reiterating
@@ -586,25 +638,27 @@ def check_no_signature(def_docstring, context, is_script):
         return True
 
 
-def check_return_type(def_docstring, context, is_script):
+# Silence for time being, since too many false positives.
+def SKIP_check_return_type(def_docstring, context, public):
     """Return value type should be mentioned.
 
     However, the nature of the return value cannot be determined by
     introspection, so it should be mentioned.
 
     """
-    if (not def_docstring) or is_script:
+    if (not def_docstring) or not public:
         return
     if 'return' not in def_docstring.lower():
         tokens = list(tk.generate_tokens(StringIO(context).readline))
         after_return = [tokens[i + 1][0] for i, token in enumerate(tokens)
                         if token[1] == 'return']
-        # not very precise (tk.OP ';' is not taken into account)
+        # Not very precise (tk.OP ';' is not taken into account).
+        # Does this take into account nested functions?
         if set(after_return) - set([tk.COMMENT, tk.NL, tk.NEWLINE]) != set([]):
             return True
 
 
-def check_blank_after_summary(docstring, context, is_script):
+def check_blank_after_summary(docstring, context, public):
     """Blank line missing after one-line summary.
 
     Multi-line docstrings consist of a summary line just like a one-line
@@ -623,7 +677,7 @@ def check_blank_after_summary(docstring, context, is_script):
             return True
 
 
-def check_indent(docstring, context, is_script):
+def check_indent(docstring, context, public):
     """The entire docstring should be indented same as code.
 
     The entire docstring is indented the same as the quotes at its
@@ -641,7 +695,7 @@ def check_indent(docstring, context, is_script):
         return True
 
 
-def check_blank_before_after_class(class_docstring, context, is_script):
+def check_blank_before_after_class(class_docstring, context, public):
     """Class docstring should have 1 blank line around them.
 
     Insert a blank line before and after all docstrings (one-line or
@@ -663,7 +717,7 @@ def check_blank_before_after_class(class_docstring, context, is_script):
         return True
 
 
-def check_blank_after_last_paragraph(docstring, context, is_script):
+def check_blank_after_last_paragraph(docstring, context, public):
     """Multiline docstring should end with 1 blank line.
 
     The BDFL recommends inserting a blank line between the last
