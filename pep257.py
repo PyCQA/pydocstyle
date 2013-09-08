@@ -368,12 +368,20 @@ def eval_all(source, filename):
 
 def parse_name(context, context_type):
     """Parse name of a class/function/method, fail if module."""
-    def_context = ['function_docstring', 'method_docstring', 'def_docstring']
-    if context_type in def_context:
+    if context_type in ['function_docstring', 'method_docstring']:
         return re('\s*def\s*(.*?)\(').findall(context)[0]
     if context_type == 'class_docstring':
         return re('\s*class\s*(.*?)\(').findall(context)[0]
     assert False
+
+
+def is_public(context, kind, all):
+    if kind == 'module_docstring':
+        return True  # all modules are public
+    name = parse_name(context, kind)
+    if kind == 'method_docstring':
+        return not name.startswith('_')
+    return name in all if all is not None else not name.startswith('_')
 
 
 def check_source(source, filename):
@@ -385,12 +393,7 @@ def check_source(source, filename):
         for check in find_checks(kind):
             for context in parse_contexts(source, kind):
                 docstring = parse_docstring(context, kind)
-                if kind == 'module_docstring':
-                    public = True
-                else:
-                    name = parse_name(context, kind)
-                    public = (name in all if all is not None
-                              else not name.startswith('_'))
+                public = is_public(context, kind, all)
                 result = check(docstring, context, public)
                 if result:
                     positions = [] if result is True else result
