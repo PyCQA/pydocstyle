@@ -660,7 +660,7 @@ def check_indent(docstring, context, is_script):
 
 
 def check_blank_before_after_class(class_docstring, context, is_script):
-    """Class docstring should have 1 blank line around them.
+    """Class docstrings should have 1 blank line around them.
 
     Insert a blank line before and after all docstrings (one-line or
     multi-line) that document a class -- generally speaking, the class's
