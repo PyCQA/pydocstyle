@@ -570,7 +570,7 @@ def check_ends_with_period(docstring, context, is_script):
     """
     if not docstring:
         return
-    (summary_line, line_number) = get_summary_line_info(docstring)
+    (summary_line, _line_number) = get_summary_line_info(docstring)
     if not summary_line.endswith('.'):
         return True
 
@@ -636,7 +636,7 @@ def check_blank_after_summary(docstring, context, is_script):
         return
     lines = eval(docstring).split('\n')
     if len(lines) > 1:
-        (summary_line, line_number) = get_summary_line_info(docstring)
+        (_summary_line, line_number) = get_summary_line_info(docstring)
         if len(lines) <= (line_number+1) or lines[line_number+1].strip() != '':
             return True
 
@@ -660,7 +660,7 @@ def check_indent(docstring, context, is_script):
 
 
 def check_blank_before_after_class(class_docstring, context, is_script):
-    """Class docstring should have 1 blank line around them.
+    """Class docstrings should have 1 blank line around them.
 
     Insert a blank line before and after all docstrings (one-line or
     multi-line) that document a class -- generally speaking, the class's
