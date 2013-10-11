@@ -309,7 +309,10 @@ class Error(object):
         self.line, self.char = rel_pos(self.start, self.source)
 
         if end is None:
-            self.end = self.start + len(docstring)
+            try:
+                self.end = self.start + len(docstring)
+            except TypeError:  # docstring is None
+                self.end = self.start
         else:
             self.end = source.find(context) + end
         self.end_line, self.end_char = rel_pos(self.end, self.source)
@@ -637,7 +640,7 @@ def check_blank_after_summary(docstring, context, is_script):
     lines = eval(docstring).split('\n')
     if len(lines) > 1:
         (summary_line, line_number) = get_summary_line_info(docstring)
-        if len(lines) <= (line_number+1) or lines[line_number+1].strip() != '':
+        if len(lines) <= (line_number + 1) or lines[line_number + 1].strip() != '':
             return True
 
 
