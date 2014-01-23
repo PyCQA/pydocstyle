@@ -95,6 +95,8 @@ def asdfasdf():
     Description.
 
     """
+
+
 @expect('D207: Docstring is under-indented')
 def asdfsdf():
     """Summary.

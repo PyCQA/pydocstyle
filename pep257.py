@@ -14,7 +14,6 @@ http://github.com/GreenSteam/pep257
 import os
 import sys
 import tokenize as tk
-from curses.ascii import isascii
 from itertools import takewhile, dropwhile, chain
 from optparse import OptionParser
 from re import compile as re
@@ -39,7 +38,7 @@ __all__ = ('check', 'collect')
 
 humanize = lambda string: re(r'(.)([A-Z]+)').sub(r'\1 \2', string).lower()
 is_magic = lambda name: name.startswith('__') and name.endswith('__')
-is_ascii = lambda string: all(isascii(char) for char in string)
+is_ascii = lambda string: all(ord(char) < 128 for char in string)
 is_blank = lambda string: not string.strip()
 leading_space = lambda string: re('\s*').match(string).group()
 
