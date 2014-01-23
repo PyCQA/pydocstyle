@@ -276,9 +276,15 @@ class Error(object):
         source = ''
         lines = self.definition._source[self.definition._slice]
         offset = self.definition.start
-        lines_stripped = reversed(list(dropwhile(is_blank, reversed(lines))))
+        lines_stripped = list(reversed(list(dropwhile(is_blank,
+                                                      reversed(lines)))))
+        numbers_width = 0
         for n, line in enumerate(lines_stripped):
-            source += '%6d: %s' % (n + offset, line)
+            numbers_width = max(numbers_width, n + offset)
+        numbers_width = len(str(numbers_width))
+        numbers_width = 6
+        for n, line in enumerate(lines_stripped):
+            source += '%*d: %s' % (numbers_width, n + offset, line)
             if n > 5:
                 source += '        ...\n'
                 break
