@@ -7,7 +7,7 @@ http://www.python.org/dev/peps/pep-0257/
 Other checks can be added, e.g. NumPy docstring conventions:
 https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 
-The repository of is located at:
+The repository is located at:
 http://github.com/GreenSteam/pep257
 
 """
@@ -156,7 +156,7 @@ class AllError(Exception):
             self, message +
             'That means pep257 cannot decide which definitions are public. '
             'Variable __all__ should be present at most once in each file, '
-            "in form `__all__ = ['a_public_function', 'APublicClass', ...]`. "
+            "in form `__all__ = ('a_public_function', 'APublicClass', ...)`. "
             'More info on __all__: http://stackoverflow.com/q/44834/. ')
 
 

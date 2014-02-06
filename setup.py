@@ -1,4 +1,3 @@
-"""`pep257` lives on `GitHub <http://github.com/GreenSteam/pep257/>`_."""
 from __future__ import with_statement
 from distutils.core import setup
 
@@ -13,7 +12,7 @@ setup(
     name='pep257',
     version=version,
     description="Python docstring style checker",
-    long_description=__doc__,
+    long_description=open('README.rst').read(),
     license='MIT',
     author='Vladimir Keleshev',
     url='https://github.com/GreenSteam/pep257/',
