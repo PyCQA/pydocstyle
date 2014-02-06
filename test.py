@@ -1,20 +1,26 @@
 """Docstring."""
 # encoding: utf-8
-errors = set([])
+import sys
+
+
+expected = set([])
 
 
 def expect(*args):
     """Decorator that expects a certain PEP 257 violation."""
-    ignore = lambda a: None
+    none = lambda a: None
     if len(args) == 1:
-        return lambda f: errors.add((f.__name__, args[0])) or ignore(f()) or f
-    errors.add(args)
+        return lambda f: expected.add((f.__name__, args[0])) or none(f()) or f
+    expected.add(args)
 
 
-@expect('D101: Docstring missing')
+expect('class_', 'D101: Docstring missing')
+
+
 class class_:
 
-    @expect('D101: Docstring missing')
+    expect('meta', 'D101: Docstring missing')
+
     class meta:
         """"""
 
@@ -70,20 +76,30 @@ def trailing_and_leading_space():
     pass
 
 
-@expect('D203: Expected 1 blank line *before* class docstring, found 0')
+expect('LeadingSpaceMissing',
+       'D203: Expected 1 blank line *before* class docstring, found 0')
+
+
 class LeadingSpaceMissing:
     """Leading space missing."""
 
 
-@expect('D204: Expected 1 blank line *after* class docstring, found 0')
+expect('TrailingSpace',
+       'D204: Expected 1 blank line *after* class docstring, found 0')
+
+
 class TrailingSpace:
 
     """TrailingSpace."""
     pass
 
 
-@expect('D203: Expected 1 blank line *before* class docstring, found 0')
-@expect('D204: Expected 1 blank line *after* class docstring, found 0')
+expect('LeadingAndTrailingSpaceMissing',
+       'D203: Expected 1 blank line *before* class docstring, found 0')
+expect('LeadingAndTrailingSpaceMissing',
+       'D204: Expected 1 blank line *after* class docstring, found 0')
+
+
 class LeadingAndTrailingSpaceMissing:
     """Leading and trailing space missing."""
     pass
@@ -182,9 +198,10 @@ def lalsksdewnlkjl():
     """Sum\\mary."""
 
 
-@expect('D302: Use u""" for docstrings with Unicode')
-def lasewnlkjl():
-    """Юникод."""
+if sys.version_info[0] <= 2:
+    @expect('D302: Use u""" for docstrings with Unicode')
+    def lasewnlkjl():
+        """Юникод."""
 
 
 @expect("D400: First line should end with '.', not 'y'")
@@ -208,6 +225,6 @@ def run():
     results = list(pep257.check([__file__]))
     assert set(map(type, results)) == set([pep257.Error]), results
     results = set([(e.definition.name, e.message) for e in results])
-    print('\nmissing: %r' % (results - errors))
-    print('\n  extra: %r' % (errors - results))
-    assert errors == results
+    print('\n  extra: %r' % (results - expected))
+    print('\nmissing: %r' % (expected - results))
+    assert expected == results

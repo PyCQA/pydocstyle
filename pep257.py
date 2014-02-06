@@ -11,6 +11,8 @@ The repository is located at:
 http://github.com/GreenSteam/pep257
 
 """
+from __future__ import with_statement
+
 import os
 import sys
 import tokenize as tk
@@ -28,8 +30,16 @@ except ImportError:  # Python 3.0 and later
 try:
     next
 except NameError:  # Python 2.5 and earlier
-    def next(obj):
-        return obj.next()
+    nothing = object()
+
+    def next(obj, default=nothing):
+        if default == nothing:
+            return obj.next()
+        else:
+            try:
+                return obj.next()
+            except StopIteration:
+                return default
 
 
 __version__ = '0.3.0'
@@ -491,8 +501,8 @@ class PEP257Checker(object):
         # NOTE: This does not take into account functions with groups of code.
         if docstring:
             before, _, after = function.source.partition(docstring)
-            blanks_before = map(is_blank, before.split('\n')[:-1])
-            blanks_after = map(is_blank, after.split('\n')[1:])
+            blanks_before = list(map(is_blank, before.split('\n')[:-1]))
+            blanks_after = list(map(is_blank, after.split('\n')[1:]))
             blanks_before_count = sum(takewhile(bool, reversed(blanks_before)))
             blanks_after_count = sum(takewhile(bool, blanks_after))
             if blanks_before_count != 0:
@@ -526,8 +536,8 @@ class PEP257Checker(object):
         # def foo(): pass
         if docstring:
             before, _, after = class_.source.partition(docstring)
-            blanks_before = map(is_blank, before.split('\n')[:-1])
-            blanks_after = map(is_blank, after.split('\n')[1:])
+            blanks_before = list(map(is_blank, before.split('\n')[:-1]))
+            blanks_after = list(map(is_blank, after.split('\n')[1:]))
             blanks_before_count = sum(takewhile(bool, reversed(blanks_before)))
             blanks_after_count = sum(takewhile(bool, blanks_after))
             if blanks_before_count != 1:
