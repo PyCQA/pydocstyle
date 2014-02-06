@@ -34,7 +34,6 @@ def test_parser():
     assert Module('file.py', _, 1, len(source.split('\n')),
                   '"""Module."""', _, _, all) == module
 
-    print map(str, module.children[0].children)
     function, class_ = module.children
     assert Function('function', _, _, _, '"Function."', _, module) == function
     assert Class('class_', _, _, _, '"""Class."""', _, module) == class_
