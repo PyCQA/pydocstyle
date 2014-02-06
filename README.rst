@@ -20,7 +20,7 @@ Use `pip <http://pip-installer.org>`_ or easy_install::
 Alternatively, you can use ``pep257.py`` source file
 directly--it is self-contained.
 
-**pep257** is tested with Python 2.5, 2.6, 2.7, 3.2, 3.3
+**pep257** is tested with Python 2.6, 2.7, 3.2, 3.3
 
 Example
 -----------------------------------------------------------
