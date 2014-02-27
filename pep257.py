@@ -220,13 +220,24 @@ class Parser(object):
         if self.current.value != '=':
             raise AllError('Could not evaluate contents of __all__. ')
         self.consume(tk.OP)
-        if self.current.value != '(':
+        if self.current.value not in '([':
             raise AllError('Could not evaluate contents of __all__. ')
+        if self.current.value == '[':
+            msg = ("%s WARNING: __all__ is defined as a list, this means "
+                   "pep257 cannot reliably detect contents of the __all__ "
+                   "variable, because it can be mutated. Change __all__ to be "
+                   "an (immutable) tuple, to remove this warning. Note, "
+                   "pep257 uses __all__ to detect which definitions are "
+                   "public, to warn if public definitions are missing "
+                   "docstrings. If __all__ is a (mutable) list, pep257 cannot "
+                   "reliably assume its contents. pep257 will proceed "
+                   "assuming __all__ is not mutated.\n" % self.filename)
+            sys.stderr.write(msg)
         self.consume(tk.OP)
         s = '('
         if self.current.kind != tk.STRING:
             raise AllError('Could not evaluate contents of __all__. ')
-        while self.current.value != ')':
+        while self.current.value not in ')]':
             s += self.current.value
             self.stream.move()
         s += ')'
