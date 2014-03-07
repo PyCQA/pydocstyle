@@ -25,6 +25,10 @@ class class_(object):
         def nested_3(self):
             """Nested."""
 '''
+source_alt = '''
+__all__ = ['a', 'b'
+           'c',]
+'''
 
 
 def test_parser():
@@ -54,6 +58,10 @@ def test_parser():
                           '"""Nested."""', _, method_2) == nested_3
     assert nested_3.module == module
     assert nested_3.all == all
+
+    module = parse(StringIO(source_alt), 'file_alt.py')
+    assert Module('file_alt.py', _, 1, len(source_alt.split('\n')),
+                  None, _, _, all) == module
 
 
 def _test_module():
