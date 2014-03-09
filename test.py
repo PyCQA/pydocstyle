@@ -158,29 +158,11 @@ def asdfsdfsdsdsdfsdf24():
     """
 
 
-@expect('D209: Multi-line docstring should end with 1 blank line, found 0')
+@expect('D209: Put multi-line docstring closing quotes on separate line')
 def asdfljdf24():
     """Summary.
 
     Description."""
-
-
-@expect('D209: Multi-line docstring should end with 1 blank line, found 0')
-def asdljlfljdf24():
-    """Summary.
-
-    Description.
-    """
-
-
-@expect('D209: Multi-line docstring should end with 1 blank line, found 2')
-def lklkjllkjl():
-    """Summary.
-
-    Description.
-
-
-    """
 
 
 @expect('D300: Expected """-quotes, got \'\'\'-quotes')

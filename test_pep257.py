@@ -222,18 +222,3 @@ Not Properly indented.
     """
     pass'''
     assert check('"""%s"""' % context.split('"""')[1], context, None)
-
-
-def test_check_blank_after_last_paragraph():
-    check = pep257.check_blank_after_last_paragraph
-    s1 = '''"""Multiline docstring should end with 1 blank line.
-
-    Blank here:
-
-    """'''
-    s2 = '''"""Multiline docstring should end with 1 blank line.
-
-    No blank here.
-    """'''
-    assert not check(s1, None, None)
-    assert check(s2, None, None)
