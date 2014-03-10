@@ -42,7 +42,7 @@ except NameError:  # Python 2.5 and earlier
                 return default
 
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 __all__ = ('check', 'collect')
 
 
