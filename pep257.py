@@ -609,9 +609,7 @@ class PEP257Checker(object):
         if docstring:
             lines = [l for l in eval(docstring).split('\n') if not is_blank(l)]
             if len(lines) > 1:
-                lines = eval(docstring).split('\n')
-                blanks = len(list(takewhile(is_blank, reversed(lines))))
-                if blanks < 2:
+                if docstring.split("\n")[-1].strip() not in ['"""', "'''"]:
                     return Error('D209: Put multi-line docstring closing '
                                  'quotes on separate line')
 

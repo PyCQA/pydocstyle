@@ -201,6 +201,22 @@ def foobar():
     """Signature: foobar()."""
 
 
+def new_209():
+    """First line.
+
+    More lines.
+    """
+    pass
+
+
+def old_209():
+    """One liner.
+
+    Multi-line comments. OK to have extra blank line
+
+    """
+
+
 def run():
     """Run the functions above and check errors agains expected errors."""
     import pep257
