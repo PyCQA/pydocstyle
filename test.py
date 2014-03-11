@@ -1,5 +1,5 @@
-"""Docstring."""
 # encoding: utf-8
+# No docstring, so we can test D100
 import sys
 
 
@@ -201,9 +201,26 @@ def foobar():
     """Signature: foobar()."""
 
 
+def new_209():
+    """First line.
+
+    More lines.
+    """
+    pass
+
+
+def old_209():
+    """One liner.
+
+    Multi-line comments. OK to have extra blank line
+
+    """
+
+
 def run():
     """Run the functions above and check errors agains expected errors."""
     import pep257
+    expect(__file__, 'D100: Docstring missing')
     results = list(pep257.check([__file__]))
     assert set(map(type, results)) == set([pep257.Error]), results
     results = set([(e.definition.name, e.message) for e in results])
