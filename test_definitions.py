@@ -29,6 +29,12 @@ source_alt = '''
 __all__ = ['a', 'b'
            'c',]
 '''
+source_alt_nl_at_bracket = '''
+__all__ = [
+
+    # Inconvenient comment.
+    'a', 'b' 'c',]
+'''
 
 
 def test_parser():
@@ -62,6 +68,11 @@ def test_parser():
     module = parse(StringIO(source_alt), 'file_alt.py')
     assert Module('file_alt.py', _, 1, len(source_alt.split('\n')),
                   None, _, _, all) == module
+
+    module = parse(StringIO(source_alt_nl_at_bracket), 'file_alt_nl.py')
+    assert Module('file_alt_nl.py', _, 1,
+                  len(source_alt_nl_at_bracket.split('\n')), None, _, _,
+                  all) == module
 
 
 def _test_module():
