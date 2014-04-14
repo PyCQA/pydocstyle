@@ -1,6 +1,9 @@
-"""Use tox or py.test to run the test-suite."""
-# -*- coding: utf-8 -*-
-from __future__ import with_statement
+"""
+Unit test for pep257 module.
+
+Use tox or py.test to run the test-suite.
+"""
+from StringIO import StringIO
 
 from pytest import skip
 
@@ -10,215 +13,221 @@ import pep257
 __all__ = []
 
 
-@skip
-def test_pep257_conformance():
-    errors = list(pep257.check(['pep257.py', 'test_pep257.py']))
-    print(errors)
-    assert len(errors) == 0
-
-
-def test_get_summary_line_info():
-    s1 = '''"""First line summary."""'''
-    s2 = '''"""First line summary.
-    With subsequent line.
-    """'''
-    s3 = '''""""""'''
-    s4 = '''"""
-    Second line summary.
-    """'''
-    s5 = '''"""
-    Second line summary.
-    With subsquent line.
-    """'''
-    assert pep257.get_summary_line_info(s1) == ('First line summary.', 0)
-    assert pep257.get_summary_line_info(s2) == ('First line summary.', 0)
-    assert pep257.get_summary_line_info(s3) == ('', 0)
-    assert pep257.get_summary_line_info(s4) == ('Second line summary.', 1)
-    assert pep257.get_summary_line_info(s5) == ('Second line summary.', 1)
-
-
-def test_parse_docstring():
-    s1 = '''def foo():  # o hai comment
-    """docstring"""
-    2 + 2'''
-    assert pep257.parse_docstring(s1) == '"""docstring"""'
-
-    s2 = '''def foo():  # o hai comment
-    2 + 2'''
-    assert pep257.parse_docstring(s2) is None
-
-    assert pep257.parse_docstring("def foo():pass") is None
-    # TODO
-    # assert pep257.parse_docstring("def bar():'doc';pass") == "'doc'"
-
-
-def test_abs_pos():
-    assert pep257.abs_pos((1, 0), 'foo') == 0
-    assert pep257.abs_pos((1, 2), 'foo') == 2
-    assert pep257.abs_pos((2, 0), 'foo\nbar') == 4
-
-
-def test_rel_pos():
-    assert pep257.rel_pos(0, 'foo') == (1, 0)
-    assert pep257.rel_pos(2, 'foo') == (1, 2)
-    assert pep257.rel_pos(4, 'foo\nbar') == (2, 0)
-    assert pep257.rel_pos(6, 'foo\nbar') == (2, 2)
-
-
-def test_parse_functions():
-    parse = pep257.parse_functions
-    assert parse('') == []
-    # TODO assert pf('def foo():pass') == ['def foo():pass']
-    assert parse('def foo():\n    pass\n') == ['def foo():\n    pass\n']
-    assert parse('def foo():\n  pass') == ['def foo():\n  pass']
-    f1 = '''def foo():\n  pass\ndef bar():\n  pass'''
-    assert parse(f1) == ['def foo():\n  pass\n',
-                         'def bar():\n  pass']
-    f2 = '''def foo():\n  pass\noh, hai\ndef bar():\n  pass'''
-    assert parse(f2) == ['def foo():\n  pass\n',
-                         'def bar():\n  pass']
-
-
-def test_parse_methods():
-    parse = pep257.parse_methods
-    assert parse('') == []
-    m1 = '''class Foo:
-    def m1():
-        pass
-    def m2():
-        pass'''
-    assert parse(m1) == ['def m1():\n        pass\n    ',
-                         'def m2():\n        pass']
-    m2 = '''class Foo:
-    def m1():
-        pass
-    attribute
-    def m2():
-        pass'''
-    assert parse(m2) == ['def m1():\n        pass\n    ',
-                         'def m2():\n        pass']
-
-
-def test_check_triple_double_quotes():
-    check = pep257.check_triple_double_quotes
-    assert check("'''Not using triple douple quotes'''", None, None)
-    assert not check('"""Using triple double quotes"""', None, None)
-    assert not check('r"""Using raw triple double quotes"""', None, None)
-    assert not check('u"""Using unicode triple double quotes"""', None, None)
-
-
-def test_check_backslashes():
-    check = pep257.check_backslashes
-    assert check('"""backslash\\here""""', None, None)
-    assert not check('r"""backslash\\here""""', None, None)
-
-
-def test_check_unicode_docstring():
-    check = pep257.check_unicode_docstring
-    assert not check('"""No Unicode here."""', None, None)
-    assert not check('u"""Здесь Юникод: øπΩ≈ç√∫˜µ≤"""', None, None)
-    assert check('"""Здесь Юникод: øπΩ≈ç√∫˜µ≤"""', None, None)
-
-
-def test_check_ends_with_period():
-    check = pep257.check_ends_with_period
-    s1 = '"""Should end with a period"""'
-    s2 = '"""Should end with a period."""'
-    s3 = '''"""
-        Should end with a period
-        """'''
-    s4 = '''"""
-        Should end with a period.
-        """'''
-    assert check(s1, None, None)
-    assert not check(s2, None, None)
-    assert check(s3, None, None)
-    assert not check(s4, None, None)
-
-
-def test_check_blank_before_after_class():
-    check = pep257.check_blank_before_after_class
-    c1 = '''class Perfect(object):
-
-    """This should work perfectly."""
-
-    pass'''
-    assert not check('"""This should work perfectly."""', c1, False)
-
-    c2 = '''class BadTop(object):
-    """This should fail due to a lack of whitespace above."""
-
-    pass'''
-    assert check('"""This should fail due to a lack of whitespace above."""',
-                 c2, False)
-    c3 = '''class BadBottom(object):
-
-    """This should fail due to a lack of whitespace below."""
-    pass'''
-    assert check('"""This should fail due to a lack of whitespace below."""',
-                 c3, False)
-    c4 = '''class GoodWithNoFollowingWhiteSpace(object):
-
-    """This should work."""'''
-    assert not check('"""This should work."""',
-                     c4, False)
-    c5 = '''class GoodWithFollowingWhiteSpace(object):
-
-    """This should work."""
-
-
-'''
-    assert not check('"""This should work."""', c5, False)
-
-    c6 = '''class Perfect(object):
-
-    """This should work perfectly."""
-
-    def foo(self):
-        """This should work perfectly."""
-        pass
-
-    '''
-    assert not check('"""This should work perfectly."""', c6, False)
-
-
-def test_check_blank_after_summary():
-    check = pep257.check_blank_after_summary
-    s1 = '''"""Blank line missing after one-line summary.
-    ....................
-    """'''
-    s2 = '''"""Blank line missing after one-line summary.
-
-    """'''
-    s3 = '''"""
-    Blank line missing after one-line summary.
-    ....................
-    """'''
-    s4 = '''"""
-    Blank line missing after one-line summary.
-
-    """'''
-    assert check(s1, None, None)
-    assert not check(s2, None, None)
-    assert check(s3, None, None)
-    assert not check(s4, None, None)
-
-
-def test_check_indent():
-    check = pep257.check_indent
-    context = '''def foo():
-    """Docstring.
-
-    Properly indented.
-
+class TestParser:
     """
-    pass'''
-    assert not check('"""%s"""' % context.split('"""')[1], context, None)
-    context = '''def foo():
-    """Docstring.
-
-Not Properly indented.
-
+    Check parsing of Python source code.
     """
-    pass'''
-    assert check('"""%s"""' % context.split('"""')[1], context, None)
+
+    def test_parse_class_single_decorator(self):
+        """
+        Class decorator is recorded in class instance.
+        """
+        code = """
+@first_decorator
+class Foo:
+    pass
+        """
+        module = pep257.parse(StringIO(code), 'dummy.py')
+        decorators = module.children[0].decorators
+
+        assert 1 == len(decorators)
+        assert 'first_decorator' == decorators[0].name
+        assert '' == decorators[0].arguments
+
+    def test_parse_class_decorators(self):
+        """
+        Class decorators are accumulated, together with they arguments.
+        """
+        code = """
+@first_decorator
+@second.decorator(argument)
+@third.multi.line(
+    decorator,
+    key=value,
+    )
+class Foo:
+    pass
+        """
+
+        module = pep257.parse(StringIO(code), 'dummy.py')
+        defined_class = module.children[0]
+        decorators = defined_class.decorators
+
+        assert 3 == len(decorators)
+        assert 'first_decorator' == decorators[0].name
+        assert '' == decorators[0].arguments
+        assert 'second.decorator' == decorators[1].name
+        assert 'argument' == decorators[1].arguments
+        assert 'third.multi.line' == decorators[2].name
+        assert 'decorator,key=value,' == decorators[2].arguments
+
+    def test_parse_class_nested_decorator(self):
+        """
+        Class decorator is recorded even for nested classes.
+        """
+        code = """
+@parent_decorator
+class Foo:
+    pass
+    @first_decorator
+    class NestedClass:
+        pass
+        """
+        module = pep257.parse(StringIO(code), 'dummy.py')
+        nested_class = module.children[0].children[0]
+        decorators = nested_class.decorators
+
+        assert 1 == len(decorators)
+        assert 'first_decorator' == decorators[0].name
+        assert '' == decorators[0].arguments
+
+    def test_parse_method_single_decorator(self):
+        """
+        Method decorators are accumulated.
+        """
+        code = """
+class Foo:
+    @first_decorator
+    def method(self):
+        pass
+        """
+
+        module = pep257.parse(StringIO(code), 'dummy.py')
+        defined_class = module.children[0]
+        decorators = defined_class.children[0].decorators
+
+        assert 1 == len(decorators)
+        assert 'first_decorator' == decorators[0].name
+        assert '' == decorators[0].arguments
+
+    def test_parse_method_decorators(self):
+        """
+        Method decorators are accumulated.
+        """
+        code = """
+class Foo:
+    @first_decorator
+    @second.decorator(argument)
+    @third.multi.line(
+        decorator,
+        key=value,
+        )
+    def method(self):
+        pass
+        """
+
+        module = pep257.parse(StringIO(code), 'dummy.py')
+        defined_class = module.children[0]
+        decorators = defined_class.children[0].decorators
+
+        assert 3 == len(decorators)
+        assert 'first_decorator' == decorators[0].name
+        assert '' == decorators[0].arguments
+        assert 'second.decorator' == decorators[1].name
+        assert 'argument' == decorators[1].arguments
+        assert 'third.multi.line' == decorators[2].name
+        assert 'decorator,key=value,' == decorators[2].arguments
+
+    def test_parse_function_decorator(self):
+        """
+        It accumulates decorators for functions.
+        """
+        code = """@first_decorator
+def some_method(self):
+    pass
+        """
+
+        module = pep257.parse(StringIO(code), 'dummy.py')
+        decorators = module.children[0].decorators
+
+        assert 1 == len(decorators)
+        assert 'first_decorator' == decorators[0].name
+        assert '' == decorators[0].arguments
+
+    def test_parse_method_nested_decorator(self):
+        """
+        Method decorators are accumulated for nested methods.
+        """
+        code = """
+class Foo:
+    @parent_decorator
+    def method(self):
+        @first_decorator
+        def nested_method(arg):
+            pass
+        """
+
+        module = pep257.parse(StringIO(code), 'dummy.py')
+        defined_class = module.children[0]
+        decorators = defined_class.children[0].children[0].decorators
+
+        assert 1 == len(decorators)
+        assert 'first_decorator' == decorators[0].name
+        assert '' == decorators[0].arguments
+
+class TestMethod:
+    """
+    Unit test for Method class.
+    """
+
+    def makeMethod(self, name='someMethodName'):
+        """
+        Return a simple method instance.
+        """
+        children = []
+        all = ['ClassName']
+        source = 'class ClassName:\n    def %s(self):\n' % (name)
+
+        module = pep257.Module(
+            'module_name',
+            source,
+            0,
+            1,
+            'Docstring for module',
+            [],
+            None,
+            all,
+            )
+
+        parent = pep257.Class(
+            'ClassName',
+            source,
+            0,
+            1,
+            'Docstring for class',
+            children,
+            module,
+            all,
+            )
+
+        return pep257.Method(
+            name,
+            source,
+            0,
+            1,
+            'Docstring for method',
+            children,
+            parent,
+            all,
+            )
+
+    def test_is_public_normal(self):
+        """
+        Setter are considered private.
+        """
+        method = self.makeMethod('methodName')
+        method.decorators = [pep257.Decorator('some_decorator', [])]
+
+        assert True == method.is_public
+
+    def test_is_public_setter(self):
+        """
+        Setter are considered private.
+        """
+        method = self.makeMethod('methodName')
+        method.decorators = [
+            pep257.Decorator('some_decorator', []),
+            pep257.Decorator('methodName.setter', []),
+            ]
+
+        assert False == method.is_public
