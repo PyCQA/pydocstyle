@@ -66,7 +66,8 @@ class Value(object):
 
 class Definition(Value):
 
-    _fields = 'name _source start end docstring children parent decorators'.split()
+    _fields = (
+        'name _source start end docstring children parent decorators'.split())
 
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])

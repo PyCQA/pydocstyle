@@ -165,6 +165,7 @@ class Foo:
         assert 'first_decorator' == decorators[0].name
         assert '' == decorators[0].arguments
 
+
 class TestMethod:
     """
     Unit test for Method class.
