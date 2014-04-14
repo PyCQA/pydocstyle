@@ -66,7 +66,8 @@ class Value(object):
 
 class Definition(Value):
 
-    _fields = 'name _source start end docstring children parent'.split()
+    _fields = (
+        'name _source start end docstring children parent decorators'.split())
 
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])
@@ -116,6 +117,10 @@ class Method(Function):
 
     @property
     def is_public(self):
+        # Check if we have a setter method and mark it private.
+        for decorator in self.decorators:
+            if decorator.name.startswith(self.name):
+                return False
         name_is_public = not self.name.startswith('_') or is_magic(self.name)
         return self.parent.is_public and name_is_public
 
@@ -129,6 +134,12 @@ class Class(Definition):
 class NestedClass(Class):
 
     is_public = False
+
+
+class Decorator(Value):
+    """A decorator for function, method or class."""
+
+    _fields = 'name arguments'.split()
 
 
 class Token(Value):
@@ -178,6 +189,7 @@ class Parser(object):
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
+        self._decorators = []
         return self.parse_module()
 
     current = property(lambda self: self.stream.current)
@@ -189,8 +201,7 @@ class Parser(object):
     def leapfrog(self, kind):
         for token in self.stream:
             if token.kind == kind:
-                self.consume(kind)
-                return
+                return self.stream.move()
 
     def parse_docstring(self):
         for token in self.stream:
@@ -201,10 +212,55 @@ class Parser(object):
             else:
                 return None
 
+    def parse_decorators(self):
+        """
+        Called after first @ is found.
+
+        Build list of current decorators and return last parsed token, which
+        is def or class start token.
+        """
+        name = []
+        arguments = []
+        at_arguments = False
+
+        for token in self.stream:
+            if token.kind == tk.NAME and token.value in ['def', 'class']:
+                break
+            elif token.kind == tk.OP and token.value == '@':
+                # New decorator found.
+                self._decorators.append(
+                    Decorator(
+                        ''.join(name), ''.join(arguments)))
+                name = []
+                arguments = []
+                at_arguments = False
+            elif token.kind == tk.OP and token.value == '(':
+                at_arguments = True
+            elif token.kind == tk.OP and token.value == ')':
+                # Ignore close parenthesis.
+                continue
+            elif token.kind == tk.NEWLINE or token.kind == tk.NL:
+                # Ignore new lines.
+                continue
+            else:
+                # Keep accumulating decorator's name or argument.
+                if not at_arguments:
+                    name.append(token.value)
+                else:
+                    arguments.append(token.value)
+
+        # Add decorator accumulated to far.
+        self._decorators.append(
+            Decorator(''.join(name), ''.join(arguments)))
+        return token
+
     def parse_definitions(self, class_, all=False):
         for token in self.stream:
             if all and token.value == '__all__':
                 self.parse_all()
+            if token.kind == tk.OP and token.value == '@':
+                self.consume(tk.OP)
+                token = self.parse_decorators()
             if token.value in ['def', 'class']:
                 yield self.parse_definition(class_._nest(token.value))
             if token.kind == tk.INDENT:
@@ -267,11 +323,14 @@ class Parser(object):
         self.leapfrog(tk.INDENT)
         assert self.current.kind != tk.INDENT
         docstring = self.parse_docstring()
+        decorators = self._decorators
+        self._decorators = []
         children = list(self.parse_definitions(class_))
         assert self.current.kind == tk.DEDENT
         end = self.line - 1
         definition = class_(name, self.source, start, end,
-                            docstring, children, None)
+                            docstring, children, None, decorators)
+
         for child in definition.children:
             child.parent = definition
         return definition
