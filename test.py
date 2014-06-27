@@ -216,14 +216,4 @@ def old_209():
 
     """
 
-
-def run():
-    """Run the functions above and check errors agains expected errors."""
-    import pep257
-    expect(__file__, 'D100: Docstring missing')
-    results = list(pep257.check([__file__]))
-    assert set(map(type, results)) == set([pep257.Error]), results
-    results = set([(e.definition.name, e.message) for e in results])
-    print('\n  extra: %r' % (results - expected))
-    print('\nmissing: %r' % (expected - results))
-    assert expected == results
+expect('test.py', 'D100: Docstring missing')
