@@ -724,7 +724,7 @@ class PEP257Checker(object):
 
     @check_for(Definition)
     def check_blank_after_summary(self, definition, docstring):
-        """D205: Blank line missing between one-line summary and description.
+        """D205: Put one blank line between summary line and description.
 
         Multi-line docstrings consist of a summary line just like a one-line
         docstring, followed by a blank line, followed by a more elaborate
@@ -735,8 +735,13 @@ class PEP257Checker(object):
         """
         if docstring:
             lines = eval(docstring).strip().split('\n')
-            if len(lines) > 1 and not is_blank(lines[1]):
-                return Error()
+            if len(lines) > 1:
+                post_summary_blanks = list(map(is_blank, lines[1:]))
+                blanks_count = sum(takewhile(bool, post_summary_blanks))
+                if blanks_count != 1:
+                    yield Error('D205: Expected 1 blank line between summary '
+                                'line and description, found %s' %
+                                blanks_count)
 
     @check_for(Definition)
     def check_indent(self, definition, docstring):

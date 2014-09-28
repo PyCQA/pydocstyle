@@ -105,9 +105,29 @@ class LeadingAndTrailingSpaceMissing:
     pass
 
 
-@expect('D205: Blank line missing between one-line summary and description')
-def asdfasdf():
+@expect('D205: Expected 1 blank line between summary line and description, '
+        'found 0')
+def multi_line_zero_separating_blanks():
     """Summary.
+    Description.
+
+    """
+
+
+@expect('D205: Expected 1 blank line between summary line and description, '
+        'found 2')
+def multi_line_two_separating_blanks():
+    """Summary.
+
+
+    Description.
+
+    """
+
+
+def multi_line_one_separating_blanks():
+    """Summary.
+
     Description.
 
     """
