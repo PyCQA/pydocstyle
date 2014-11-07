@@ -216,4 +216,20 @@ def old_209():
 
     """
 
+
+@expect("D103: Docstring missing")
+def oneliner_d102(): return
+
+
+@expect("D400: First line should end with '.', not 'r'")
+def oneliner_withdoc(): """One liner"""
+
+
+@expect("D208: Docstring is over-indented")
+def docstring_start_in_same_line(): """First Line.
+
+    Second Line
+    """
+
+
 expect('test.py', 'D100: Docstring missing')

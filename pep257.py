@@ -186,9 +186,9 @@ class Parser(object):
     def consume(self, kind):
         assert self.stream.move().kind == kind
 
-    def leapfrog(self, kind):
+    def leapfrog(self, kind, value=None):
         for token in self.stream:
-            if token.kind == kind:
+            if token.kind == kind and (value is None or token.value == value):
                 self.consume(kind)
                 return
 
@@ -264,12 +264,19 @@ class Parser(object):
         start = self.line
         self.consume(tk.NAME)
         name = self.current.value
-        self.leapfrog(tk.INDENT)
-        assert self.current.kind != tk.INDENT
-        docstring = self.parse_docstring()
-        children = list(self.parse_definitions(class_))
-        assert self.current.kind == tk.DEDENT
-        end = self.line - 1
+        self.leapfrog(tk.OP, value=":")
+        if self.current.kind in (tk.NEWLINE, tk.COMMENT):
+            self.leapfrog(tk.INDENT)
+            assert self.current.kind != tk.INDENT
+            docstring = self.parse_docstring()
+            children = list(self.parse_definitions(class_))
+            assert self.current.kind == tk.DEDENT
+            end = self.line - 1
+        else:  # one-liner definition
+            docstring = self.parse_docstring()
+            children = []
+            end = self.line
+            self.leapfrog(tk.NEWLINE)
         definition = class_(name, self.source, start, end,
                             docstring, children, None)
         for child in definition.children:
