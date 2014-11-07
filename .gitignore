@@ -40,3 +40,6 @@ docs/_*
 
 # virtualenv
 venv/
+
+# PyCharm files
+.idea
