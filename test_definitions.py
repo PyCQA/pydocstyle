@@ -1,4 +1,4 @@
-from pep257 import (StringIO, TokenStream, Parser,
+from pep257 import (StringIO, TokenStream, Parser, Error, check,
                     Module, Class, Method, Function, NestedFunction)
 
 
@@ -91,10 +91,6 @@ def _test_module():
     assert function.name == 'function'
     assert function.docstring == '"""Function docstring."""'
 
-    #nested_function, = function.children
-    #assert nested_function.source.startswith('def nested_function')
-    #assert nested_function.source.endswith('pass\n')
-
 
 def test_token_stream():
     stream = TokenStream(StringIO('hello#world'))
@@ -108,4 +104,9 @@ def test_token_stream():
 def test_pep257():
     """Run domain-specific tests from test.py file."""
     import test
-    test.run()
+    results = list(check(['test.py']))
+    assert set(map(type, results)) == set([Error]), results
+    results = set([(e.definition.name, e.message) for e in results])
+    print('\nextra: %r' % (results - test.expected))
+    print('\nmissing: %r' % (test.expected - results))
+    assert test.expected == results
