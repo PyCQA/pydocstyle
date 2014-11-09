@@ -27,4 +27,5 @@ setup(
     keywords='PEP 257, pep257, PEP 8, pep8, docstrings',
     py_modules=['pep257'],
     scripts=['pep257'],
+    install_requires=['docopt'],
 )

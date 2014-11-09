@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Static analysis tool for checking docstring conventions and style.
+r"""Static analysis tool for checking docstring conventions and style.
 
 Implemented checks cover PEP257:
 http://www.python.org/dev/peps/pep-0257/
@@ -10,14 +10,31 @@ https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
 The repository is located at:
 http://github.com/GreenSteam/pep257
 
+Usage:
+    pep257.py [--source] [--explain] [--ignore=<codes>] [--match=<pattern>]
+              [--match-dir=<pattern>] [<input>]...
+
+Options:
+    -s, --source            show source for each error
+    -e, --explain           show detailed explanations for each error
+    --ignore=<codes>        ignore a list comma-separated error codes, for
+                            example: --ignore=D101,D202 [default: ""]
+    --match=<pattern>       check only files that exactly match <pattern>
+                            regular expression; default matches files that
+                            don't start with 'test_' but end with '.py'
+                            [default: (?!test_).*\.py]
+    --match-dir=<pattern>   search only dirs that exactly match <pattern>
+                            regular expression; default matches all dirs that
+                            don't start with a dot [default: [^\.].*]
+
 """
 from __future__ import with_statement
 
 import os
 import sys
+from docopt import docopt
 import tokenize as tk
 from itertools import takewhile, dropwhile, chain
-from optparse import OptionParser
 from re import compile as re
 
 
@@ -339,29 +356,6 @@ class Error(object):
         return (self.filename, self.line) < (other.filename, other.line)
 
 
-def parse_options():
-    parser = OptionParser(version=__version__,
-                          usage='Usage: pep257 [options] [<file|dir>...]')
-    option = parser.add_option
-    option('-e', '--explain', action='store_true',
-           help='show explanation of each error')
-    option('-s', '--source', action='store_true',
-           help='show source for each error')
-    option('--ignore', metavar='<codes>', default='',
-           help='ignore a list comma-separated error codes, '
-                'for example: --ignore=D101,D202')
-    option('--match', metavar='<pattern>', default='(?!test_).*\.py',
-           help="check only files that exactly match <pattern> regular "
-                "expression; default is --match='(?!test_).*\.py' which "
-                "matches files that don't start with 'test_' but end with "
-                "'.py'")
-    option('--match-dir', metavar='<pattern>', default='[^\.].*',
-           help="search only dirs that exactly match <pattern> regular "
-                "expression; default is --match-dir='[^\.].*', which matches "
-                "all dirs that don't start with a dot")
-    return parser.parse_args()
-
-
 def collect(names, match=lambda name: True, match_dir=lambda name: True):
     """Walk dir trees under `names` and generate filnames that `match`.
 
@@ -410,14 +404,15 @@ def check(filenames, ignore=()):
             yield SyntaxError('invalid syntax in file %s' % filename)
 
 
-def main(options, arguments):
-    Error.explain = options.explain
-    Error.source = options.source
-    collected = collect(arguments or ['.'],
-                        match=re(options.match + '$').match,
-                        match_dir=re(options.match_dir + '$').match)
+def main():
+    args = docopt(__doc__, version=__version__)
+    Error.explain = args['--explain']
+    Error.source = args['--source']
+    collected = collect(args['<input>'] or ['.'],
+                        match=re(args['--match'] + '$').match,
+                        match_dir=re(args['--match-dir'] + '$').match)
     code = 0
-    for error in check(collected, ignore=options.ignore.split(',')):
+    for error in check(collected, ignore=args['--ignore'].split(',')):
         sys.stderr.write('%s\n' % error)
         code = 1
     return code
@@ -730,6 +725,6 @@ class PEP257Checker(object):
 
 if __name__ == '__main__':
     try:
-        sys.exit(main(*parse_options()))
+        sys.exit(main())
     except KeyboardInterrupt:
         pass
