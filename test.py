@@ -225,11 +225,22 @@ def oneliner_d102(): return
 def oneliner_withdoc(): """One liner"""
 
 
-@expect("D208: Docstring is over-indented")
+@expect("D207: Docstring is under-indented")
 def docstring_start_in_same_line(): """First Line.
 
     Second Line
     """
 
+
+def function_with_lambda_arg(x=lambda y: y):
+    """A valid docstring."""
+
+
+def a_following_valid_function(x):
+    """Check for a bug where the previous function caused an assertion.
+
+    The assertion was caused in the next function, so this one is necessary.
+
+    """
 
 expect('test.py', 'D100: Docstring missing')
