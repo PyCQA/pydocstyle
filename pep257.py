@@ -15,10 +15,14 @@ from __future__ import with_statement
 
 import os
 import sys
+import logging
 import tokenize as tk
 from itertools import takewhile, dropwhile, chain
 from optparse import OptionParser
 from re import compile as re
+
+log = logging.getLogger()
+log.addHandler(logging.StreamHandler())
 
 
 try:
@@ -60,8 +64,9 @@ class Value(object):
     __eq__ = lambda self, other: other and vars(self) == vars(other)
 
     def __repr__(self):
-        args = [vars(self)[field] for field in self._fields]
-        return '%s(%s)' % (self.__class__.__name__, ', '.join(map(repr, args)))
+        format_arg = lambda arg: '{}={!r}'.format(arg, getattr(self, arg))
+        kwargs = ', '.join(format_arg(arg) for arg in self._fields)
+        return '{}({})'.format(self.__class__.__name__, kwargs)
 
 
 class Definition(Value):
@@ -131,9 +136,18 @@ class NestedClass(Class):
     is_public = False
 
 
+class TokenKind(int):
+    def __repr__(self):
+        return "tk.{}".format(tk.tok_name[self])
+
+
 class Token(Value):
 
     _fields = 'kind value start end source'.split()
+
+    def __init__(self, *args):
+        super(Token, self).__init__(*args)
+        self.kind = TokenKind(self.kind)
 
 
 class TokenStream(object):
@@ -187,34 +201,53 @@ class Parser(object):
         assert self.stream.move().kind == kind
 
     def leapfrog(self, kind, value=None):
-        for token in self.stream:
-            if token.kind == kind and (value is None or token.value == value):
+        """Skip tokens in the stream until a certain token kind is reached.
+
+        If `value` is specified, tokens whose values are different will also
+        be skipped.
+        """
+        while self.current is not None:
+            if (self.current.kind == kind and
+               (value is None or self.current.value == value)):
                 self.consume(kind)
                 return
+            self.stream.move()
 
     def parse_docstring(self):
-        for token in self.stream:
-            if token.kind in [tk.COMMENT, tk.NEWLINE, tk.NL]:
-                continue
-            elif token.kind == tk.STRING:
-                return token.value
-            else:
-                return None
+        """Parse a single docstring and return its value."""
+        log.debug("parsing docstring, token is %r (%s)",
+                  self.current.kind, self.current.value)
+        while self.current.kind in (tk.COMMENT, tk.NEWLINE, tk.NL):
+            self.stream.move()
+            log.debug("parsing docstring, token is %r (%s)",
+                      self.current.kind, self.current.value)
+        if self.current.kind == tk.STRING:
+            docstring = self.current.value
+            self.stream.move()
+            return docstring
+        return None
 
     def parse_definitions(self, class_, all=False):
-        for token in self.stream:
-            if all and token.value == '__all__':
+        """Parse multiple defintions and yield them."""
+        while self.current is not None:
+            log.debug("parsing defintion list, current token is %r (%s)",
+                      self.current.kind, self.current.value)
+            if all and self.current.value == '__all__':
                 self.parse_all()
-            if token.value in ['def', 'class']:
-                yield self.parse_definition(class_._nest(token.value))
-            if token.kind == tk.INDENT:
+            elif self.current.value in ['def', 'class']:
+                yield self.parse_definition(class_._nest(self.current.value))
+            elif self.current.kind == tk.INDENT:
                 self.consume(tk.INDENT)
                 for definition in self.parse_definitions(class_):
                     yield definition
-            if token.kind == tk.DEDENT:
+            elif self.current.kind == tk.DEDENT:
+                self.consume(tk.DEDENT)
                 return
+            else:
+                self.stream.move()
 
     def parse_all(self):
+        """Parse the __all__ definition in a module."""
         assert self.current.value == '__all__'
         self.consume(tk.NAME)
         if self.current.value != '=':
@@ -249,28 +282,49 @@ class Parser(object):
             raise AllError('Could not evaluate contents of __all__: %s. ' % s)
 
     def parse_module(self):
+        """Parse a module (and its children) and return a Module object."""
+        log.debug("parsing module.")
         start = self.line
         docstring = self.parse_docstring()
         children = list(self.parse_definitions(Module, all=True))
-        assert self.current is None
+        assert self.current is None, self.current
         end = self.line
         module = Module(self.filename, self.source, start, end,
                         docstring, children, None, self.all)
         for child in module.children:
             child.parent = module
+        log.debug("finished parsing module.")
         return module
 
     def parse_definition(self, class_):
+        """Parse a defintion and return its value in a `class_` object."""
         start = self.line
         self.consume(tk.NAME)
         name = self.current.value
-        self.leapfrog(tk.OP, value=":")
+        log.debug("parsing %s '%s'", class_.__name__, name)
+        self.stream.move()
+        if self.current.kind == tk.OP and self.current.value == '(':
+            parenthesis_level = 0
+            while True:
+                if self.current.kind == tk.OP:
+                    if self.current.value == '(':
+                        parenthesis_level += 1
+                    elif self.current.value == ')':
+                        parenthesis_level -= 1
+                        if parenthesis_level == 0:
+                            break
+                self.stream.move()
+        if self.current.kind != tk.OP or self.current.value != ':':
+            self.leapfrog(tk.OP, value=":")
+        else:
+            self.consume(tk.OP)
         if self.current.kind in (tk.NEWLINE, tk.COMMENT):
             self.leapfrog(tk.INDENT)
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()
+            log.debug("parsing nested defintions.")
             children = list(self.parse_definitions(class_))
-            assert self.current.kind == tk.DEDENT
+            log.debug("finished parsing nested defintions for '%s'", name)
             end = self.line - 1
         else:  # one-liner definition
             docstring = self.parse_docstring()
@@ -281,6 +335,9 @@ class Parser(object):
                             docstring, children, None)
         for child in definition.children:
             child.parent = definition
+        log.debug("finished parsing %s '%s'. Next token is %r (%s)",
+                  class_.__name__, name, self.current.kind,
+                  self.current.value)
         return definition
 
 
@@ -359,6 +416,8 @@ def parse_options():
            help="search only dirs that exactly match <pattern> regular "
                 "expression; default is --match-dir='[^\.].*', which matches "
                 "all dirs that don't start with a dot")
+    option('-d', '--debug', action='store_true',
+           help='print debug information')
     return parser.parse_args()
 
 
@@ -411,6 +470,9 @@ def check(filenames, ignore=()):
 
 
 def main(options, arguments):
+    if options.debug:
+        log.setLevel(logging.DEBUG)
+    log.debug("starting pep257 in debug mode.")
     Error.explain = options.explain
     Error.source = options.source
     collected = collect(arguments or ['.'],
