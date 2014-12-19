@@ -267,19 +267,26 @@ class Parser(object):
                    "assuming __all__ is not mutated.\n" % self.filename)
             sys.stderr.write(msg)
         self.consume(tk.OP)
-        s = '('
-        while self.current.kind in (tk.NL, tk.COMMENT):
+
+        self.all = []
+        all_content = "("
+        while self.current.kind != tk.OP or self.current.value not in ")]":
+            if self.current.kind in (tk.NL, tk.COMMENT):
+                pass
+            elif (self.current.kind == tk.STRING or
+                  self.current.value == ','):
+                all_content += self.current.value
+            else:
+                raise AllError('Could not evaluate contents of __all__. ')
             self.stream.move()
-        if self.current.kind != tk.STRING:
-            raise AllError('Could not evaluate contents of __all__. ')
-        while self.current.value not in ')]':
-            s += self.current.value
-            self.stream.move()
-        s += ')'
+        self.consume(tk.OP)
+        all_content += ")"
         try:
-            self.all = eval(s, {})
-        except BaseException:
-            raise AllError('Could not evaluate contents of __all__: %s. ' % s)
+            self.all = eval(all_content, {})
+        except BaseException as e:
+            raise AllError('Could not evaluate contents of __all__.'
+                           '\bThe value was %s. The exception was:\n%s'
+                           % (all_content, e))
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""

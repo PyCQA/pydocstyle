@@ -38,11 +38,11 @@ __all__ = [
 
 
 def test_parser():
-    all = ('a', 'bc')
+    dunder_all = ('a', 'bc')
     module = parse(StringIO(source), 'file.py')
     assert len(list(module)) == 8
     assert Module('file.py', _, 1, len(source.split('\n')),
-                  '"""Module."""', _, _, all) == module
+                  '"""Module."""', _, _, dunder_all) == module
 
     function, class_ = module.children
     assert Function('function', _, _, _, '"Function."', _, module) == function
@@ -63,16 +63,16 @@ def test_parser():
     assert NestedFunction('nested_3', _, _, _,
                           '"""Nested."""', _, method_2) == nested_3
     assert nested_3.module == module
-    assert nested_3.all == all
+    assert nested_3.all == dunder_all
 
     module = parse(StringIO(source_alt), 'file_alt.py')
     assert Module('file_alt.py', _, 1, len(source_alt.split('\n')),
-                  None, _, _, all) == module
+                  None, _, _, dunder_all) == module
 
     module = parse(StringIO(source_alt_nl_at_bracket), 'file_alt_nl.py')
     assert Module('file_alt_nl.py', _, 1,
                   len(source_alt_nl_at_bracket.split('\n')), None, _, _,
-                  all) == module
+                  dunder_all) == module
 
 
 def _test_module():
