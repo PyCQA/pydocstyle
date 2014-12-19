@@ -21,13 +21,13 @@ def test_ignore_list():
     no blank line after one-liner is bad. Also this - \"\"\"
     return foo
     """
-    expected_error_codes = {'D100', 'D400', 'D401', 'D205', 'D209'}
+    expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209'))
     mock_open = mock.mock_open(read_data=function_to_check)
-    with mock.patch('__builtin__.open', mock_open, create=True):
+    with mock.patch('pep257.open', mock_open, create=True):
         errors = tuple(pep257.check(['filepath']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes
 
         errors = tuple(pep257.check(['filepath'], ignore=['D100', 'D202']))
         error_codes = set(error.code for error in errors)
-        assert error_codes == expected_error_codes - {'D100', 'D202'}
+        assert error_codes == expected_error_codes - set(('D100', 'D202'))
