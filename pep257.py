@@ -20,9 +20,13 @@ import tokenize as tk
 from itertools import takewhile, dropwhile, chain
 from optparse import OptionParser
 from re import compile as re
+try:  # Python 3.x
+    from ConfigParser import RawConfigParser
+except ImportError:  # Python 2.x
+    from configparser import RawConfigParser
 
 log = logging.getLogger()
-log.addHandler(logging.StreamHandler())
+log.setLevel(logging.DEBUG)
 
 
 try:
@@ -49,6 +53,7 @@ except NameError:  # Python 2.5 and earlier
 __version__ = '0.3.3-alpha'
 __all__ = ('check', 'collect')
 
+PROJECT_CONFIG = ('setup.cfg', 'tox.ini', '.pep257')
 
 humanize = lambda string: re(r'(.)([A-Z]+)').sub(r'\1 \2', string).lower()
 is_magic = lambda name: name.startswith('__') and name.endswith('__')
@@ -403,9 +408,11 @@ class Error(object):
         return (self.filename, self.line) < (other.filename, other.line)
 
 
-def parse_options():
+def get_option_parser():
     parser = OptionParser(version=__version__,
                           usage='Usage: pep257 [options] [<file|dir>...]')
+    parser.config_options = ('explain', 'source', 'ignore', 'match',
+                             'match-dir', 'debug', 'verbose')
     option = parser.add_option
     option('-e', '--explain', action='store_true',
            help='show explanation of each error')
@@ -425,7 +432,9 @@ def parse_options():
                 "all dirs that don't start with a dot")
     option('-d', '--debug', action='store_true',
            help='print debug information')
-    return parser.parse_args()
+    option('-v', '--verbose', action='store_true',
+           help='print status information')
+    return parser
 
 
 def collect(names, match=lambda name: True, match_dir=lambda name: True):
@@ -463,6 +472,7 @@ def check(filenames, ignore=()):
 
     """
     for filename in filenames:
+        log.info('Checking file %s.', filename)
         try:
             with open(filename) as file:
                 source = file.read()
@@ -476,15 +486,84 @@ def check(filenames, ignore=()):
             yield SyntaxError('invalid syntax in file %s' % filename)
 
 
-def main(options, arguments):
+def get_options(args, opt_parser):
+    config = RawConfigParser()
+    parent = tail = args and os.path.abspath(os.path.commonprefix(args))
+    while tail:
+        for fn in PROJECT_CONFIG:
+            full_path = os.path.join(parent, fn)
+            if config.read(full_path):
+                log.info('local configuration: in %s.', full_path)
+                break
+        parent, tail = os.path.split(parent)
+
+    new_options = None
+    if config.has_section('pep257'):
+        option_list = dict([(o.dest, o.type or o.action)
+                            for o in opt_parser.option_list])
+
+        # First, read the default values
+        new_options, _ = opt_parser.parse_args([])
+
+        # Second, parse the configuration
+        pep257_section = 'pep257'
+        for opt in config.options(pep257_section):
+            if opt.replace('_', '-') not in opt_parser.config_options:
+                print("Unknown option '{}' ignored".format(opt))
+                continue
+            normalized_opt = opt.replace('-', '_')
+            opt_type = option_list[normalized_opt]
+            if opt_type in ('int', 'count'):
+                value = config.getint(pep257_section, opt)
+            elif opt_type == 'string':
+                value = config.get(pep257_section, opt)
+            else:
+                assert opt_type in ('store_true', 'store_false')
+                value = config.getboolean(pep257_section, opt)
+            setattr(new_options, normalized_opt, value)
+
+    # Third, overwrite with the command-line options
+    options, _ = opt_parser.parse_args(values=new_options)
+    log.debug("options: %s", options)
+    return options
+
+
+def setup_stream_handler(options):
+    if log.handlers:
+        for handler in log.handlers:
+            log.removeHandler(handler)
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.WARNING)
     if options.debug:
-        log.setLevel(logging.DEBUG)
-    log.debug("starting pep257 in debug mode.")
-    Error.explain = options.explain
-    Error.source = options.source
+        stream_handler.setLevel(logging.DEBUG)
+    elif options.verbose:
+        stream_handler.setLevel(logging.INFO)
+    else:
+        stream_handler.setLevel(logging.WARNING)
+    log.addHandler(stream_handler)
+
+
+def main():
+    opt_parser = get_option_parser()
+    # setup the logger before parsing the config file, so that command line
+    # arguments for debug / verbose will be printed.
+    options, arguments = opt_parser.parse_args()
+    setup_stream_handler(options)
+    # We parse the files before opening the config file, since it changes where
+    # we look for the file.
+    options = get_options(arguments, opt_parser)
+    # Setup the handler again with values from the config file.
+    setup_stream_handler(options)
+
     collected = collect(arguments or ['.'],
                         match=re(options.match + '$').match,
                         match_dir=re(options.match_dir + '$').match)
+
+    log.debug("starting pep257 in debug mode.")
+
+    Error.explain = options.explain
+    Error.source = options.source
+    collected = list(collected)
     code = 0
     for error in check(collected, ignore=options.ignore.split(',')):
         sys.stderr.write('%s\n' % error)
@@ -799,6 +878,6 @@ class PEP257Checker(object):
 
 if __name__ == '__main__':
     try:
-        sys.exit(main(*parse_options()))
+        sys.exit(main())
     except KeyboardInterrupt:
         pass
