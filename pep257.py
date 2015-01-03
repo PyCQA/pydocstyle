@@ -412,7 +412,7 @@ def get_option_parser():
     parser = OptionParser(version=__version__,
                           usage='Usage: pep257 [options] [<file|dir>...]')
     parser.config_options = ('explain', 'source', 'ignore', 'match',
-                             'match-dir', 'debug', 'verbose')
+                             'match-dir', 'debug', 'verbose', 'count')
     option = parser.add_option
     option('-e', '--explain', action='store_true',
            help='show explanation of each error')
@@ -434,6 +434,8 @@ def get_option_parser():
            help='print debug information')
     option('-v', '--verbose', action='store_true',
            help='print status information')
+    option('--count', action='store_true',
+           help='print total number of errors to stdout')
     return parser
 
 
@@ -564,10 +566,15 @@ def main():
     Error.explain = options.explain
     Error.source = options.source
     collected = list(collected)
+    errors = check(collected, ignore=options.ignore.split(','))
     code = 0
-    for error in check(collected, ignore=options.ignore.split(',')):
+    count = 0
+    for error in errors:
         sys.stderr.write('%s\n' % error)
         code = 1
+        count += 1
+    if options.count:
+        print(count)
     return code
 
 
