@@ -688,14 +688,14 @@ class PEP257Checker(object):
                             % (function.kind, blanks_after_count))
 
     @check_for(Class)
-    def check_blank_before_after_class(slef, class_, docstring):
+    def check_blank_after_class(self, class_, docstring):
         """D20{3,4}: Class docstring should have 1 blank line after the docstring.
 
         Insert a blank line after all docstrings (one-line or multi-line)
         that document a class -- generally speaking, the class's methods
         are separated from each other by a single blank line, and the
         docstring needs to be offset from the first method by a blank line.
-        
+
         Note: D203 was changed by https://hg.python.org/peps/rev/9b715d8246db.
 
         """
