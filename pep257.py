@@ -354,7 +354,6 @@ class Parser(object):
 
 
 class Error(object):
-
     """Error in docstring style."""
 
     # Options that define how errors are printed:
@@ -590,7 +589,6 @@ def check_for(kind, terminal=False):
 
 
 class PEP257Checker(object):
-
     """Checker for PEP 257.
 
     D10x: Missing docstrings
