@@ -545,7 +545,7 @@ def setup_stream_handler(options):
     log.addHandler(stream_handler)
 
 
-def main():
+def run_pep257():
     opt_parser = get_option_parser()
     # setup the logger before parsing the config file, so that command line
     # arguments for debug / verbose will be printed.
@@ -883,8 +883,12 @@ class PEP257Checker(object):
                 return Error()
 
 
-if __name__ == '__main__':
+def main():
     try:
-        sys.exit(main())
+        sys.exit(run_pep257())
     except KeyboardInterrupt:
         pass
+
+
+if __name__ == '__main__':
+    main()
