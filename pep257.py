@@ -50,7 +50,7 @@ except NameError:  # Python 2.5 and earlier
                 return default
 
 
-__version__ = '0.4.0'
+__version__ = '0.4.1-alpha'
 __all__ = ('check', 'collect')
 
 PROJECT_CONFIG = ('setup.cfg', 'tox.ini', '.pep257')
