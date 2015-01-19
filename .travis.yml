@@ -3,6 +3,7 @@
 # Travis to install and run "tox" test runner, which is
 # configured in tox.ini file.
 
+sudo: false
 language: python
 install: pip install tox --use-mirrors
 script: tox
