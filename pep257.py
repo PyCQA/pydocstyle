@@ -778,6 +778,16 @@ class PEP257Checker(object):
                                  'quotes on separate line')
 
     @check_for(Definition)
+    def check_surrounding_whitespaces(self, definition, docstring):
+        """D210: No whitespaces allowed surrounding docstring text."""
+        if docstring:
+            lines = eval(docstring).split('\n')
+            if lines[0].startswith(' ') or \
+                    len(lines) == 1 and lines[0].endswith(' '):
+                return Error("D210: No whitespaces allowed surrounding "
+                             "docstring text.")
+
+    @check_for(Definition)
     def check_triple_double_quotes(self, definition, docstring):
         r'''D300: Use """triple double quotes""".
 

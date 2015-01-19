@@ -1,5 +1,7 @@
-"""Use tox or py.test to run the test-suite."""
 # -*- coding: utf-8 -*-
+
+"""Use tox or py.test to run the test-suite."""
+
 from __future__ import with_statement
 
 import os
@@ -76,7 +78,8 @@ def test_ignore_list():
     no blank line after one-liner is bad. Also this - \"\"\"
     return foo
     """
-    expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209'))
+    expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
+                                'D210'))
     mock_open = mock.mock_open(read_data=function_to_check)
     with mock.patch('pep257.open', mock_open, create=True):
         errors = tuple(pep257.check(['filepath']))

@@ -165,6 +165,24 @@ def asdfljdf24():
     Description."""
 
 
+@expect('D210: No whitespaces allowed surrounding docstring text.')
+def endswith():
+    """Whitespace at the end. """
+
+
+@expect('D210: No whitespaces allowed surrounding docstring text.')
+def around():
+    """ Whitespace at everywhere. """
+
+
+@expect('D210: No whitespaces allowed surrounding docstring text.')
+def multiline():
+    """ Whitespace at the begining.
+
+    This is the end.
+    """
+
+
 @expect('D300: Expected """-quotes, got \'\'\'-quotes')
 def lsfklkjllkjl():
     r'''Summary.'''
