@@ -25,8 +25,7 @@ try:  # Python 3.x
 except ImportError:  # Python 2.x
     from configparser import RawConfigParser
 
-log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+log = logging.getLogger(__name__)
 
 
 try:
@@ -546,6 +545,7 @@ def setup_stream_handler(options):
 
 
 def run_pep257():
+    log.setLevel(logging.DEBUG)
     opt_parser = get_option_parser()
     # setup the logger before parsing the config file, so that command line
     # arguments for debug / verbose will be printed.
