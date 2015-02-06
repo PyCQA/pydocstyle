@@ -32,6 +32,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.issuetracker',  # autolinks issue numbers (like #78)
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -260,3 +261,7 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# sphinxcontrib.issuetracker settings
+issuetracker = 'github'
+issuetracker_project = 'GreenSteam/pep257'

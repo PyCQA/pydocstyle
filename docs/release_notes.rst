@@ -7,12 +7,17 @@ Current Development Version
 
 New Features
 
-* Added check D210: No whitespaces allowed surrounding docstring text (#95)
+* Added check D210: No whitespaces allowed surrounding docstring text (#95).
+
+* Added real documentation rendering using Sphinx (#100).
 
 Bug Fixes
 
-* Removed log level configuration from module level (#98)
+* Removed log level configuration from module level (#98).
 
+* D205 used to check that there was *a* blank line between the one line summary
+  and the description. It now checks that there is *exactly* one blank line
+  between them (#79).
 
 0.4.1 - January 10th, 2015
 --------------------------
@@ -35,7 +40,8 @@ New Features
 
 * Added configuration file support (#58, #87).
 
-* Added a `--count` flag that prints the number of violations found (#86, #89).
+* Added a ``--count`` flag that prints the number of violations found (#86,
+  #89).
 
 * Added support for Python 3.4, PyPy and PyPy3 (#81).
 
@@ -46,7 +52,7 @@ Bug Fixes
 * Fixed parsing various colon and parenthesis combinations in definitions
   (#82).
 
-* Allow for greater flexibility in parsing __all__ (#67).
+* Allow for greater flexibility in parsing ``__all__`` (#67).
 
 * Fixed handling of one-liner definitions (#77).
 
