@@ -21,7 +21,7 @@
 +--------------+--------------------------------------------------------------+
 | D204         | 1 blank required after class docstring.                      |
 +--------------+--------------------------------------------------------------+
-| D205         | Blank line required between one-line summary and description.|
+| D205         | 1 blank required between summary line and description.       |
 +--------------+--------------------------------------------------------------+
 | D206         | Docstring should be indented with spaces, not tabs.          |
 +--------------+--------------------------------------------------------------+
