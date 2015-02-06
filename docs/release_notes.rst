@@ -35,7 +35,7 @@ New Features
 
 * Added configuration file support (#58, #87).
 
-* Added a `--count` flag that prints the number of violations found (#86, #89).
+* Added a ``--count`` flag that prints the number of violations found (#86, #89).
 
 * Added support for Python 3.4, PyPy and PyPy3 (#81).
 
