@@ -51,8 +51,9 @@ class Pep257Env():
     def invoke_pep257(self, args=""):
         """Run pep257.py on the environment base folder with the given args."""
         pep257_location = os.path.join(os.path.dirname(__file__), 'pep257')
-        cmd = shlex.split("{0} {1} {2}"
-                          .format(pep257_location, self.tempdir, args))
+        cmd = shlex.split("python {0} {1} {2}"
+                          .format(pep257_location, self.tempdir, args),
+                          posix=False)
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         out, err = p.communicate()
@@ -142,4 +143,4 @@ def test_count():
             """))
 
         out, err = env.invoke_pep257(args='--count')
-        assert out == '2\n'
+        assert '2' in out
