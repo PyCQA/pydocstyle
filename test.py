@@ -8,7 +8,9 @@ expected = set([])
 
 def expect(*args):
     """Decorator that expects a certain PEP 257 violation."""
-    none = lambda a: None
+    def none(a):
+        return None
+
     if len(args) == 1:
         return lambda f: expected.add((f.__name__, args[0])) or none(f()) or f
     expected.add(args)
