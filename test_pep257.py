@@ -144,3 +144,19 @@ def test_count():
 
         out, err = env.invoke_pep257(args='--count')
         assert '2' in out
+
+def test_select_cli():
+    """Test choosing error codes with --select."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent("""\
+                def foo():
+                    pass
+            """))
+
+        _, err = env.invoke_pep257(args='--select=D100')
+        assert 'D100' in err
+        assert 'D103' not in err
+
+def test_select_config():
+    assert False

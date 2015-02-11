@@ -12,6 +12,7 @@ http://github.com/GreenSteam/pep257
 
 """
 from __future__ import with_statement
+from distutils.command.check import check
 
 import os
 import sys
@@ -440,9 +441,20 @@ def get_option_parser():
            help='show explanation of each error')
     option('-s', '--source', action='store_true',
            help='show source for each error')
+    option('--select', metavar='<codes>', default='',
+           help='choose the basic list of checked errors by specifying which '
+                'errors to check for (with a list of comma-separated error '
+                'codes). for example: --select=D101,D202')
     option('--ignore', metavar='<codes>', default='',
-           help='ignore a list comma-separated error codes, '
-                'for example: --ignore=D101,D202')
+           help='choose the basic list of checked errors by specifying which '
+                'errors to ignore (with a list of comma-separated error '
+                'codes). for example: --ignore=D101,D202')
+    option('--add-select', metavar='<codes>', default='',
+           help='amend the list of errors to check for by specifying more '
+                'error codes to check.')
+    option('--add-ignore', metavar='<codes>', default='',
+           help='amend the list of errors to check for by specifying more '
+                'error codes to ignore.')
     option('--match', metavar='<pattern>', default='(?!test_).*\.py',
            help="check only files that exactly match <pattern> regular "
                 "expression; default is --match='(?!test_).*\.py' which "
@@ -484,14 +496,14 @@ def collect(names, match=lambda name: True, match_dir=lambda name: True):
             yield name
 
 
-def check(filenames, ignore=()):
+def check(filenames, checked_codes=()):
     """Generate PEP 257 errors that exist in `filenames` iterable.
 
-    Skips errors with error-codes defined in `ignore` iterable.
+    Only returns errors with error-codes defined in `checked_codes` iterable.
 
     Example
     -------
-    >>> check(['pep257.py'], ignore=['D100'])
+    >>> check(['pep257.py'], checked_codes=['D100'])
     <generator object check at 0x...>
 
     """
@@ -502,7 +514,7 @@ def check(filenames, ignore=()):
                 source = file.read()
             for error in PEP257Checker().check_source(source, filename):
                 code = getattr(error, 'code', None)
-                if code is not None and code not in ignore:
+                if code in checked_codes:
                     yield error
         except (EnvironmentError, AllError):
             yield sys.exc_info()[1]
@@ -567,6 +579,9 @@ def setup_stream_handler(options):
     log.addHandler(stream_handler)
 
 
+def get_checked_error_codes(options):
+    return ['D100']
+
 def run_pep257():
     log.setLevel(logging.DEBUG)
     opt_parser = get_option_parser()
@@ -589,7 +604,9 @@ def run_pep257():
     Error.explain = options.explain
     Error.source = options.source
     collected = list(collected)
-    errors = check(collected, ignore=options.ignore.split(','))
+    checked_codes = get_checked_error_codes(options)
+    # options.ignore.split(',')
+    errors = check(collected, checked_codes=checked_codes)
     code = 0
     count = 0
     for error in errors:
@@ -724,7 +741,7 @@ class PEP257Checker(object):
         docstring.
 
         """
-        # NOTE: this gives flase-positive in this case
+        # NOTE: this gives false-positive in this case
         # class Foo:
         #
         #     """Docstring."""
