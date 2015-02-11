@@ -87,10 +87,8 @@ class Value(object):
         return other and vars(self) == vars(other)
 
     def __repr__(self):
-        kwargs = ', '.join(
-            map(lambda arg: '{}={!r}'.format(arg, getattr(self, arg)),
-                self._fields)
-            )
+        kwargs = ', '.join('{}={!r}'.format(field, getattr(self, field))
+                           for field in self._fields)
         return '{}({})'.format(self.__class__.__name__, kwargs)
 
 
