@@ -54,22 +54,41 @@ __all__ = ('check', 'collect')
 
 PROJECT_CONFIG = ('setup.cfg', 'tox.ini', '.pep257')
 
-humanize = lambda string: re(r'(.)([A-Z]+)').sub(r'\1 \2', string).lower()
-is_magic = lambda name: name.startswith('__') and name.endswith('__')
-is_ascii = lambda string: all(ord(char) < 128 for char in string)
-is_blank = lambda string: not string.strip()
-leading_space = lambda string: re('\s*').match(string).group()
+
+def humanize(string):
+    return re(r'(.)([A-Z]+)').sub(r'\1 \2', string).lower()
+
+
+def is_magic(name):
+    return name.startswith('__') and name.endswith('__')
+
+
+def is_ascii(string):
+    return all(ord(char) < 128 for char in string)
+
+
+def is_blank(string):
+    return not string.strip()
+
+
+def leading_space(string):
+    return re('\s*').match(string).group()
 
 
 class Value(object):
 
-    __init__ = lambda self, *args: vars(self).update(zip(self._fields, args))
-    __hash__ = lambda self: hash(repr(self))
-    __eq__ = lambda self, other: other and vars(self) == vars(other)
+    def __init__(self, *args):
+        vars(self).update(zip(self._fields, args))
+
+    def __hash__(self):
+        return hash(repr(self))
+
+    def __eq__(self, other):
+        return other and vars(self) == vars(other)
 
     def __repr__(self):
-        format_arg = lambda arg: '{}={!r}'.format(arg, getattr(self, arg))
-        kwargs = ', '.join(format_arg(arg) for arg in self._fields)
+        kwargs = ', '.join('{}={!r}'.format(field, getattr(self, field))
+                           for field in self._fields)
         return '{}({})'.format(self.__class__.__name__, kwargs)
 
 
@@ -83,7 +102,9 @@ class Definition(Value):
     all = property(lambda self: self.module.all)
     _slice = property(lambda self: slice(self.start - 1, self.end))
     source = property(lambda self: ''.join(self._source[self._slice]))
-    __iter__ = lambda self: chain([self], *self.children)
+
+    def __iter__(self):
+        return chain([self], *self.children)
 
     @property
     def _publicity(self):
@@ -100,7 +121,9 @@ class Module(Definition):
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
     all = property(lambda self: self._all)
-    __str__ = lambda self: 'at module level'
+
+    def __str__(self):
+        return 'at module level'
 
 
 class Function(Definition):
