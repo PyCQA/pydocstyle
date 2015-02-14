@@ -75,7 +75,7 @@ def test_pep257_conformance():
 
 def test_ignore_list():
     function_to_check = """def function_with_bad_docstring(foo):
-    \"\"\" does spacing without a period in the end
+    \"\"\" does spacinwithout a period in the end
     no blank line after one-liner is bad. Also this - \"\"\"
     return foo
     """

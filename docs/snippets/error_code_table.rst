@@ -1,13 +1,13 @@
 +--------------+--------------------------------------------------------------+
 | **Missing docstrings**                                                      |
 +--------------+--------------------------------------------------------------+
-| D100         | Public module missing.                                       |
+| D100         | Missing docstring in public module.                          |
 +--------------+--------------------------------------------------------------+
-| D101         | Public class missing.                                        |
+| D101         | Missing docstring in public class.                           |
 +--------------+--------------------------------------------------------------+
-| D102         | Public method missing.                                       |
+| D102         | Missing docstring in public method.                          |
 +--------------+--------------------------------------------------------------+
-| D103         | Public function missing.                                     |
+| D103         | Missing docstring in public function.                        |
 +--------------+--------------------------------------------------------------+
 | **Whitespace issues**                                                       |
 +--------------+--------------------------------------------------------------+
@@ -17,11 +17,11 @@
 +--------------+--------------------------------------------------------------+
 | D202         | No blank lines allowed after docstring.                      |
 +--------------+--------------------------------------------------------------+
-| D203         | 1 blank required before class docstring.                     |
+| D203         | 1 blank line required before class docstring.                |
 +--------------+--------------------------------------------------------------+
-| D204         | 1 blank required after class docstring.                      |
+| D204         | 1 blank line required after class docstring.                 |
 +--------------+--------------------------------------------------------------+
-| D205         | 1 blank required between summary line and description.       |
+| D205         | 1 blank line required between summary line and description.  |
 +--------------+--------------------------------------------------------------+
 | D206         | Docstring should be indented with spaces, not tabs.          |
 +--------------+--------------------------------------------------------------+
@@ -29,7 +29,8 @@
 +--------------+--------------------------------------------------------------+
 | D208         | Docstring over-indented.                                     |
 +--------------+--------------------------------------------------------------+
-| D209         | Put multi-line docstring closing quotes on separate line.    |
+| D209         | Multi-line docstring closing quotes should be on separate    |
+|              | line.                                                        |
 +--------------+--------------------------------------------------------------+
 | D210         | No whitespaces allowed surrounding docstring text.           |
 +--------------+--------------------------------------------------------------+
