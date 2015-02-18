@@ -94,7 +94,8 @@ class Value(object):
 
 class Definition(Value):
 
-    _fields = 'name _source start end docstring children parent'.split()
+    _fields = ['name', '_source', 'start', 'end', 'decorators', 'docstring',
+               'children', 'parent']
 
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])
@@ -116,7 +117,8 @@ class Definition(Value):
 
 class Module(Definition):
 
-    _fields = 'name _source start end docstring children parent _all'.split()
+    _fields = ['name', '_source', 'start', 'end', 'decorators', 'docstring',
+               'children', 'parent', '_all']
     is_public = True
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
@@ -148,6 +150,10 @@ class Method(Function):
 
     @property
     def is_public(self):
+        # Check if we are a setter method, and mark as private if so.
+        for decorator in self.decorators:
+            if decorator.name.startswith(self.name):
+                return False
         name_is_public = not self.name.startswith('_') or is_magic(self.name)
         return self.parent.is_public and name_is_public
 
@@ -161,6 +167,13 @@ class Class(Definition):
 class NestedClass(Class):
 
     is_public = False
+
+
+class Decorator(Value):
+
+    """A decorator for function, method or class."""
+
+    _fields = 'name arguments'.split()
 
 
 class TokenKind(int):
@@ -219,6 +232,7 @@ class Parser(object):
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
+        self._decorators = []
         return self.parse_module()
 
     current = property(lambda self: self.stream.current)
@@ -254,6 +268,47 @@ class Parser(object):
             return docstring
         return None
 
+    def parse_decorators(self):
+        """Called after first @ is found.
+
+        Build list of current decorators and return last parsed token,
+        which is def or class start token.
+        """
+        name = []
+        arguments = []
+        at_arguments = False
+
+        while self.current is not None:
+            if (self.current.kind == tk.NAME and
+                    self.current.value in ['def', 'class']):
+                break
+            elif self.current.kind == tk.OP and self.current.value == '@':
+                # New decorator found.
+                self._decorators.append(
+                    Decorator(''.join(name), ''.join(arguments)))
+                name = []
+                arguments = []
+                at_arguments = False
+            elif self.current.kind == tk.OP and self.current.value == '(':
+                at_arguments = True
+            elif self.current.kind == tk.OP and self.current.value == ')':
+                # Ignore close parenthesis
+                pass
+            elif self.current.kind == tk.NEWLINE or self.current.kind == tk.NL:
+                # Ignoe newlines
+                pass
+            else:
+                # Keep accumulating decorator's name or argument.
+                if not at_arguments:
+                    name.append(self.current.value)
+                else:
+                    arguments.append(self.current.value)
+            self.stream.move()
+
+        # Add decorator accumulated so far
+        self._decorators.append(
+            Decorator(''.join(name), ''.join(arguments)))
+
     def parse_definitions(self, class_, all=False):
         """Parse multiple defintions and yield them."""
         while self.current is not None:
@@ -261,6 +316,9 @@ class Parser(object):
                       self.current.kind, self.current.value)
             if all and self.current.value == '__all__':
                 self.parse_all()
+            elif self.current.kind == tk.OP and self.current.value == '@':
+                self.consume(tk.OP)
+                self.parse_decorators()
             elif self.current.value in ['def', 'class']:
                 yield self.parse_definition(class_._nest(self.current.value))
             elif self.current.kind == tk.INDENT:
@@ -324,7 +382,7 @@ class Parser(object):
         assert self.current is None, self.current
         end = self.line
         module = Module(self.filename, self.source, start, end,
-                        docstring, children, None, self.all)
+                        [], docstring, children, None, self.all)
         for child in module.children:
             child.parent = module
         log.debug("finished parsing module.")
@@ -356,17 +414,20 @@ class Parser(object):
             self.leapfrog(tk.INDENT)
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()
+            decorators = self._decorators
+            self._decorators = []
             log.debug("parsing nested defintions.")
             children = list(self.parse_definitions(class_))
             log.debug("finished parsing nested defintions for '%s'", name)
             end = self.line - 1
         else:  # one-liner definition
             docstring = self.parse_docstring()
+            decorators = []  # TODO
             children = []
             end = self.line
             self.leapfrog(tk.NEWLINE)
         definition = class_(name, self.source, start, end,
-                            docstring, children, None)
+                            decorators, docstring, children, None)
         for child in definition.children:
             child.parent = definition
         log.debug("finished parsing %s '%s'. Next token is %r (%s)",
@@ -784,8 +845,8 @@ class PEP257Checker(object):
                 if set(' \t') == set(''.join(indents) + indent):
                     return Error('D206: Docstring indented with both tabs and '
                                  'spaces')
-                if (len(indents) > 1 and min(indents[:-1]) > indent
-                        or indents[-1] > indent):
+                if (len(indents) > 1 and min(indents[:-1]) > indent or
+                        indents[-1] > indent):
                     return Error('D208: Docstring is over-indented')
                 if min(indents) < indent:
                     return Error('D207: Docstring is under-indented')
