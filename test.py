@@ -49,28 +49,29 @@ def function():
         ''
 
 
-@expect('D200: One-line docstring should fit on one line with quotes, found 3')
+@expect('D200: One-line docstring should fit on one line with quotes '
+        '(found 3)')
 def asdlkfasd():
     """
     Wrong.
     """
 
 
-@expect('D201: No blank lines allowed before function docstring, found 1')
+@expect('D201: No blank lines allowed before function docstring (found 1)')
 def leading_space():
 
     """Leading space."""
 
 
-@expect('D202: No blank lines allowed after function docstring, found 1')
+@expect('D202: No blank lines allowed after function docstring (found 1)')
 def trailing_space():
     """Leading space."""
 
     pass
 
 
-@expect('D201: No blank lines allowed before function docstring, found 1')
-@expect('D202: No blank lines allowed after function docstring, found 1')
+@expect('D201: No blank lines allowed before function docstring (found 1)')
+@expect('D202: No blank lines allowed after function docstring (found 1)')
 def trailing_and_leading_space():
 
     """Trailing and leading space."""
@@ -79,7 +80,7 @@ def trailing_and_leading_space():
 
 
 expect('LeadingSpaceMissing',
-       'D203: 1 blank line required before class docstring, found 0')
+       'D203: 1 blank line required before class docstring (found 0)')
 
 
 class LeadingSpaceMissing:
@@ -87,7 +88,7 @@ class LeadingSpaceMissing:
 
 
 expect('TrailingSpace',
-       'D204: 1 blank line required after class docstring, found 0')
+       'D204: 1 blank line required after class docstring (found 0)')
 
 
 class TrailingSpace:
@@ -97,9 +98,9 @@ class TrailingSpace:
 
 
 expect('LeadingAndTrailingSpaceMissing',
-       'D203: 1 blank line required before class docstring, found 0')
+       'D203: 1 blank line required before class docstring (found 0)')
 expect('LeadingAndTrailingSpaceMissing',
-       'D204: 1 blank line required after class docstring, found 0')
+       'D204: 1 blank line required after class docstring (found 0)')
 
 
 class LeadingAndTrailingSpaceMissing:
@@ -107,8 +108,8 @@ class LeadingAndTrailingSpaceMissing:
     pass
 
 
-@expect('D205: 1 blank line required between summary line and description, '
-        'found 0')
+@expect('D205: 1 blank line required between summary line and description '
+        '(found 0)')
 def multi_line_zero_separating_blanks():
     """Summary.
     Description.
@@ -116,8 +117,8 @@ def multi_line_zero_separating_blanks():
     """
 
 
-@expect('D205: 1 blank line required between summary line and description, '
-        'found 2')
+@expect('D205: 1 blank line required between summary line and description '
+        '(found 2)')
 def multi_line_two_separating_blanks():
     """Summary.
 
@@ -206,12 +207,12 @@ def multiline():
     """
 
 
-@expect('D300: Use """triple double quotes""", found \'\'\'-quotes')
+@expect('D300: Use """triple double quotes""" (found \'\'\'-quotes)')
 def lsfklkjllkjl():
     r'''Summary.'''
 
 
-@expect('D300: Use """triple double quotes""", found \'-quotes')
+@expect('D300: Use """triple double quotes""" (found \'-quotes)')
 def lalskklkjllkjl():
     r'Summary.'
 
@@ -227,13 +228,13 @@ if sys.version_info[0] <= 2:
         """Юникод."""
 
 
-@expect("D400: First line should end with a period, not 'y'")
+@expect("D400: First line should end with a period (not 'y')")
 def lwnlkjl():
     """Summary"""
 
 
-@expect("D401: First line should be in imperative mood: 'Return', not "
-        "'Returns'")
+@expect("D401: First line should be in imperative mood ('Return', not "
+        "'Returns')")
 def liouiwnlkjl():
     """Returns foo."""
 
@@ -263,7 +264,7 @@ def old_209():
 def oneliner_d102(): return
 
 
-@expect("D400: First line should end with a period, not 'r'")
+@expect("D400: First line should end with a period (not 'r')")
 def oneliner_withdoc(): """One liner"""
 
 

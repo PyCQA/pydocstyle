@@ -381,7 +381,8 @@ class Error(object):
 
     # should be overridden by inheriting classes
     code = None
-    _message = None
+    short_desc = None
+    context = None
 
     # Options that define how errors are printed:
     explain = False
@@ -401,7 +402,10 @@ class Error(object):
 
     @property
     def message(self):
-        return '%s: %s' % (self.code, self._message) % self.parameters
+        ret = '%s: %s' % (self.code, self.short_desc)
+        if self.context is not None:
+            ret += ' (' + self.context % self.parameters + ')'
+        return ret
 
     @property
     def lines(self):
@@ -446,18 +450,19 @@ class ErrorRegistry(object):
     groups = []
 
     class ErrorGroup(object):
-        errors = []
 
         def __init__(self, prefix, name):
             self.prefix = prefix
             self.name = name
+            self.errors = []
 
-        def create_error(self, error_code, error_message):
+        def create_error(self, error_code, error_desc, error_context=None):
             # TODO: check prefix
 
             class _Error(Error):
                 code = error_code
-                _message = error_message
+                short_desc = error_desc
+                context = error_context
 
             self.errors.append(_Error)
             return _Error
@@ -470,13 +475,26 @@ class ErrorRegistry(object):
 
     @classmethod
     def get_error_codes(cls):
-        # TODO: implement
-        pass
+        for group in cls.groups:
+            for error in group.errors:
+                yield error
 
     @classmethod
     def to_rst(cls):
-        # TODO: implement
-        pass
+        sep_line = '+' + 6 * '-' + '+' + '-' * 71 + '+\n'
+        blank_line = '|' + 78 * ' ' + '|\n'
+        table = ''
+        for group in cls.groups:
+            table += sep_line
+            table += blank_line
+            table += '|' + ('**%s**' % group.name).center(78) + '|\n'
+            table += blank_line
+            for error in group.errors:
+                table += sep_line
+                table += ('|' + error.code.center(6) + '| ' +
+                          error.short_desc.ljust(70) + '|\n')
+        table += sep_line
+        return table
 
 
 D1xx = ErrorRegistry.create_group('D1', 'Missing Docstrings')
@@ -487,17 +505,17 @@ D103 = D1xx.create_error('D103', 'Missing docstring in public function')
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '
-                                 'with quotes, found %s')
+                                 'with quotes', 'found %s')
 D201 = D2xx.create_error('D201', 'No blank lines allowed before function '
-                                 'docstring, found %s')
+                                 'docstring', 'found %s')
 D202 = D2xx.create_error('D202', 'No blank lines allowed after function '
-                                 'docstring, found %s')
+                                 'docstring', 'found %s')
 D203 = D2xx.create_error('D203', '1 blank line required before class '
-                                 'docstring, found %s')
+                                 'docstring', 'found %s')
 D204 = D2xx.create_error('D204', '1 blank line required after class '
-                                 'docstring, found %s')
+                                 'docstring', 'found %s')
 D205 = D2xx.create_error('D205', '1 blank line required between summary line '
-                                 'and description, found %s')
+                                 'and description', 'found %s')
 D206 = D2xx.create_error('D206', 'Docstring should be indented with spaces, '
                                  'not tabs')
 D207 = D2xx.create_error('D207', 'Docstring is under-indented')
@@ -508,15 +526,16 @@ D210 = D2xx.create_error('D210', 'No whitespaces allowed surrounding '
                                  'docstring text')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
-D300 = D3xx.create_error('D300', 'Use """triple double quotes""", found '
-                                 '%s-quotes')
+D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
+                         'found %s-quotes')
 D301 = D3xx.create_error('D301', 'Use r""" if any backslashes in a docstring')
 D302 = D3xx.create_error('D302', 'Use u""" for Unicode docstrings')
 
 D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
-D400 = D4xx.create_error('D400', 'First line should end with a period, not %r')
-D401 = D4xx.create_error('D401', 'First line should be in imperative mood: '
-                                 '%r, not %r')
+D400 = D4xx.create_error('D400', 'First line should end with a period',
+                         'not %r')
+D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
+                         '%r, not %r')
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 
