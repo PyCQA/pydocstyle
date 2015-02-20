@@ -584,9 +584,8 @@ def collect(names, match=lambda name: True, match_dir=lambda name: True):
     for name in names:  # map(expanduser, names):
         if os.path.isdir(name):
             for root, dirs, filenames in os.walk(name):
-                for dir in dirs:
-                    if not match_dir(dir):
-                        dirs.remove(dir)  # do not visit those dirs
+                # Skip any dirs that do not match match_dir
+                dirs[:] = [dir for dir in dirs if match_dir(dir)]
                 for filename in filenames:
                     if match(filename):
                         yield os.path.join(root, filename)
@@ -882,8 +881,8 @@ class PEP257Checker(object):
                 indents = [leading_space(l) for l in lines if not is_blank(l)]
                 if set(' \t') == set(''.join(indents) + indent):
                     yield D206()
-                if (len(indents) > 1 and min(indents[:-1]) > indent
-                        or indents[-1] > indent):
+                if (len(indents) > 1 and min(indents[:-1]) > indent or
+                        indents[-1] > indent):
                     yield D208()
                 if min(indents) < indent:
                     yield D207()

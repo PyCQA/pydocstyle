@@ -35,5 +35,19 @@ Run
     ...
 
 
-`Read the full documentation here <http://pep257.readthedocs.org>`_.
+Links
+-----
+
+.. image:: https://travis-ci.org/GreenSteam/pep257.svg?branch=master
+    :target: https://travis-ci.org/GreenSteam/pep257
+
+.. image:: https://readthedocs.org/projects/pep257/badge/?version=latest
+    :target: https://readthedocs.org/projects/pep257/?badge=latest
+    :alt: Documentation Status
+
+* `Read the full documentation here <http://pep257.readthedocs.org>`_.
+
+* `Fork pep257 on GitHub <http://github.com/GreenSteam/pep257>`_.
+
+* `PyPI project page <https://pypi.python.org/pypi/pep257>`_.
 
