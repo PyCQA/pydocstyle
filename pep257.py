@@ -784,8 +784,8 @@ class PEP257Checker(object):
                 if set(' \t') == set(''.join(indents) + indent):
                     return Error('D206: Docstring indented with both tabs and '
                                  'spaces')
-                if (len(indents) > 1 and min(indents[:-1]) > indent
-                        or indents[-1] > indent):
+                if (len(indents) > 1 and min(indents[:-1]) > indent or
+                        indents[-1] > indent):
                     return Error('D208: Docstring is over-indented')
                 if min(indents) < indent:
                     return Error('D207: Docstring is under-indented')
