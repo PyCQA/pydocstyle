@@ -50,6 +50,8 @@ clean:
 	rm -rf $(BUILDDIR)/*
 
 html:
+	@echo "Building error code table from error registry."
+	python -c "import os, sys; sys.path.insert(0, os.path.join(os.getcwd(), '..')); from pep257 import ErrorRegistry; print(ErrorRegistry.to_rst())" > snippets/error_code_table.rst
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
