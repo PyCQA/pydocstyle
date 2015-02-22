@@ -376,7 +376,6 @@ class Parser(object):
 
 
 class Error(object):
-
     """Error in docstring style."""
 
     # Options that define how errors are printed:
@@ -612,7 +611,6 @@ def check_for(kind, terminal=False):
 
 
 class PEP257Checker(object):
-
     """Checker for PEP 257.
 
     D10x: Missing docstrings
@@ -712,20 +710,19 @@ class PEP257Checker(object):
                             % (function.kind, blanks_after_count))
 
     @check_for(Class)
-    def check_blank_before_after_class(slef, class_, docstring):
-        """D20{3,4}: Class docstring should have 1 blank line around them.
+    def check_blank_after_class(self, class_, docstring):
+        """D20{3,4}: Class docstring should have 1 blank line after the docstring.
 
-        Insert a blank line before and after all docstrings (one-line or
-        multi-line) that document a class -- generally speaking, the class's
-        methods are separated from each other by a single blank line, and the
-        docstring needs to be offset from the first method by a blank line;
-        for symmetry, put a blank line between the class header and the
-        docstring.
+        Insert a blank line after all docstrings (one-line or multi-line)
+        that document a class -- generally speaking, the class's methods
+        are separated from each other by a single blank line, and the
+        docstring needs to be offset from the first method by a blank line.
+
+        Note: D203 was changed by https://hg.python.org/peps/rev/9b715d8246db.
 
         """
-        # NOTE: this gives flase-positive in this case
+        # NOTE: this gives false-positive in this case
         # class Foo:
-        #
         #     """Docstring."""
         #
         #
@@ -737,8 +734,8 @@ class PEP257Checker(object):
             blanks_after = list(map(is_blank, after.split('\n')[1:]))
             blanks_before_count = sum(takewhile(bool, reversed(blanks_before)))
             blanks_after_count = sum(takewhile(bool, blanks_after))
-            if blanks_before_count != 1:
-                yield Error('D203: Expected 1 blank line *before* class '
+            if blanks_before_count != 0:
+                yield Error('D203: No blank lines allowed *before* class '
                             'docstring, found %s' % blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 1:
                 yield Error('D204: Expected 1 blank line *after* class '

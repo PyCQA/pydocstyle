@@ -78,12 +78,13 @@ def trailing_and_leading_space():
     pass
 
 
-expect('LeadingSpaceMissing',
-       'D203: Expected 1 blank line *before* class docstring, found 0')
+expect('LeadingSpace',
+       'D203: No blank lines allowed *before* class docstring, found 1')
 
 
-class LeadingSpaceMissing:
-    """Leading space missing."""
+class LeadingSpace:
+
+    """No Leading space."""
 
 
 expect('TrailingSpace',
@@ -91,19 +92,18 @@ expect('TrailingSpace',
 
 
 class TrailingSpace:
-
     """TrailingSpace."""
     pass
 
-
-expect('LeadingAndTrailingSpaceMissing',
-       'D203: Expected 1 blank line *before* class docstring, found 0')
-expect('LeadingAndTrailingSpaceMissing',
+expect('LeadingSpaceAndTrailingSpaceMissing',
+       'D203: No blank lines allowed *before* class docstring, found 1')
+expect('LeadingSpaceAndTrailingSpaceMissing',
        'D204: Expected 1 blank line *after* class docstring, found 0')
 
 
-class LeadingAndTrailingSpaceMissing:
-    """Leading and trailing space missing."""
+class LeadingSpaceAndTrailingSpaceMissing:
+
+    """Extra Leading and trailing space missing."""
     pass
 
 

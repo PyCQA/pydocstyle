@@ -18,7 +18,6 @@ __all__ = ()
 
 
 class Pep257Env():
-
     """An isolated environment where pep257.py can be run.
 
     Since running pep257.py as a script is affected by local config files, it's
