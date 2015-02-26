@@ -16,61 +16,62 @@ def expect(*args):
     expected.add(args)
 
 
-expect('class_', 'D101: Docstring missing')
+expect('class_', 'D101: Missing docstring in public class')
 
 
 class class_:
 
-    expect('meta', 'D101: Docstring missing')
+    expect('meta', 'D101: Missing docstring in public class')
 
     class meta:
         """"""
 
-    @expect('D102: Docstring missing')
+    @expect('D102: Missing docstring in public method')
     def method():
         pass
 
     def _ok_since_private():
         pass
 
-    @expect('D102: Docstring missing')
+    @expect('D102: Missing docstring in public method')
     def __init__(self=None):
         pass
 
 
-@expect('D103: Docstring missing')
+@expect('D103: Missing docstring in public function')
 def function():
     """ """
     def ok_since_nested():
         pass
 
-    @expect('D103: Docstring missing')
+    @expect('D103: Missing docstring in public function')
     def nested():
         ''
 
 
-@expect('D200: One-line docstring should not occupy 3 lines')
+@expect('D200: One-line docstring should fit on one line with quotes '
+        '(found 3)')
 def asdlkfasd():
     """
     Wrong.
     """
 
 
-@expect('D201: No blank lines allowed *before* function docstring, found 1')
+@expect('D201: No blank lines allowed before function docstring (found 1)')
 def leading_space():
 
     """Leading space."""
 
 
-@expect('D202: No blank lines allowed *after* function docstring, found 1')
+@expect('D202: No blank lines allowed after function docstring (found 1)')
 def trailing_space():
     """Leading space."""
 
     pass
 
 
-@expect('D201: No blank lines allowed *before* function docstring, found 1')
-@expect('D202: No blank lines allowed *after* function docstring, found 1')
+@expect('D201: No blank lines allowed before function docstring (found 1)')
+@expect('D202: No blank lines allowed after function docstring (found 1)')
 def trailing_and_leading_space():
 
     """Trailing and leading space."""
@@ -79,7 +80,7 @@ def trailing_and_leading_space():
 
 
 expect('LeadingSpaceMissing',
-       'D203: Expected 1 blank line *before* class docstring, found 0')
+       'D203: 1 blank line required before class docstring (found 0)')
 
 
 class LeadingSpaceMissing:
@@ -87,7 +88,7 @@ class LeadingSpaceMissing:
 
 
 expect('TrailingSpace',
-       'D204: Expected 1 blank line *after* class docstring, found 0')
+       'D204: 1 blank line required after class docstring (found 0)')
 
 
 class TrailingSpace:
@@ -97,9 +98,9 @@ class TrailingSpace:
 
 
 expect('LeadingAndTrailingSpaceMissing',
-       'D203: Expected 1 blank line *before* class docstring, found 0')
+       'D203: 1 blank line required before class docstring (found 0)')
 expect('LeadingAndTrailingSpaceMissing',
-       'D204: Expected 1 blank line *after* class docstring, found 0')
+       'D204: 1 blank line required after class docstring (found 0)')
 
 
 class LeadingAndTrailingSpaceMissing:
@@ -107,8 +108,8 @@ class LeadingAndTrailingSpaceMissing:
     pass
 
 
-@expect('D205: Expected 1 blank line between summary line and description, '
-        'found 0')
+@expect('D205: 1 blank line required between summary line and description '
+        '(found 0)')
 def multi_line_zero_separating_blanks():
     """Summary.
     Description.
@@ -116,8 +117,8 @@ def multi_line_zero_separating_blanks():
     """
 
 
-@expect('D205: Expected 1 blank line between summary line and description, '
-        'found 2')
+@expect('D205: 1 blank line required between summary line and description '
+        '(found 2)')
 def multi_line_two_separating_blanks():
     """Summary.
 
@@ -180,24 +181,25 @@ def asdfsdfsdsdsdfsdf24():
     """
 
 
-@expect('D209: Put multi-line docstring closing quotes on separate line')
+@expect('D209: Multi-line docstring closing quotes should be on a separate '
+        'line')
 def asdfljdf24():
     """Summary.
 
     Description."""
 
 
-@expect('D210: No whitespaces allowed surrounding docstring text.')
+@expect('D210: No whitespaces allowed surrounding docstring text')
 def endswith():
     """Whitespace at the end. """
 
 
-@expect('D210: No whitespaces allowed surrounding docstring text.')
+@expect('D210: No whitespaces allowed surrounding docstring text')
 def around():
     """ Whitespace at everywhere. """
 
 
-@expect('D210: No whitespaces allowed surrounding docstring text.')
+@expect('D210: No whitespaces allowed surrounding docstring text')
 def multiline():
     """ Whitespace at the begining.
 
@@ -205,12 +207,12 @@ def multiline():
     """
 
 
-@expect('D300: Expected """-quotes, got \'\'\'-quotes')
+@expect('D300: Use """triple double quotes""" (found \'\'\'-quotes)')
 def lsfklkjllkjl():
     r'''Summary.'''
 
 
-@expect('D300: Expected """-quotes, got \'-quotes')
+@expect('D300: Use """triple double quotes""" (found \'-quotes)')
 def lalskklkjllkjl():
     r'Summary.'
 
@@ -221,22 +223,23 @@ def lalsksdewnlkjl():
 
 
 if sys.version_info[0] <= 2:
-    @expect('D302: Use u""" for docstrings with Unicode')
+    @expect('D302: Use u""" for Unicode docstrings')
     def lasewnlkjl():
         """Юникод."""
 
 
-@expect("D400: First line should end with '.', not 'y'")
+@expect("D400: First line should end with a period (not 'y')")
 def lwnlkjl():
     """Summary"""
 
 
-@expect("D401: First line should be imperative: 'Return', not 'Returns'")
+@expect("D401: First line should be in imperative mood ('Return', not "
+        "'Returns')")
 def liouiwnlkjl():
     """Returns foo."""
 
 
-@expect("D402: First line should not be function's signature")
+@expect('D402: First line should not be the function\'s "signature"')
 def foobar():
     """Signature: foobar()."""
 
@@ -257,11 +260,11 @@ def old_209():
     """
 
 
-@expect("D103: Docstring missing")
+@expect("D103: Missing docstring in public function")
 def oneliner_d102(): return
 
 
-@expect("D400: First line should end with '.', not 'r'")
+@expect("D400: First line should end with a period (not 'r')")
 def oneliner_withdoc(): """One liner"""
 
 
@@ -283,4 +286,4 @@ def a_following_valid_function(x):
 
     """
 
-expect('test.py', 'D100: Docstring missing')
+expect('test.py', 'D100: Missing docstring in public module')

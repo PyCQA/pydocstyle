@@ -379,17 +379,33 @@ class Error(object):
 
     """Error in docstring style."""
 
+    # should be overridden by inheriting classes
+    code = None
+    short_desc = None
+    context = None
+
     # Options that define how errors are printed:
     explain = False
     source = False
 
-    def __init__(self, message=None, final=False):
-        self.message, self.is_final = message, final
-        self.definition, self.explanation = [None, None]
+    def __init__(self, *parameters):
+        self.parameters = parameters
+        self.definition = None
+        self.explanation = None
 
-    code = property(lambda self: self.message.partition(':')[0])
+    def set_context(self, definition, explanation):
+        self.definition = definition
+        self.explanation = explanation
+
     filename = property(lambda self: self.definition.module.name)
     line = property(lambda self: self.definition.start)
+
+    @property
+    def message(self):
+        ret = '%s: %s' % (self.code, self.short_desc)
+        if self.context is not None:
+            ret += ' (' + self.context % self.parameters + ')'
+        return ret
 
     @property
     def lines(self):
@@ -428,6 +444,100 @@ class Error(object):
 
     def __lt__(self, other):
         return (self.filename, self.line) < (other.filename, other.line)
+
+
+class ErrorRegistry(object):
+    groups = []
+
+    class ErrorGroup(object):
+
+        def __init__(self, prefix, name):
+            self.prefix = prefix
+            self.name = name
+            self.errors = []
+
+        def create_error(self, error_code, error_desc, error_context=None):
+            # TODO: check prefix
+
+            class _Error(Error):
+                code = error_code
+                short_desc = error_desc
+                context = error_context
+
+            self.errors.append(_Error)
+            return _Error
+
+    @classmethod
+    def create_group(cls, prefix, name):
+        group = cls.ErrorGroup(prefix, name)
+        cls.groups.append(group)
+        return group
+
+    @classmethod
+    def get_error_codes(cls):
+        for group in cls.groups:
+            for error in group.errors:
+                yield error
+
+    @classmethod
+    def to_rst(cls):
+        sep_line = '+' + 6 * '-' + '+' + '-' * 71 + '+\n'
+        blank_line = '|' + 78 * ' ' + '|\n'
+        table = ''
+        for group in cls.groups:
+            table += sep_line
+            table += blank_line
+            table += '|' + ('**%s**' % group.name).center(78) + '|\n'
+            table += blank_line
+            for error in group.errors:
+                table += sep_line
+                table += ('|' + error.code.center(6) + '| ' +
+                          error.short_desc.ljust(70) + '|\n')
+        table += sep_line
+        return table
+
+
+D1xx = ErrorRegistry.create_group('D1', 'Missing Docstrings')
+D100 = D1xx.create_error('D100', 'Missing docstring in public module')
+D101 = D1xx.create_error('D101', 'Missing docstring in public class')
+D102 = D1xx.create_error('D102', 'Missing docstring in public method')
+D103 = D1xx.create_error('D103', 'Missing docstring in public function')
+
+D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
+D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '
+                                 'with quotes', 'found %s')
+D201 = D2xx.create_error('D201', 'No blank lines allowed before function '
+                                 'docstring', 'found %s')
+D202 = D2xx.create_error('D202', 'No blank lines allowed after function '
+                                 'docstring', 'found %s')
+D203 = D2xx.create_error('D203', '1 blank line required before class '
+                                 'docstring', 'found %s')
+D204 = D2xx.create_error('D204', '1 blank line required after class '
+                                 'docstring', 'found %s')
+D205 = D2xx.create_error('D205', '1 blank line required between summary line '
+                                 'and description', 'found %s')
+D206 = D2xx.create_error('D206', 'Docstring should be indented with spaces, '
+                                 'not tabs')
+D207 = D2xx.create_error('D207', 'Docstring is under-indented')
+D208 = D2xx.create_error('D208', 'Docstring is over-indented')
+D209 = D2xx.create_error('D209', 'Multi-line docstring closing quotes should '
+                                 'be on a separate line')
+D210 = D2xx.create_error('D210', 'No whitespaces allowed surrounding '
+                                 'docstring text')
+
+D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
+D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
+                         'found %s-quotes')
+D301 = D3xx.create_error('D301', 'Use r""" if any backslashes in a docstring')
+D302 = D3xx.create_error('D302', 'Use u""" for Unicode docstrings')
+
+D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
+D400 = D4xx.create_error('D400', 'First line should end with a period',
+                         'not %r')
+D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
+                         '%r, not %r')
+D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
+                                 '"signature"')
 
 
 def get_option_parser():
@@ -634,10 +744,8 @@ class PEP257Checker(object):
                         if error is not None:
                             partition = check.__doc__.partition('.\n')
                             message, _, explanation = partition
-                            if error.message is None:
-                                error.message = message
-                            error.explanation = explanation
-                            error.definition = definition
+                            error.set_context(explanation=explanation,
+                                              definition=definition)
                             yield error
                             if check._terminal:
                                 terminate = True
@@ -667,9 +775,9 @@ class PEP257Checker(object):
         """
         if (not docstring and definition.is_public or
                 docstring and is_blank(eval(docstring))):
-            codes = {Module: 'D100', Class: 'D101', NestedClass: 'D101',
-                     Method: 'D102', Function: 'D103', NestedFunction: 'D103'}
-            return Error('%s: Docstring missing' % codes[type(definition)])
+            codes = {Module: D100, Class: D101, NestedClass: D101,
+                     Method: D102, Function: D103, NestedFunction: D103}
+            return codes[type(definition)]()
 
     @check_for(Definition)
     def check_one_liners(self, definition, docstring):
@@ -684,8 +792,7 @@ class PEP257Checker(object):
             if len(lines) > 1:
                 non_empty_lines = sum(1 for l in lines if not is_blank(l))
                 if non_empty_lines == 1:
-                    return Error('D200: One-line docstring should not occupy '
-                                 '%s lines' % len(lines))
+                    return D200(len(lines))
 
     @check_for(Function)
     def check_no_blank_before(self, function, docstring):  # def
@@ -703,13 +810,9 @@ class PEP257Checker(object):
             blanks_before_count = sum(takewhile(bool, reversed(blanks_before)))
             blanks_after_count = sum(takewhile(bool, blanks_after))
             if blanks_before_count != 0:
-                yield Error('D201: No blank lines allowed *before* %s '
-                            'docstring, found %s'
-                            % (function.kind, blanks_before_count))
+                yield D201(blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 0:
-                yield Error('D202: No blank lines allowed *after* %s '
-                            'docstring, found %s'
-                            % (function.kind, blanks_after_count))
+                yield D202(blanks_after_count)
 
     @check_for(Class)
     def check_blank_before_after_class(slef, class_, docstring):
@@ -723,7 +826,7 @@ class PEP257Checker(object):
         docstring.
 
         """
-        # NOTE: this gives flase-positive in this case
+        # NOTE: this gives false-positive in this case
         # class Foo:
         #
         #     """Docstring."""
@@ -738,11 +841,9 @@ class PEP257Checker(object):
             blanks_before_count = sum(takewhile(bool, reversed(blanks_before)))
             blanks_after_count = sum(takewhile(bool, blanks_after))
             if blanks_before_count != 1:
-                yield Error('D203: Expected 1 blank line *before* class '
-                            'docstring, found %s' % blanks_before_count)
+                yield D203(blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 1:
-                yield Error('D204: Expected 1 blank line *after* class '
-                            'docstring, found %s' % blanks_after_count)
+                yield D204(blanks_after_count)
 
     @check_for(Definition)
     def check_blank_after_summary(self, definition, docstring):
@@ -761,9 +862,7 @@ class PEP257Checker(object):
                 post_summary_blanks = list(map(is_blank, lines[1:]))
                 blanks_count = sum(takewhile(bool, post_summary_blanks))
                 if blanks_count != 1:
-                    yield Error('D205: Expected 1 blank line between summary '
-                                'line and description, found %s' %
-                                blanks_count)
+                    return D205(blanks_count)
 
     @check_for(Definition)
     def check_indent(self, definition, docstring):
@@ -781,13 +880,12 @@ class PEP257Checker(object):
                 lines = lines[1:]  # First line does not need indent.
                 indents = [leading_space(l) for l in lines if not is_blank(l)]
                 if set(' \t') == set(''.join(indents) + indent):
-                    return Error('D206: Docstring indented with both tabs and '
-                                 'spaces')
+                    yield D206()
                 if (len(indents) > 1 and min(indents[:-1]) > indent or
                         indents[-1] > indent):
-                    return Error('D208: Docstring is over-indented')
+                    yield D208()
                 if min(indents) < indent:
-                    return Error('D207: Docstring is under-indented')
+                    yield D207()
 
     @check_for(Definition)
     def check_newline_after_last_paragraph(self, definition, docstring):
@@ -801,8 +899,7 @@ class PEP257Checker(object):
             lines = [l for l in eval(docstring).split('\n') if not is_blank(l)]
             if len(lines) > 1:
                 if docstring.split("\n")[-1].strip() not in ['"""', "'''"]:
-                    return Error('D209: Put multi-line docstring closing '
-                                 'quotes on separate line')
+                    return D209()
 
     @check_for(Definition)
     def check_surrounding_whitespaces(self, definition, docstring):
@@ -811,8 +908,7 @@ class PEP257Checker(object):
             lines = eval(docstring).split('\n')
             if lines[0].startswith(' ') or \
                     len(lines) == 1 and lines[0].endswith(' '):
-                return Error("D210: No whitespaces allowed surrounding "
-                             "docstring text.")
+                return D210()
 
     @check_for(Definition)
     def check_triple_double_quotes(self, definition, docstring):
@@ -834,7 +930,7 @@ class PEP257Checker(object):
             return
         if docstring and not docstring.startswith(('"""', 'r"""', 'u"""')):
             quotes = "'''" if "'''" in docstring[:4] else "'"
-            return Error('D300: Expected """-quotes, got %s-quotes' % quotes)
+            return D300(quotes)
 
     @check_for(Definition)
     def check_backslashes(self, definition, docstring):
@@ -847,7 +943,7 @@ class PEP257Checker(object):
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
         if docstring and '\\' in docstring and not docstring.startswith('r'):
-            return Error()
+            return D301()
 
     @check_for(Definition)
     def check_unicode_docstring(self, definition, docstring):
@@ -860,7 +956,7 @@ class PEP257Checker(object):
         # ensures the correct quotes.
         if docstring and sys.version_info[0] <= 2:
             if not is_ascii(docstring) and not docstring.startswith('u'):
-                return Error()
+                return D302()
 
     @check_for(Definition)
     def check_ends_with_period(self, definition, docstring):
@@ -872,8 +968,7 @@ class PEP257Checker(object):
         if docstring:
             summary_line = eval(docstring).strip().split('\n')[0]
             if not summary_line.endswith('.'):
-                return Error("D400: First line should end with '.', not %r"
-                             % summary_line[-1])
+                return D400(summary_line[-1])
 
     @check_for(Function)
     def check_imperative_mood(self, function, docstring):  # def context
@@ -889,8 +984,7 @@ class PEP257Checker(object):
             if stripped:
                 first_word = stripped.split()[0]
                 if first_word.endswith('s') and not first_word.endswith('ss'):
-                    return Error('D401: First line should be imperative: '
-                                 '%r, not %r' % (first_word[:-1], first_word))
+                    return D401(first_word[:-1], first_word)
 
     @check_for(Function)
     def check_no_signature(self, function, docstring):  # def context
@@ -903,8 +997,7 @@ class PEP257Checker(object):
         if docstring:
             first_line = eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
-                return Error("D402: First line should not be %s's signature"
-                             % function.kind)
+                return D402()
 
     # Somewhat hard to determine if return value is mentioned.
     # @check(Function)
