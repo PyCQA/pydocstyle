@@ -150,7 +150,7 @@ class Method(Function):
 
     @property
     def is_public(self):
-        # Check if we are a setter method, and mark as private if so.
+        # Check if we are a setter/deleter method, and mark as private if so.
         for decorator in self.decorators:
             if decorator.name.startswith(self.name):
                 return False

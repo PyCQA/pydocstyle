@@ -230,3 +230,13 @@ class TestMethod:
         ]
 
         assert not method.is_public
+
+    def test_is_public_deleter(self):
+        """Deleter methods are also considered private."""
+        method = self.makeMethod('methodName')
+        method.decorators = [
+            pep257.Decorator('methodName.deleter', []),
+            pep257.Decorator('another_decorator', []),
+        ]
+
+        assert not method.is_public
