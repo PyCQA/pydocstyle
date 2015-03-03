@@ -40,3 +40,6 @@ docs/_*
 
 # virtualenv
 venv/
+
+# generated rst
+docs/snippets/error_code_table.rst

@@ -108,7 +108,8 @@ def test_pep257():
     """Run domain-specific tests from test.py file."""
     import test
     results = list(check(['test.py']))
-    assert set(map(type, results)) == set([Error]), results
+    for error in results:
+        assert isinstance(error, Error)
     results = set([(e.definition.name, e.message) for e in results])
     print('\nextra: %r' % (results - test.expected))
     print('\nmissing: %r' % (test.expected - results))
