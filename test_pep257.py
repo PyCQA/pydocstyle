@@ -3,11 +3,13 @@
 """Use tox or py.test to run the test-suite."""
 
 from __future__ import with_statement
+from collections import namedtuple
 
 import os
 import mock
-import shutil
 import shlex
+import pytest
+import shutil
 import tempfile
 import textwrap
 import subprocess
@@ -28,17 +30,17 @@ class Pep257Env():
 
     """
 
+    Result = namedtuple('Result', ('out', 'err', 'code'))
+
     def __init__(self):
         self.tempdir = None
 
-    def write_config(self, ignore, verbose):
+    def write_config(self, **kwargs):
         """Change the environment's config file."""
         with open(os.path.join(self.tempdir, 'tox.ini'), 'wt') as conf:
-            conf.write(textwrap.dedent("""\
-                [pep257]
-                ignore = {0}
-                verbose = {1}
-            """.format(ignore, verbose)))
+            conf.write("[pep257]\n")
+            for k, v in kwargs.items():
+                conf.write("{} = {}\n".format(k.replace('_', '-'), v))
 
     def open(self, path, *args, **kwargs):
         """Open a file in the environment.
@@ -57,7 +59,9 @@ class Pep257Env():
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         out, err = p.communicate()
-        return out.decode('utf-8'), err.decode('utf-8')
+        return self.Result(out=out.decode('utf-8'),
+                           err=err.decode('utf-8'),
+                           code=p.returncode)
 
     def __enter__(self):
         self.tempdir = tempfile.mkdtemp()
@@ -74,11 +78,12 @@ def test_pep257_conformance():
 
 
 def test_ignore_list():
-    function_to_check = """def function_with_bad_docstring(foo):
-    \"\"\" does spacinwithout a period in the end
-    no blank line after one-liner is bad. Also this - \"\"\"
-    return foo
-    """
+    function_to_check = textwrap.dedent('''
+        def function_with_bad_docstring(foo):
+            """ does spacinwithout a period in the end
+            no blank line after one-liner is bad. Also this - """
+            return foo
+    ''')
     expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
                                 'D210'))
     mock_open = mock.mock_open(read_data=function_to_check)
@@ -109,25 +114,29 @@ def test_config_file():
             """))
 
         env.write_config(ignore='D100', verbose=True)
-        out, err = env.invoke_pep257()
+        out, err, code = env.invoke_pep257()
+        assert code == 1
         assert 'D100' not in err
         assert 'D103' in err
         assert 'example.py' in out
 
         env.write_config(ignore='', verbose=True)
-        out, err = env.invoke_pep257()
+        out, err, code = env.invoke_pep257()
+        assert code == 1
         assert 'D100' in err
         assert 'D103' in err
         assert 'example.py' in out
 
         env.write_config(ignore='D100,D103', verbose=False)
-        out, err = env.invoke_pep257()
+        out, err, code = env.invoke_pep257()
+        assert code == 0
         assert 'D100' not in err
         assert 'D103' not in err
         assert 'example.py' not in out
 
         env.write_config(ignore='', verbose=False)
-        out, err = env.invoke_pep257()
+        out, err, code = env.invoke_pep257()
+        assert code == 1
         assert 'D100' in err
         assert 'D103' in err
         assert 'example.py' not in out
@@ -142,11 +151,13 @@ def test_count():
                     pass
             """))
 
-        out, err = env.invoke_pep257(args='--count')
+        out, err, code = env.invoke_pep257(args='--count')
+        assert code == 1
         assert '2' in out
 
+
 def test_select_cli():
-    """Test choosing error codes with --select."""
+    """Test choosing error codes with --select in the CLI."""
     with Pep257Env() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
@@ -154,9 +165,87 @@ def test_select_cli():
                     pass
             """))
 
-        _, err = env.invoke_pep257(args='--select=D100')
+        _, err, code = env.invoke_pep257(args="--select=D100")
+        assert code == 1
         assert 'D100' in err
         assert 'D103' not in err
 
+
 def test_select_config():
-    assert False
+    """Test choosing error codes with --select in the config file."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent("""\
+                def foo():
+                    pass
+            """))
+
+        env.write_config(select="D100")
+        _, err, code = env.invoke_pep257()
+        assert code == 1
+        assert 'D100' in err
+        assert 'D103' not in err
+
+
+def test_add_select_cli():
+    """Test choosing error codes with --add-select in the CLI."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent("""\
+                class Foo(object):
+                    def foo():
+                        pass
+            """))
+
+        env.write_config(select="D100")
+        _, err, code = env.invoke_pep257(args="--add-select=D101")
+        assert code == 1
+        assert 'D100' in err
+        assert 'D101' in err
+        assert 'D103' not in err
+
+
+def test_add_ignore_cli():
+    """Test choosing error codes with --add-ignore in the CLI."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent("""\
+                class Foo(object):
+                    def foo():
+                        pass
+            """))
+
+        env.write_config(select="D100,D101")
+        _, err, code = env.invoke_pep257(args="--add-ignore=D101")
+        assert code == 1
+        assert 'D100' in err
+        assert 'D101' not in err
+        assert 'D103' not in err
+
+
+def test_conflicting_select_ignore_config():
+    """Test that select and ignore are mutually exclusive."""
+    with Pep257Env() as env:
+        env.write_config(select="D100", ignore="D101")
+        _, err, code = env.invoke_pep257()
+        assert code == 2
+        assert 'mutually exclusive' in err
+
+
+def test_conflicting_select_convention_config():
+    """Test that select and convention are mutually exclusive."""
+    with Pep257Env() as env:
+        env.write_config(select="D100", convention="pep257")
+        _, err, code = env.invoke_pep257()
+        assert code == 2
+        assert 'mutually exclusive' in err
+
+
+def test_conflicting_ignore_convention_config():
+    """Test that select and convention are mutually exclusive."""
+    with Pep257Env() as env:
+        env.write_config(ignore="D100", convention="pep257")
+        _, err, code = env.invoke_pep257()
+        assert code == 2
+        assert 'mutually exclusive' in err
+
