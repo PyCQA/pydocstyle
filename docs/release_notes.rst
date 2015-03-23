@@ -5,6 +5,10 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Bug Fixes
+
+* Property setter and deleter methods are now treated as private and do not
+  require docstrings separate from the main property method (#69, #107).
 
 0.5.0 - March 14th, 2015
 ------------------------
