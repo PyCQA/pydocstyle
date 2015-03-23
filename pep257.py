@@ -94,8 +94,8 @@ class Value(object):
 
 class Definition(Value):
 
-    _fields = ['name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent']
+    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+               'children', 'parent')
 
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])
@@ -152,7 +152,8 @@ class Method(Function):
     def is_public(self):
         # Check if we are a setter/deleter method, and mark as private if so.
         for decorator in self.decorators:
-            if decorator.name.startswith(self.name):
+            # Given 'foo', match 'foo.bar' but not 'foobar' or 'sfoo'
+            if re(r"^{0}\.".format(self.name)).match(decorator.name):
                 return False
         name_is_public = not self.name.startswith('_') or is_magic(self.name)
         return self.parent.is_public and name_is_public
@@ -232,7 +233,7 @@ class Parser(object):
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
-        self._decorators = []
+        self._accumulated_decorators = []
         return self.parse_module()
 
     current = property(lambda self: self.stream.current)
@@ -271,8 +272,8 @@ class Parser(object):
     def parse_decorators(self):
         """Called after first @ is found.
 
-        Build list of current decorators and return last parsed token,
-        which is def or class start token.
+        Parse decorators into self._accumulated_decorators.
+        Continue to do so until encountering the 'def' or 'class' start token.
         """
         name = []
         arguments = []
@@ -281,11 +282,13 @@ class Parser(object):
         while self.current is not None:
             if (self.current.kind == tk.NAME and
                     self.current.value in ['def', 'class']):
+                # Done with decorators - found function or class proper
                 break
             elif self.current.kind == tk.OP and self.current.value == '@':
-                # New decorator found.
-                self._decorators.append(
+                # New decorator found. Store the decorator accumulated so far:
+                self._accumulated_decorators.append(
                     Decorator(''.join(name), ''.join(arguments)))
+                # Now reset to begin accumulating the new decorator:
                 name = []
                 arguments = []
                 at_arguments = False
@@ -295,10 +298,10 @@ class Parser(object):
                 # Ignore close parenthesis
                 pass
             elif self.current.kind == tk.NEWLINE or self.current.kind == tk.NL:
-                # Ignoe newlines
+                # Ignore newlines
                 pass
             else:
-                # Keep accumulating decorator's name or argument.
+                # Keep accumulating current decorator's name or argument.
                 if not at_arguments:
                     name.append(self.current.value)
                 else:
@@ -306,7 +309,7 @@ class Parser(object):
             self.stream.move()
 
         # Add decorator accumulated so far
-        self._decorators.append(
+        self._accumulated_decorators.append(
             Decorator(''.join(name), ''.join(arguments)))
 
     def parse_definitions(self, class_, all=False):
@@ -414,8 +417,8 @@ class Parser(object):
             self.leapfrog(tk.INDENT)
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()
-            decorators = self._decorators
-            self._decorators = []
+            decorators = self._accumulated_decorators
+            self._accumulated_decorators = []
             log.debug("parsing nested defintions.")
             children = list(self.parse_definitions(class_))
             log.debug("finished parsing nested defintions for '%s'", name)
