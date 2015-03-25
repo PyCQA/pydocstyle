@@ -42,36 +42,39 @@ def test_parser():
     module = parse(StringIO(source), 'file.py')
     assert len(list(module)) == 8
     assert Module('file.py', _, 1, len(source.split('\n')),
-                  '"""Module."""', _, _, dunder_all) == module
+                  _, '"""Module."""', _, _, dunder_all) == module
 
     function, class_ = module.children
-    assert Function('function', _, _, _, '"Function."', _, module) == function
-    assert Class('class_', _, _, _, '"""Class."""', _, module) == class_
+    assert Function('function', _, _, _, _, '"Function."', _,
+                    module) == function
+    assert Class('class_', _, _, _, _, '"""Class."""', _, module) == class_
 
     nested_1, nested_2 = function.children
-    assert NestedFunction('nested_1', _, _, _,
+    assert NestedFunction('nested_1', _, _, _, _,
                           '"""Nested."""', _, function) == nested_1
-    assert NestedFunction('nested_2', _, _, _, None, _, function) == nested_2
+    assert NestedFunction('nested_2', _, _, _, _, None, _,
+                          function) == nested_2
     assert nested_1.is_public is False
 
     method_1, method_2 = class_.children
     assert method_1.parent == method_2.parent == class_
-    assert Method('method_1', _, _, _, '"""Method."""', _, class_) == method_1
-    assert Method('method_2', _, _, _, None, _, class_) == method_2
+    assert Method('method_1', _, _, _, _, '"""Method."""', _,
+                  class_) == method_1
+    assert Method('method_2', _, _, _, _, None, _, class_) == method_2
 
     nested_3, = method_2.children
-    assert NestedFunction('nested_3', _, _, _,
+    assert NestedFunction('nested_3', _, _, _, _,
                           '"""Nested."""', _, method_2) == nested_3
     assert nested_3.module == module
     assert nested_3.all == dunder_all
 
     module = parse(StringIO(source_alt), 'file_alt.py')
     assert Module('file_alt.py', _, 1, len(source_alt.split('\n')),
-                  None, _, _, dunder_all) == module
+                  _, None, _, _, dunder_all) == module
 
     module = parse(StringIO(source_alt_nl_at_bracket), 'file_alt_nl.py')
     assert Module('file_alt_nl.py', _, 1,
-                  len(source_alt_nl_at_bracket.split('\n')), None, _, _,
+                  len(source_alt_nl_at_bracket.split('\n')), _, None, _, _,
                   dunder_all) == module
 
 
