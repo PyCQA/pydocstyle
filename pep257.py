@@ -117,8 +117,8 @@ class Definition(Value):
 
 class Module(Definition):
 
-    _fields = ['name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent', '_all']
+    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+               'children', 'parent', '_all')
     is_public = True
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
