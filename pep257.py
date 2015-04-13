@@ -449,6 +449,7 @@ class Error(object):
     context = None
 
     # Options that define how errors are printed:
+    fmt = None
     explain = False
     source = False
 
@@ -493,13 +494,16 @@ class Error(object):
     def __str__(self):
         self.explanation = '\n'.join(l for l in self.explanation.split('\n')
                                      if not is_blank(l))
-        template = '%(filename)s:%(line)s %(definition)s:\n        %(message)s'
-        if self.source and self.explain:
-            template += '\n\n%(explanation)s\n\n%(lines)s\n'
-        elif self.source and not self.explain:
-            template += '\n\n%(lines)s\n'
-        elif self.explain and not self.source:
-            template += '\n\n%(explanation)s\n\n'
+        if not Error.fmt:
+            template = '%(filename)s:%(line)s %(definition)s:\n        %(message)s'
+            if self.source and self.explain:
+                template += '\n\n%(explanation)s\n\n%(lines)s\n'
+            elif self.source and not self.explain:
+                template += '\n\n%(lines)s\n'
+            elif self.explain and not self.source:
+                template += '\n\n%(explanation)s\n\n'
+        else:
+            template = Error.fmt
         return template % dict((name, getattr(self, name)) for name in
                                ['filename', 'line', 'definition', 'message',
                                 'explanation', 'lines'])
@@ -614,6 +618,9 @@ def get_option_parser():
            help='show explanation of each error')
     option('-s', '--source', action='store_true',
            help='show source for each error')
+    option('--format', metavar='<format>', default='',
+           help='override default error format (ignores --explain and '
+           '--source)')
     option('--ignore', metavar='<codes>', default='',
            help='ignore a list comma-separated error codes, '
                 'for example: --ignore=D101,D202')
@@ -761,6 +768,8 @@ def run_pep257():
 
     Error.explain = options.explain
     Error.source = options.source
+    if options.format != '':
+        Error.fmt = options.format
     collected = list(collected)
     errors = check(collected, ignore=options.ignore.split(','))
     code = 0
