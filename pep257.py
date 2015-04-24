@@ -495,7 +495,8 @@ class Error(object):
         self.explanation = '\n'.join(l for l in self.explanation.split('\n')
                                      if not is_blank(l))
         if not Error.fmt:
-            template = '%(filename)s:%(line)s %(definition)s:\n        %(message)s'
+            template = ('%(filename)s:%(line)s %(definition)s:\n'
+                        '        %(message)s')
             if self.source and self.explain:
                 template += '\n\n%(explanation)s\n\n%(lines)s\n'
             elif self.source and not self.explain:
