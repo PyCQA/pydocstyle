@@ -49,6 +49,14 @@ except NameError:  # Python 2.5 and earlier
                 return default
 
 
+# If possible (python >= 3.2) use tokenize.open to open files, so PEP 263
+# encoding markers are interpreted.
+try:
+    tokenize_open = tk.open
+except AttributeError:
+    tokenize_open = open
+
+
 __version__ = '0.5.0'
 __all__ = ('check', 'collect')
 
@@ -671,7 +679,7 @@ def check(filenames, ignore=()):
     for filename in filenames:
         log.info('Checking file %s.', filename)
         try:
-            with open(filename) as file:
+            with tokenize_open(filename) as file:
                 source = file.read()
             for error in PEP257Checker().check_source(source, filename):
                 code = getattr(error, 'code', None)
