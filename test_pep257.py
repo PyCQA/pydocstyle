@@ -4,6 +4,7 @@
 
 from __future__ import with_statement
 
+import sys
 import os
 import mock
 import shutil
@@ -144,3 +145,27 @@ def test_count():
 
         out, err = env.invoke_pep257(args='--count')
         assert '2' in out
+
+
+def test_unicode_raw():
+    """Test acceptance of unicode raw docstrings for python 2.x."""
+    if sys.version_info[0] >= 3:
+        return  # ur"" is a syntax error in python 3.x
+
+    # This is all to avoid a syntax error for python 3.2
+    from codecs import unicode_escape_decode
+
+    def u(x):
+        return unicode_escape_decode(x)[0]
+
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent(u('''\
+                # -*- coding: utf-8 -*-
+                def foo():
+                    ur"""Check unicode: \u2611 and raw: \\\\\\\\."""
+            ''').encode('utf-8')))
+        env.write_config(ignore='D100', verbose=True)
+        out, err = env.invoke_pep257()
+        assert 'D301' not in err
+        assert 'D302' not in err
