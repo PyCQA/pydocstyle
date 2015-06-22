@@ -996,11 +996,12 @@ class PEP257Checker(object):
 
         '''
         if docstring and '"""' in eval(docstring) and docstring.startswith(
-                ("'''", "r'''", "u'''")):
+                ("'''", "r'''", "u'''", "ur'''")):
             # Allow ''' quotes if docstring contains """, because otherwise """
             # quotes could not be expressed inside docstring.  Not in PEP 257.
             return
-        if docstring and not docstring.startswith(('"""', 'r"""', 'u"""')):
+        if docstring and not docstring.startswith(
+                ('"""', 'r"""', 'u"""', 'ur"""')):
             quotes = "'''" if "'''" in docstring[:4] else "'"
             return D300(quotes)
 
@@ -1014,7 +1015,8 @@ class PEP257Checker(object):
         '''
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and '\\' in docstring and not docstring.startswith('r'):
+        if docstring and '\\' in docstring and not docstring.startswith(
+                ('r', 'ur')):
             return D301()
 
     @check_for(Definition)
@@ -1027,7 +1029,8 @@ class PEP257Checker(object):
         # Just check that docstring is unicode, check_triple_double_quotes
         # ensures the correct quotes.
         if docstring and sys.version_info[0] <= 2:
-            if not is_ascii(docstring) and not docstring.startswith('u'):
+            if not is_ascii(docstring) and not docstring.startswith(
+                    ('u', 'ur')):
                 return D302()
 
     @check_for(Definition)
