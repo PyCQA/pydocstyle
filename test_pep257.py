@@ -75,7 +75,7 @@ class Pep257Env():
 
 
 def test_pep257_conformance():
-    errors = list(pep257.check(['pep257.py', 'test_pep257.py']))
+    errors = list(pep257.check_files(['pep257.py', 'test_pep257.py']))
     print(errors)
     assert errors == []
 
@@ -91,7 +91,7 @@ def test_ignore_list():
                                 'D210'))
     mock_open = mock.mock_open(read_data=function_to_check)
     with mock.patch('pep257.tokenize_open', mock_open, create=True):
-        errors = tuple(pep257.check(['filepath']))
+        errors = tuple(pep257.check_files(['filepath']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes
 

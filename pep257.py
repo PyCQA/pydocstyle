@@ -227,18 +227,9 @@ class TokenStream(object):
             self.move()
 
 
-class AllError(Exception):
-
-    def __init__(self, message):
-        Exception.__init__(
-            self, message +
-            'That means pep257 cannot decide which definitions are public. '
-            'Variable __all__ should be present at most once in each file, '
-            "in form `__all__ = ('a_public_function', 'APublicClass', ...)`. "
-            'More info on __all__: http://stackoverflow.com/q/44834/. ')
-
-
 class Parser(object):
+    def __init__(self, options=None):
+        self.options = options
 
     def __call__(self, filelike, filename):
         self.source = filelike.readlines()
@@ -352,11 +343,19 @@ class Parser(object):
         assert self.current.value == '__all__'
         self.consume(tk.NAME)
         if self.current.value != '=':
-            raise AllError('Could not evaluate contents of __all__. ')
+            raise AllError('Could not evaluate contents of __all__.',
+                           self.filename,
+                           self.line,
+                           self.source[self.line - 1])
         self.consume(tk.OP)
         if self.current.value not in '([':
-            raise AllError('Could not evaluate contents of __all__. ')
-        if self.current.value == '[':
+            raise AllError('Could not evaluate contents of __all__.',
+                           self.filename,
+                           self.line,
+                           self.source[self.line - 1])
+        ignore_mutable = (
+            not self.options or not self.options.ignore_mutable_all)
+        if self.current.value == '[' and ignore_mutable:
             msg = ("%s WARNING: __all__ is defined as a list, this means "
                    "pep257 cannot reliably detect contents of the __all__ "
                    "variable, because it can be mutated. Change __all__ to be "
@@ -378,7 +377,10 @@ class Parser(object):
                   self.current.value == ','):
                 all_content += self.current.value
             else:
-                raise AllError('Could not evaluate contents of __all__. ')
+                raise AllError('Could not evaluate contents of __all__.',
+                               self.filename,
+                               self.line,
+                               self.source[self.line - 1])
             self.stream.move()
         self.consume(tk.OP)
         all_content += ")"
@@ -387,7 +389,10 @@ class Parser(object):
         except BaseException as e:
             raise AllError('Could not evaluate contents of __all__.'
                            '\bThe value was %s. The exception was:\n%s'
-                           % (all_content, e))
+                           % (all_content, e),
+                           self.filename,
+                           self.line,
+                           self.source[self.line - 1])
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""
@@ -503,6 +508,14 @@ class Error(object):
                 break
         return source
 
+    def render(self, template):
+        return template.decode('string_escape') % dict(
+            (name, getattr(self, name)) for name in [
+                'filename', 'line', 'definition',
+                'message', 'explanation', 'lines', 'code', 'short_desc'
+            ]
+        )
+
     def __str__(self):
         self.explanation = '\n'.join(l for l in self.explanation.split('\n')
                                      if not is_blank(l))
@@ -522,6 +535,36 @@ class Error(object):
     def __lt__(self, other):
         return (self.filename, self.line) < (other.filename, other.line)
 
+
+class AllError(Exception):
+    code = 'ALL'
+    definition = '__all__ = ...'
+    explanation = (
+        'That means pep257 cannot decide which definitions are public. '
+        'Variable __all__ should be present at most once in each file, '
+        "in form `__all__ = ('a_public_function', 'APublicClass', ...)`. "
+        'More info on __all__: http://stackoverflow.com/q/44834/. '
+    )
+    lines = 'Source not available'
+
+    def __init__(self, message, filename, line, source):
+        Exception.__init__(self, message + ' ' + self.explanation)
+        self._message = message
+        self._filename = filename
+        self._line = line
+        self._source = source
+
+    def render(self, template):
+        return template.decode('string_escape') % {
+            'filename': self._filename,
+            'line': self._line,
+            'definition': self.definition,
+            'message': self.message,
+            'explanation': self.explanation,
+            'lines': self._source,
+            'code': self.code,
+            'short_desc': self._message
+        }
 
 class ErrorRegistry(object):
     groups = []
@@ -626,7 +669,7 @@ def get_option_parser():
                           usage='Usage: pep257 [options] [<file|dir>...]')
     parser.config_options = ('explain', 'source', 'ignore', 'match', 'select',
                              'match-dir', 'debug', 'verbose', 'count',
-                             'convention')
+                             'convention', 'ignore-mutable-all', 'template')
     option = parser.add_option
     option('-e', '--explain', action='store_true',
            help='show explanation of each error')
@@ -649,6 +692,8 @@ def get_option_parser():
     option('--add-ignore', metavar='<codes>', default='',
            help='amend the list of errors to check for by specifying more '
                 'error codes to ignore.')
+    option('--template', default=None,
+           help="Use this template to render errors")
     option('--match', metavar='<pattern>', default='(?!test_).*\.py',
            help="check only files that exactly match <pattern> regular "
                 "expression; default is --match='(?!test_).*\.py' which "
@@ -664,6 +709,8 @@ def get_option_parser():
            help='print status information')
     option('--count', action='store_true',
            help='print total number of errors to stdout')
+    option('--ignore-mutable-all', action='store_true',
+           help='do not complain about __all__ being mutable')
     return parser
 
 
@@ -689,7 +736,7 @@ def collect(names, match=lambda name: True, match_dir=lambda name: True):
             yield name
 
 
-def check(filenames, select=None, ignore=None):
+def check(filenames, select=None, ignore=None, options=None):
     """Generate PEP 257 errors that exist in `filenames` iterable.
 
     Only returns errors with error-codes defined in `checked_codes` iterable.
@@ -700,6 +747,8 @@ def check(filenames, select=None, ignore=None):
     <generator object check at 0x...>
 
     """
+    if ignore is None:
+      ignore = ()
     if select and ignore:
         raise ValueError('Cannot pass both select and ignore. They are '
                          'mutually exclusive.')
@@ -714,7 +763,7 @@ def check(filenames, select=None, ignore=None):
         try:
             with tokenize_open(filename) as file:
                 source = file.read()
-            for error in PEP257Checker().check_source(source, filename):
+            for error in PEP257Checker(options).check_source(source, filename):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error
@@ -847,19 +896,19 @@ def run_pep257():
     Error.source = options.source
     collected = list(collected)
     checked_codes = get_checked_error_codes(options)
-    errors = check(collected, select=checked_codes)
+    errors = check(collected, select=checked_codes, options=options)
     code = NO_VIOLATIONS_RETURN_CODE
     count = 0
     for error in errors:
-        sys.stderr.write('%s\n' % error)
-        code = VIOLATIONS_RETURN_CODE
+        if options.template and hasattr(error, 'render'):
+            sys.stderr.write(error.render(options.template))
+        else:
+            sys.stderr.write('%s\n' % error)
+        code = 1
         count += 1
     if options.count:
         print(count)
     return code
-
-
-parse = Parser()
 
 
 def check_for(kind, terminal=False):
@@ -881,13 +930,16 @@ class PEP257Checker(object):
 
     """
 
+    def __init__(self, options):
+        self.parse = Parser(options)
+
     def check_source(self, source, filename):
-        module = parse(StringIO(source), filename)
+        module = self.parse(StringIO(source), filename)
         for definition in module:
-            for check in self.checks:
+            for checker in self.checks:
                 terminate = False
-                if isinstance(definition, check._check_for):
-                    error = check(None, definition, definition.docstring)
+                if isinstance(definition, checker._check_for):
+                    error = checker(None, definition, definition.docstring)
                     errors = error if hasattr(error, '__iter__') else [error]
                     for error in errors:
                         if error is not None:
@@ -896,7 +948,7 @@ class PEP257Checker(object):
                             error.set_context(explanation=explanation,
                                               definition=definition)
                             yield error
-                            if check._terminal:
+                            if checker._terminal:
                                 terminate = True
                                 break
                 if terminate:
@@ -904,9 +956,9 @@ class PEP257Checker(object):
 
     @property
     def checks(self):
-        all = [check for check in vars(type(self)).values()
-               if hasattr(check, '_check_for')]
-        return sorted(all, key=lambda check: not check._terminal)
+        all = [checker for checker in vars(type(self)).values()
+               if hasattr(checker, '_check_for')]
+        return sorted(all, key=lambda checker: not checker._terminal)
 
     @check_for(Definition, terminal=True)
     def check_docstring_missing(self, definition, docstring):
