@@ -571,6 +571,7 @@ class AllError(Exception):
             'short_desc': self._message
         }
 
+
 class ErrorRegistry(object):
     groups = []
 
