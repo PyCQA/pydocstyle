@@ -16,6 +16,7 @@ from __future__ import with_statement
 import os
 import sys
 import logging
+import token
 import tokenize as tk
 from itertools import takewhile, dropwhile, chain
 from optparse import OptionParser
@@ -377,10 +378,12 @@ class Parser(object):
                   self.current.value == ','):
                 all_content += self.current.value
             else:
-                raise AllError('Could not evaluate contents of __all__.',
-                               self.filename,
-                               self.line,
-                               self.source[self.line - 1])
+                kind = token.tok_name[self.current.kind]
+                raise AllError(
+                    'Unexpected token kind in  __all__: %s' % kind,
+                    self.filename,
+                    self.line,
+                    self.source[self.line - 1])
             self.stream.move()
         self.consume(tk.OP)
         all_content += ")"
