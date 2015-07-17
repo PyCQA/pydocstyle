@@ -270,6 +270,7 @@ def test_unicode_raw():
                     ur"""Check unicode: \u2611 and raw: \\\\\\\\."""
             ''').encode('utf-8')))
         env.write_config(ignore='D100', verbose=True)
-        out, err = env.invoke_pep257()
+        out, err, code = env.invoke_pep257()
+        assert code == 0
         assert 'D301' not in err
         assert 'D302' not in err
