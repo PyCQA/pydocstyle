@@ -41,7 +41,7 @@ class Pep257Env():
         with open(os.path.join(self.tempdir, 'tox.ini'), 'wt') as conf:
             conf.write("[pep257]\n")
             for k, v in kwargs.items():
-                conf.write("{} = {}\n".format(k.replace('_', '-'), v))
+                conf.write("{0} = {1}\n".format(k.replace('_', '-'), v))
 
     def open(self, path, *args, **kwargs):
         """Open a file in the environment.

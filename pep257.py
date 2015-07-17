@@ -12,7 +12,6 @@ http://github.com/GreenSteam/pep257
 
 """
 from __future__ import with_statement
-from distutils.command.check import check
 
 import os
 import sys
