@@ -3,13 +3,21 @@ Release Notes
 
 
 Current Development Version
---------------------------
+---------------------------
+
+Bug Fixes
+
+* Property setter and deleter methods are now treated as private and do not
+  require docstrings separate from the main property method (#69, #107).
+
+0.5.0 - March 14th, 2015
+------------------------
 
 New Features
 
 * Added check D210: No whitespaces allowed surrounding docstring text (#95).
 
-* Added real documentation rendering using Sphinx (#100).
+* Added real documentation rendering using Sphinx (#100, #101).
 
 Bug Fixes
 
@@ -18,6 +26,8 @@ Bug Fixes
 * D205 used to check that there was *a* blank line between the one line summary
   and the description. It now checks that there is *exactly* one blank line
   between them (#79).
+
+* Fixed a bug where ``--match-dir`` was not properly respected (#108, #109).
 
 0.4.1 - January 10th, 2015
 --------------------------

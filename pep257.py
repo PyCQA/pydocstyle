@@ -52,7 +52,15 @@ except NameError:  # Python 2.5 and earlier
                 return default
 
 
-__version__ = '0.5.0-alpha'
+# If possible (python >= 3.2) use tokenize.open to open files, so PEP 263
+# encoding markers are interpreted.
+try:
+    tokenize_open = tk.open
+except AttributeError:
+    tokenize_open = open
+
+
+__version__ = '0.5.0'
 __all__ = ('check', 'collect')
 
 PROJECT_CONFIG = ('setup.cfg', 'tox.ini', '.pep257')
@@ -100,7 +108,8 @@ class Value(object):
 
 class Definition(Value):
 
-    _fields = 'name _source start end docstring children parent'.split()
+    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+               'children', 'parent')
 
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])
@@ -122,7 +131,8 @@ class Definition(Value):
 
 class Module(Definition):
 
-    _fields = 'name _source start end docstring children parent _all'.split()
+    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+               'children', 'parent', '_all')
     is_public = True
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
@@ -154,6 +164,11 @@ class Method(Function):
 
     @property
     def is_public(self):
+        # Check if we are a setter/deleter method, and mark as private if so.
+        for decorator in self.decorators:
+            # Given 'foo', match 'foo.bar' but not 'foobar' or 'sfoo'
+            if re(r"^{0}\.".format(self.name)).match(decorator.name):
+                return False
         name_is_public = not self.name.startswith('_') or is_magic(self.name)
         return self.parent.is_public and name_is_public
 
@@ -167,6 +182,13 @@ class Class(Definition):
 class NestedClass(Class):
 
     is_public = False
+
+
+class Decorator(Value):
+
+    """A decorator for function, method or class."""
+
+    _fields = 'name arguments'.split()
 
 
 class TokenKind(int):
@@ -225,6 +247,7 @@ class Parser(object):
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
+        self._accumulated_decorators = []
         return self.parse_module()
 
     current = property(lambda self: self.stream.current)
@@ -260,6 +283,49 @@ class Parser(object):
             return docstring
         return None
 
+    def parse_decorators(self):
+        """Called after first @ is found.
+
+        Parse decorators into self._accumulated_decorators.
+        Continue to do so until encountering the 'def' or 'class' start token.
+        """
+        name = []
+        arguments = []
+        at_arguments = False
+
+        while self.current is not None:
+            if (self.current.kind == tk.NAME and
+                    self.current.value in ['def', 'class']):
+                # Done with decorators - found function or class proper
+                break
+            elif self.current.kind == tk.OP and self.current.value == '@':
+                # New decorator found. Store the decorator accumulated so far:
+                self._accumulated_decorators.append(
+                    Decorator(''.join(name), ''.join(arguments)))
+                # Now reset to begin accumulating the new decorator:
+                name = []
+                arguments = []
+                at_arguments = False
+            elif self.current.kind == tk.OP and self.current.value == '(':
+                at_arguments = True
+            elif self.current.kind == tk.OP and self.current.value == ')':
+                # Ignore close parenthesis
+                pass
+            elif self.current.kind == tk.NEWLINE or self.current.kind == tk.NL:
+                # Ignore newlines
+                pass
+            else:
+                # Keep accumulating current decorator's name or argument.
+                if not at_arguments:
+                    name.append(self.current.value)
+                else:
+                    arguments.append(self.current.value)
+            self.stream.move()
+
+        # Add decorator accumulated so far
+        self._accumulated_decorators.append(
+            Decorator(''.join(name), ''.join(arguments)))
+
     def parse_definitions(self, class_, all=False):
         """Parse multiple defintions and yield them."""
         while self.current is not None:
@@ -267,6 +333,9 @@ class Parser(object):
                       self.current.kind, self.current.value)
             if all and self.current.value == '__all__':
                 self.parse_all()
+            elif self.current.kind == tk.OP and self.current.value == '@':
+                self.consume(tk.OP)
+                self.parse_decorators()
             elif self.current.value in ['def', 'class']:
                 yield self.parse_definition(class_._nest(self.current.value))
             elif self.current.kind == tk.INDENT:
@@ -330,7 +399,7 @@ class Parser(object):
         assert self.current is None, self.current
         end = self.line
         module = Module(self.filename, self.source, start, end,
-                        docstring, children, None, self.all)
+                        [], docstring, children, None, self.all)
         for child in module.children:
             child.parent = module
         log.debug("finished parsing module.")
@@ -362,17 +431,20 @@ class Parser(object):
             self.leapfrog(tk.INDENT)
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()
+            decorators = self._accumulated_decorators
+            self._accumulated_decorators = []
             log.debug("parsing nested defintions.")
             children = list(self.parse_definitions(class_))
             log.debug("finished parsing nested defintions for '%s'", name)
             end = self.line - 1
         else:  # one-liner definition
             docstring = self.parse_docstring()
+            decorators = []  # TODO
             children = []
             end = self.line
             self.leapfrog(tk.NEWLINE)
         definition = class_(name, self.source, start, end,
-                            docstring, children, None)
+                            decorators, docstring, children, None)
         for child in definition.children:
             child.parent = definition
         log.debug("finished parsing %s '%s'. Next token is %r (%s)",
@@ -641,7 +713,7 @@ def check(filenames, select=None, ignore=None):
     for filename in filenames:
         log.info('Checking file %s.', filename)
         try:
-            with open(filename) as file:
+            with tokenize_open(filename) as file:
                 source = file.read()
             for error in PEP257Checker().check_source(source, filename):
                 code = getattr(error, 'code', None)
@@ -999,11 +1071,12 @@ class PEP257Checker(object):
 
         '''
         if docstring and '"""' in eval(docstring) and docstring.startswith(
-                ("'''", "r'''", "u'''")):
+                ("'''", "r'''", "u'''", "ur'''")):
             # Allow ''' quotes if docstring contains """, because otherwise """
             # quotes could not be expressed inside docstring.  Not in PEP 257.
             return
-        if docstring and not docstring.startswith(('"""', 'r"""', 'u"""')):
+        if docstring and not docstring.startswith(
+                ('"""', 'r"""', 'u"""', 'ur"""')):
             quotes = "'''" if "'''" in docstring[:4] else "'"
             return D300(quotes)
 
@@ -1017,7 +1090,8 @@ class PEP257Checker(object):
         '''
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and '\\' in docstring and not docstring.startswith('r'):
+        if docstring and '\\' in docstring and not docstring.startswith(
+                ('r', 'ur')):
             return D301()
 
     @check_for(Definition)
@@ -1030,7 +1104,8 @@ class PEP257Checker(object):
         # Just check that docstring is unicode, check_triple_double_quotes
         # ensures the correct quotes.
         if docstring and sys.version_info[0] <= 2:
-            if not is_ascii(docstring) and not docstring.startswith('u'):
+            if not is_ascii(docstring) and not docstring.startswith(
+                    ('u', 'ur')):
                 return D302()
 
     @check_for(Definition)
