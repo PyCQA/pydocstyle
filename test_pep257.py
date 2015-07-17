@@ -273,4 +273,3 @@ def test_unicode_raw():
         out, err = env.invoke_pep257()
         assert 'D301' not in err
         assert 'D302' not in err
-
