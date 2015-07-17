@@ -49,6 +49,14 @@ except NameError:  # Python 2.5 and earlier
                 return default
 
 
+# If possible (python >= 3.2) use tokenize.open to open files, so PEP 263
+# encoding markers are interpreted.
+try:
+    tokenize_open = tk.open
+except AttributeError:
+    tokenize_open = open
+
+
 __version__ = '0.5.0'
 __all__ = ('check', 'collect')
 
@@ -671,7 +679,7 @@ def check(filenames, ignore=()):
     for filename in filenames:
         log.info('Checking file %s.', filename)
         try:
-            with open(filename) as file:
+            with tokenize_open(filename) as file:
                 source = file.read()
             for error in PEP257Checker().check_source(source, filename):
                 code = getattr(error, 'code', None)
@@ -988,11 +996,12 @@ class PEP257Checker(object):
 
         '''
         if docstring and '"""' in eval(docstring) and docstring.startswith(
-                ("'''", "r'''", "u'''")):
+                ("'''", "r'''", "u'''", "ur'''")):
             # Allow ''' quotes if docstring contains """, because otherwise """
             # quotes could not be expressed inside docstring.  Not in PEP 257.
             return
-        if docstring and not docstring.startswith(('"""', 'r"""', 'u"""')):
+        if docstring and not docstring.startswith(
+                ('"""', 'r"""', 'u"""', 'ur"""')):
             quotes = "'''" if "'''" in docstring[:4] else "'"
             return D300(quotes)
 
@@ -1006,7 +1015,8 @@ class PEP257Checker(object):
         '''
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and '\\' in docstring and not docstring.startswith('r'):
+        if docstring and '\\' in docstring and not docstring.startswith(
+                ('r', 'ur')):
             return D301()
 
     @check_for(Definition)
@@ -1019,7 +1029,8 @@ class PEP257Checker(object):
         # Just check that docstring is unicode, check_triple_double_quotes
         # ensures the correct quotes.
         if docstring and sys.version_info[0] <= 2:
-            if not is_ascii(docstring) and not docstring.startswith('u'):
+            if not is_ascii(docstring) and not docstring.startswith(
+                    ('u', 'ur')):
                 return D302()
 
     @check_for(Definition)
