@@ -726,7 +726,7 @@ def check(filenames, select=None, ignore=None):
 
 def get_options(args, opt_parser):
     config = RawConfigParser()
-    parent = tail = args and os.path.abspath(os.path.commonprefix(args))
+    parent = tail = os.path.abspath(os.path.commonprefix(args))
     while tail:
         for fn in PROJECT_CONFIG:
             full_path = os.path.join(parent, fn)
@@ -811,7 +811,7 @@ def validate_options(options):
     mutually_exclusive = ('ignore', 'select', 'convention')
     for opt1, opt2 in itertools.permutations(mutually_exclusive, 2):
         if getattr(options, opt1) and getattr(options, opt2):
-            log.error('Cannot pass both {} and {}. They are '
+            log.error('Cannot pass both {0} and {1}. They are '
                       'mutually exclusive.'.format(opt1, opt2))
             return False
     if options.convention and not hasattr(Conventions, options.convention):

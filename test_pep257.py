@@ -93,6 +93,9 @@ def test_ignore_list():
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes
 
+    # We need to recreate the mock, otherwise the read file is empty
+    mock_open = mock.mock_open(read_data=function_to_check)
+    with mock.patch('pep257.tokenize_open', mock_open, create=True):
         errors = tuple(pep257.check(['filepath'], ignore=['D100', 'D202']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes - set(('D100', 'D202'))
