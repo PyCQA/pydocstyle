@@ -10,6 +10,8 @@ Usage
     -h, --help            show this help message and exit
     -e, --explain         show explanation of each error
     -s, --source          show source for each error
+    --format=<format>     override default error format (ignores --explain and
+                            --source)
     --ignore=<codes>      ignore a list comma-separated error codes, for
                             example: --ignore=D101,D202
     --match=<pattern>     check only files that exactly match <pattern> regular
@@ -23,4 +25,3 @@ Usage
     -d, --debug           print debug information
     -v, --verbose         print status information
     --count               print total number of errors to stdout
-
