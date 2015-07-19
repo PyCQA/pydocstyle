@@ -38,6 +38,9 @@ docs/_*
 .pydevproject
 .settings
 
+# PyCharm files
+.idea
+
 # virtualenv
 venv/
 

@@ -5,6 +5,11 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
+* Added support for more flexible error selections using ``--ignore``,
+  ``--select``, ``--convention``, ``--add-ignore`` and ``--add-select``.
+
 Bug Fixes
 
 * Property setter and deleter methods are now treated as private and do not

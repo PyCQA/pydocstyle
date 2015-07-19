@@ -20,6 +20,8 @@ import tokenize as tk
 from itertools import takewhile, dropwhile, chain
 from optparse import OptionParser
 from re import compile as re
+import itertools
+
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
 except ImportError:  # Python 2.x
@@ -61,6 +63,9 @@ __version__ = '0.5.0'
 __all__ = ('check', 'collect')
 
 PROJECT_CONFIG = ('setup.cfg', 'tox.ini', '.pep257')
+NO_VIOLATIONS_RETURN_CODE = 0
+VIOLATIONS_RETURN_CODE = 1
+INVALID_OPTIONS_RETURN_CODE = 2
 
 
 def humanize(string):
@@ -549,7 +554,7 @@ class ErrorRegistry(object):
     def get_error_codes(cls):
         for group in cls.groups:
             for error in group.errors:
-                yield error
+                yield error.code
 
     @classmethod
     def to_rst(cls):
@@ -612,19 +617,38 @@ D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 
 
+class Conventions(object):
+    pep257 = set(ErrorRegistry.get_error_codes())
+
+
 def get_option_parser():
     parser = OptionParser(version=__version__,
                           usage='Usage: pep257 [options] [<file|dir>...]')
-    parser.config_options = ('explain', 'source', 'ignore', 'match',
-                             'match-dir', 'debug', 'verbose', 'count')
+    parser.config_options = ('explain', 'source', 'ignore', 'match', 'select',
+                             'match-dir', 'debug', 'verbose', 'count',
+                             'convention')
     option = parser.add_option
     option('-e', '--explain', action='store_true',
            help='show explanation of each error')
     option('-s', '--source', action='store_true',
            help='show source for each error')
+    option('--select', metavar='<codes>', default='',
+           help='choose the basic list of checked errors by specifying which '
+                'errors to check for (with a list of comma-separated error '
+                'codes). for example: --select=D101,D202')
     option('--ignore', metavar='<codes>', default='',
-           help='ignore a list comma-separated error codes, '
-                'for example: --ignore=D101,D202')
+           help='choose the basic list of checked errors by specifying which '
+                'errors to ignore (with a list of comma-separated error '
+                'codes). for example: --ignore=D101,D202')
+    option('--convention', metavar='<name>', default='',
+           help='choose the basic list of checked errors by specifying an '
+                'existing convention. for example: --convention=pep257')
+    option('--add-select', metavar='<codes>', default='',
+           help='amend the list of errors to check for by specifying more '
+                'error codes to check.')
+    option('--add-ignore', metavar='<codes>', default='',
+           help='amend the list of errors to check for by specifying more '
+                'error codes to ignore.')
     option('--match', metavar='<pattern>', default='(?!test_).*\.py',
            help="check only files that exactly match <pattern> regular "
                 "expression; default is --match='(?!test_).*\.py' which "
@@ -665,17 +689,26 @@ def collect(names, match=lambda name: True, match_dir=lambda name: True):
             yield name
 
 
-def check(filenames, ignore=()):
+def check(filenames, select=None, ignore=None):
     """Generate PEP 257 errors that exist in `filenames` iterable.
 
-    Skips errors with error-codes defined in `ignore` iterable.
+    Only returns errors with error-codes defined in `checked_codes` iterable.
 
     Example
     -------
-    >>> check(['pep257.py'], ignore=['D100'])
+    >>> check(['pep257.py'], checked_codes=['D100'])
     <generator object check at 0x...>
 
     """
+    if select and ignore:
+        raise ValueError('Cannot pass both select and ignore. They are '
+                         'mutually exclusive.')
+    elif select or ignore:
+        checked_codes = (select or
+                         set(ErrorRegistry.get_error_codes()) - set(ignore))
+    else:
+        checked_codes = Conventions.pep257
+
     for filename in filenames:
         log.info('Checking file %s.', filename)
         try:
@@ -683,7 +716,7 @@ def check(filenames, ignore=()):
                 source = file.read()
             for error in PEP257Checker().check_source(source, filename):
                 code = getattr(error, 'code', None)
-                if code is not None and code not in ignore:
+                if code in checked_codes:
                     yield error
         except (EnvironmentError, AllError):
             yield sys.exc_info()[1]
@@ -693,7 +726,7 @@ def check(filenames, ignore=()):
 
 def get_options(args, opt_parser):
     config = RawConfigParser()
-    parent = tail = args and os.path.abspath(os.path.commonprefix(args))
+    parent = tail = os.path.abspath(os.path.commonprefix(args))
     while tail:
         for fn in PROJECT_CONFIG:
             full_path = os.path.join(parent, fn)
@@ -714,7 +747,7 @@ def get_options(args, opt_parser):
         pep257_section = 'pep257'
         for opt in config.options(pep257_section):
             if opt.replace('_', '-') not in opt_parser.config_options:
-                print("Unknown option '{}' ignored".format(opt))
+                log.warning("Unknown option '{}' ignored".format(opt))
                 continue
             normalized_opt = opt.replace('-', '_')
             opt_type = option_list[normalized_opt]
@@ -733,19 +766,57 @@ def get_options(args, opt_parser):
     return options
 
 
-def setup_stream_handler(options):
+def setup_stream_handlers(options):
+    """Setup logging stream handlers according to the options."""
+    class StdoutFilter(logging.Filter):
+        def filter(self, record):
+            return record.levelno in (logging.DEBUG, logging.INFO)
+
     if log.handlers:
         for handler in log.handlers:
             log.removeHandler(handler)
-    stream_handler = logging.StreamHandler(sys.stdout)
-    stream_handler.setLevel(logging.WARNING)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.WARNING)
+    stdout_handler.addFilter(StdoutFilter())
     if options.debug:
-        stream_handler.setLevel(logging.DEBUG)
+        stdout_handler.setLevel(logging.DEBUG)
     elif options.verbose:
-        stream_handler.setLevel(logging.INFO)
+        stdout_handler.setLevel(logging.INFO)
     else:
-        stream_handler.setLevel(logging.WARNING)
-    log.addHandler(stream_handler)
+        stdout_handler.setLevel(logging.WARNING)
+    log.addHandler(stdout_handler)
+
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.WARNING)
+    log.addHandler(stderr_handler)
+
+
+def get_checked_error_codes(options):
+    codes = set(ErrorRegistry.get_error_codes())
+    if options.ignore:
+        checked_codes = codes - set(options.ignore.split(','))
+    elif options.select:
+        checked_codes = set(options.select.split(','))
+    elif options.convention:
+        checked_codes = getattr(Conventions, options.convention)
+    else:
+        checked_codes = Conventions.pep257
+    checked_codes -= set(options.add_ignore.split(','))
+    checked_codes |= set(options.add_select.split(','))
+    return checked_codes - set('')
+
+
+def validate_options(options):
+    mutually_exclusive = ('ignore', 'select', 'convention')
+    for opt1, opt2 in itertools.permutations(mutually_exclusive, 2):
+        if getattr(options, opt1) and getattr(options, opt2):
+            log.error('Cannot pass both {0} and {1}. They are '
+                      'mutually exclusive.'.format(opt1, opt2))
+            return False
+    if options.convention and not hasattr(Conventions, options.convention):
+        return False
+    return True
 
 
 def run_pep257():
@@ -754,12 +825,14 @@ def run_pep257():
     # setup the logger before parsing the config file, so that command line
     # arguments for debug / verbose will be printed.
     options, arguments = opt_parser.parse_args()
-    setup_stream_handler(options)
+    setup_stream_handlers(options)
     # We parse the files before opening the config file, since it changes where
     # we look for the file.
     options = get_options(arguments, opt_parser)
+    if not validate_options(options):
+        return INVALID_OPTIONS_RETURN_CODE
     # Setup the handler again with values from the config file.
-    setup_stream_handler(options)
+    setup_stream_handlers(options)
 
     collected = collect(arguments or ['.'],
                         match=re(options.match + '$').match,
@@ -770,12 +843,13 @@ def run_pep257():
     Error.explain = options.explain
     Error.source = options.source
     collected = list(collected)
-    errors = check(collected, ignore=options.ignore.split(','))
-    code = 0
+    checked_codes = get_checked_error_codes(options)
+    errors = check(collected, select=checked_codes)
+    code = NO_VIOLATIONS_RETURN_CODE
     count = 0
     for error in errors:
         sys.stderr.write('%s\n' % error)
-        code = 1
+        code = VIOLATIONS_RETURN_CODE
         count += 1
     if options.count:
         print(count)
