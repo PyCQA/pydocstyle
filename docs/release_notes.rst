@@ -14,7 +14,8 @@ Nothing here yet!
 New Features
 
 * Added support for more flexible error selections using ``--ignore``,
-  ``--select``, ``--convention``, ``--add-ignore`` and ``--add-select``.
+  ``--select``, ``--convention``, ``--add-ignore`` and ``--add-select``
+  (#96, #123).
 
 Bug Fixes
 
