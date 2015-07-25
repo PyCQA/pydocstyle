@@ -59,7 +59,7 @@ except AttributeError:
     tokenize_open = open
 
 
-__version__ = '0.6.0'
+__version__ = '0.6.0-alpha'
 __all__ = ('check', 'collect')
 
 PROJECT_CONFIG = ('setup.cfg', 'tox.ini', '.pep257')
