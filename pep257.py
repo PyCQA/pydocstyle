@@ -727,11 +727,14 @@ def check(filenames, select=None, ignore=None):
 def get_options(args, opt_parser):
     config = RawConfigParser()
     parent = tail = os.path.abspath(os.path.commonprefix(args))
-    while tail:
+    config_found = False
+    while tail and not config_found:
+        log.info(tail)
         for fn in PROJECT_CONFIG:
             full_path = os.path.join(parent, fn)
             if config.read(full_path):
                 log.info('local configuration: in %s.', full_path)
+                config_found = True
                 break
         parent, tail = os.path.split(parent)
 

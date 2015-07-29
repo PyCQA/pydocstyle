@@ -66,6 +66,8 @@ class Pep257Env():
 
     def __enter__(self):
         self.tempdir = tempfile.mkdtemp()
+        # Make sure we won't be affected by other config files
+        self.write_config()
         return self
 
     def __exit__(self, *args, **kwargs):
