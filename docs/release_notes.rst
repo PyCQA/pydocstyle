@@ -21,10 +21,10 @@ Bug Fixes
 
 * Property setter and deleter methods are now treated as private and do not
   require docstrings separate from the main property method (#69, #107).
-  
+
 * Fixed an issue where pep257 did not accept docstrings that are both
   unicode and raw in Python 2.x (#116, #119).
-  
+
 * Fixed an issue where Python 3.x files with Unicode encodings were
   not read correctly (#118).
 
@@ -90,4 +90,3 @@ Bug Fixes
 ------------------------
 
 First documented release!
-

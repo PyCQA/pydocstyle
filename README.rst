@@ -50,4 +50,3 @@ Links
 * `Fork pep257 on GitHub <http://github.com/GreenSteam/pep257>`_.
 
 * `PyPI project page <https://pypi.python.org/pypi/pep257>`_.
-
