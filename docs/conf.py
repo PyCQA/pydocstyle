@@ -18,7 +18,7 @@ import os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.join(os.path.abspath('.'), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -266,8 +266,9 @@ texinfo_documents = [
 issuetracker = 'github'
 issuetracker_project = 'GreenSteam/pep257'
 
+
 def generate_error_code_table():
-    from ..pep257 import ErrorRegistry
+    from pep257 import ErrorRegistry
     with open(os.path.join('snippets', 'error_code_table.rst'), 'wt') as outf:
         outf.write(ErrorRegistry.to_rst())
 
