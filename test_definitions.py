@@ -1,4 +1,4 @@
-from pep257 import (StringIO, TokenStream, Parser, Error, check_files,
+from pep257 import (StringIO, TokenStream, Parser, Error, check,
                     Module, Class, Method, Function, NestedFunction)
 
 
@@ -107,7 +107,7 @@ def test_token_stream():
 def test_pep257():
     """Run domain-specific tests from test.py file."""
     import test
-    results = list(check_files(['test.py']))
+    results = list(check(['test.py']))
     for error in results:
         assert isinstance(error, Error)
     results = set([(e.definition.name, e.message) for e in results])

@@ -754,7 +754,7 @@ def check(filenames, select=None, ignore=None, options=None):
 
     """
     if ignore is None:
-      ignore = ()
+        ignore = ()
     if select and ignore:
         raise ValueError('Cannot pass both select and ignore. They are '
                          'mutually exclusive.')
