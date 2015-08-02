@@ -402,8 +402,11 @@ class Parser(object):
         children = list(self.parse_definitions(Module, all=True))
         assert self.current is None, self.current
         end = self.line
-        module = Module(self.filename, self.source, start, end,
-                        [], docstring, children, None, self.all)
+        cls = Module
+        if self.filename.endswith('__init__.py'):
+            cls = Package
+        module = cls(self.filename, self.source, start, end,
+                     [], docstring, children, None, self.all)
         for child in module.children:
             child.parent = module
         log.debug("finished parsing module.")
@@ -584,6 +587,7 @@ D100 = D1xx.create_error('D100', 'Missing docstring in public module')
 D101 = D1xx.create_error('D101', 'Missing docstring in public class')
 D102 = D1xx.create_error('D102', 'Missing docstring in public method')
 D103 = D1xx.create_error('D103', 'Missing docstring in public function')
+D104 = D1xx.create_error('D104', 'Missing docstring in public package')
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '
@@ -930,7 +934,8 @@ class PEP257Checker(object):
         if (not docstring and definition.is_public or
                 docstring and is_blank(eval(docstring))):
             codes = {Module: D100, Class: D101, NestedClass: D101,
-                     Method: D102, Function: D103, NestedFunction: D103}
+                     Method: D102, Function: D103, NestedFunction: D103,
+                     Package: D104}
             return codes[type(definition)]()
 
     @check_for(Definition)
