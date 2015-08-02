@@ -141,6 +141,11 @@ class Module(Definition):
         return 'at module level'
 
 
+class Package(Module):
+
+    """A package is a __init__.py module."""
+
+
 class Function(Definition):
 
     _nest = staticmethod(lambda s: {'def': NestedFunction,
