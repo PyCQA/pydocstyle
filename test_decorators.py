@@ -23,7 +23,8 @@ class TestParser:
             class Foo:
                 pass
         """)
-        module = pep257.parse(StringIO(code), 'dummy.py')
+        parse = pep257.Parser()
+        module = parse(StringIO(code), 'dummy.py')
         decorators = module.children[0].decorators
 
         assert 1 == len(decorators)
@@ -43,7 +44,8 @@ class TestParser:
                 pass
         """)
 
-        module = pep257.parse(StringIO(code), 'dummy.py')
+        parse = pep257.Parser()
+        module = parse(StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.decorators
 
@@ -65,7 +67,9 @@ class TestParser:
                 class NestedClass:
                     pass
         """)
-        module = pep257.parse(StringIO(code), 'dummy.py')
+
+        parse = pep257.Parser()
+        module = parse(StringIO(code), 'dummy.py')
         nested_class = module.children[0].children[0]
         decorators = nested_class.decorators
 
@@ -82,7 +86,8 @@ class TestParser:
                     pass
         """)
 
-        module = pep257.parse(StringIO(code), 'dummy.py')
+        parse = pep257.Parser()
+        module = parse(StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].decorators
 
@@ -104,7 +109,8 @@ class TestParser:
                     pass
         """)
 
-        module = pep257.parse(StringIO(code), 'dummy.py')
+        parse = pep257.Parser()
+        module = parse(StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].decorators
 
@@ -124,7 +130,8 @@ class TestParser:
                 pass
         """)
 
-        module = pep257.parse(StringIO(code), 'dummy.py')
+        parse = pep257.Parser()
+        module = parse(StringIO(code), 'dummy.py')
         decorators = module.children[0].decorators
 
         assert 1 == len(decorators)
@@ -142,7 +149,8 @@ class TestParser:
                         pass
         """)
 
-        module = pep257.parse(StringIO(code), 'dummy.py')
+        parse = pep257.Parser()
+        module = parse(StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].children[0].decorators
 
