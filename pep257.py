@@ -378,7 +378,8 @@ class Parser(object):
                   self.current.value == ','):
                 all_content += self.current.value
             else:
-                raise AllError('Could not evaluate contents of __all__. ')
+                kind = token.tok_name[self.current.kind]
+                raise AllError('Unexpected token kind in  __all__: %s' % kind)
             self.stream.move()
         self.consume(tk.OP)
         all_content += ")"
