@@ -5,7 +5,12 @@ Release Notes
 Current Development Version
 ---------------------------
 
-Nothing here yet!
+New Features
+
+* Added the D104 error code - "Missing docstring in public package". This new
+  error is turned on by default. Missing docstring in `__init__.py` files which
+  previously resulted in D100 errors ("Missing docstring in public module")
+  will now result in D104 (#105, #127).
 
 
 0.6.0 - July 20th, 2015

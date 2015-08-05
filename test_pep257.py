@@ -279,3 +279,13 @@ def test_unicode_raw():
         assert code == 0
         assert 'D301' not in err
         assert 'D302' not in err
+
+
+def test_missing_docstring_in_package():
+    with Pep257Env() as env:
+        with env.open('__init__.py', 'wt') as init:
+            pass  # an empty package file
+        out, err, code = env.invoke_pep257()
+        assert code == 1
+        assert 'D100' not in err  # shouldn't be treated as a module
+        assert 'D104' in err  # missing docstring in package
