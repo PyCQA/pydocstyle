@@ -29,17 +29,17 @@ Quick Start
                 D102: Docstring missing
         ...
 
-        Note: If you are on Windows and have more than one
-        Python Environment, e.g. Python 2 and 3, you must run 
+    Note: If you are on Windows and have more than one
+    Python Environment, e.g. Python 2 and 3, you must run 
     .. code::
     
         py -2 -m pep257 test.py
 
-        for use in Python 2, or
+    for use in Python 2, or
     .. code::
     
         py -3 -m pep257 test.py
 
-        for us in Python 3
+    for us in Python 3
 3. Fix your code :)
 
