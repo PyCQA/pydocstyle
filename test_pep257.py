@@ -289,3 +289,11 @@ def test_missing_docstring_in_package():
         assert code == 1
         assert 'D100' not in err  # shouldn't be treated as a module
         assert 'D104' in err  # missing docstring in package
+
+
+def test_illegal_convention():
+    with Pep257Env() as env:
+        out, err, code = env.invoke_pep257('--convention=illegal_conv')
+        assert code == 2
+        assert "Illegal convention 'illegal_conv'." in err
+        assert 'Possible conventions: pep257' in err

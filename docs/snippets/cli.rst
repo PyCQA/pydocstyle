@@ -18,8 +18,7 @@ Usage
                             which errors to ignore (with a list of comma-separated
                             error codes). for example: --ignore=D101,D202
       --convention=<name>   choose the basic list of checked errors by specifying
-                            an existing convention. for example:
-                            --convention=pep257
+                            an existing convention. Possible conventions: pep257
       --add-select=<codes>  amend the list of errors to check for by specifying
                             more error codes to check.
       --add-ignore=<codes>  amend the list of errors to check for by specifying
@@ -35,6 +34,7 @@ Usage
       -d, --debug           print debug information
       -v, --verbose         print status information
       --count               print total number of errors to stdout
+
 
 Return Code
 ^^^^^^^^^^^
