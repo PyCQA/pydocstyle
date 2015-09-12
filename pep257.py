@@ -627,8 +627,14 @@ D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 
 
-class Conventions(object):
-    pep257 = set(ErrorRegistry.get_error_codes())
+class AttrDict(dict):
+    def __getattr__(self, item):
+        return self[item]
+
+
+conventions = AttrDict({
+    'pep257': set(ErrorRegistry.get_error_codes()),
+})
 
 
 def get_option_parser():
@@ -652,7 +658,8 @@ def get_option_parser():
                 'codes). for example: --ignore=D101,D202')
     option('--convention', metavar='<name>', default='',
            help='choose the basic list of checked errors by specifying an '
-                'existing convention. for example: --convention=pep257')
+                'existing convention. Possible conventions: {0}'
+                .format(', '.join(conventions)))
     option('--add-select', metavar='<codes>', default='',
            help='amend the list of errors to check for by specifying more '
                 'error codes to check.')
@@ -717,7 +724,7 @@ def check(filenames, select=None, ignore=None):
         checked_codes = (select or
                          set(ErrorRegistry.get_error_codes()) - set(ignore))
     else:
-        checked_codes = Conventions.pep257
+        checked_codes = conventions.pep257
 
     for filename in filenames:
         log.info('Checking file %s.', filename)
@@ -812,9 +819,9 @@ def get_checked_error_codes(options):
     elif options.select:
         checked_codes = set(options.select.split(','))
     elif options.convention:
-        checked_codes = getattr(Conventions, options.convention)
+        checked_codes = getattr(conventions, options.convention)
     else:
-        checked_codes = Conventions.pep257
+        checked_codes = conventions.pep257
     checked_codes -= set(options.add_ignore.split(','))
     checked_codes |= set(options.add_select.split(','))
     return checked_codes - set('')
@@ -827,7 +834,9 @@ def validate_options(options):
             log.error('Cannot pass both {0} and {1}. They are '
                       'mutually exclusive.'.format(opt1, opt2))
             return False
-    if options.convention and not hasattr(Conventions, options.convention):
+    if options.convention and options.convention not in conventions:
+        log.error("Illegal convention '{0}'. Possible conventions: {1}"
+                  .format(options.convention, ', '.join(conventions.keys())))
         return False
     return True
 
