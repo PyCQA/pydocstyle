@@ -702,7 +702,9 @@ def collect(names, match=lambda name: True, match_dir=lambda name: True):
                 for filename in filenames:
                     if match(filename):
                         yield os.path.join(root, filename)
-        else:
+        # Still need to check if the filename matches the passed in regex,
+        # since a non matching file could have passed in explicitly
+        elif match(os.path.basename(name)):
             yield name
 
 
