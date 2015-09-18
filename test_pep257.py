@@ -57,7 +57,8 @@ class Pep257Env():
         cmd = shlex.split("python {0} {1} {2}"
                           .format(pep257_location, self.tempdir, args),
                           posix=False)
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         out, err = p.communicate()
         return self.Result(out=out.decode('utf-8'),
@@ -72,6 +73,7 @@ class Pep257Env():
 
     def __exit__(self, *args, **kwargs):
         shutil.rmtree(self.tempdir)
+        pass
 
 
 def test_pep257_conformance():
@@ -315,7 +317,7 @@ def test_unicode_literals():
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent(u('''\
                 # -*- coding: utf-8 -*-
-                """This is a modue."""
+                """This is a module."""
 
                 def foo():
                     """Check unicode: \u2611."""
@@ -346,7 +348,7 @@ def test_unicode_literals():
                 """This is a module."""
 
                 from __future__ import (nested_scopes as ns,
-                unicode_literals)
+                                        unicode_literals)
 
                 def foo():
                     """Check unicode: \u2611."""

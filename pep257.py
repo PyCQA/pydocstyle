@@ -21,6 +21,7 @@ from itertools import takewhile, dropwhile, chain
 from optparse import OptionParser
 from re import compile as re
 import itertools
+from collections import defaultdict
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -131,7 +132,7 @@ class Definition(Value):
 class Module(Definition):
 
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent', '_all', 'unicode_literals')
+               'children', 'parent', '_all', 'future_imports')
     is_public = True
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
@@ -197,7 +198,7 @@ class Decorator(Value):
 
 class TokenKind(int):
     def __repr__(self):
-        return "tk.{}".format(tk.tok_name[self])
+        return "tk.{0}".format(tk.tok_name[self])
 
 
 class Token(Value):
@@ -252,7 +253,7 @@ class Parser(object):
         self.filename = filename
         self.all = None
         # TODO: what about Python 3.x?
-        self.unicode_literals = False
+        self.future_imports = defaultdict(lambda: False)
         self._accumulated_decorators = []
         return self.parse_module()
 
@@ -414,7 +415,7 @@ class Parser(object):
                      [], docstring, children, None, self.all)
         for child in module.children:
             child.parent = module
-        module.unicode_literals = self.unicode_literals
+        module.future_imports = self.future_imports
         log.debug("finished parsing module.")
         return module
 
@@ -479,9 +480,29 @@ class Parser(object):
         self.stream.move()
         assert self.current.value == 'import', self.current.value
         self.stream.move()
-        # TODO: lookout for parenthesis, comments, line breaks, etc.
-        if self.current.value == 'unicode_literals':
-            self.unicode_literals = True
+        if self.current.value == '(':
+            self.consume(tk.OP)
+            expected_end_kind = tk.OP
+        else:
+            expected_end_kind = tk.NEWLINE
+        while self.current.kind != expected_end_kind:
+            if self.current.kind != tk.NAME:
+                self.stream.move()
+                continue
+            log.debug("parsing import, token is %r (%s)",
+                      self.current.kind, self.current.value)
+            log.debug('found future import: %s', self.current.value)
+            self.future_imports[self.current.value] = True
+            self.consume(tk.NAME)
+            log.debug("parsing import, token is %r (%s)",
+                      self.current.kind, self.current.value)
+            if self.current.kind == tk.NAME:
+                self.consume(tk.NAME)  # as
+                self.consume(tk.NAME)  # new name, irrelevant
+            if self.current.value == ',':
+                self.consume(tk.OP)
+            log.debug("parsing import, token is %r (%s)",
+                      self.current.kind, self.current.value)
 
 
 class Error(object):
@@ -1146,7 +1167,7 @@ class PEP257Checker(object):
         For Unicode docstrings, use u"""Unicode triple-quoted strings""".
 
         '''
-        if definition.module.unicode_literals:
+        if definition.module.future_imports['unicode_literals']:
             return
 
         # Just check that docstring is unicode, check_triple_double_quotes

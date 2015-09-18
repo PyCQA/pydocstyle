@@ -42,11 +42,10 @@ from __future__ import unicode_literals
 
 def test_parser():
     dunder_all = ('a', 'bc')
-    unicode_literals = False
     module = parse(StringIO(source), 'file.py')
     assert len(list(module)) == 8
     assert Module('file.py', _, 1, len(source.split('\n')),
-                  _, '"""Module."""', _, _, dunder_all, unicode_literals) == \
+                  _, '"""Module."""', _, _, dunder_all, {}) == \
         module
 
     function, class_ = module.children
@@ -75,17 +74,18 @@ def test_parser():
 
     module = parse(StringIO(source_alt), 'file_alt.py')
     assert Module('file_alt.py', _, 1, len(source_alt.split('\n')),
-                  _, None, _, _, dunder_all, unicode_literals) == module
+                  _, None, _, _, dunder_all, {}) == module
 
     module = parse(StringIO(source_alt_nl_at_bracket), 'file_alt_nl.py')
     assert Module('file_alt_nl.py', _, 1,
                   len(source_alt_nl_at_bracket.split('\n')), _, None, _, _,
-                  dunder_all, unicode_literals) == module
+                  dunder_all, {}) == module
 
     module = parse(StringIO(source_unicode_literals), 'file_ucl.py')
     assert Module('file_ucl.py', _, 1,
                   _, _, None, _, _,
-                  _, True) == module
+                  _, {'unicode_literals': True}) == module
+    assert module.future_imports['unicode_literals']
 
 
 def _test_module():
