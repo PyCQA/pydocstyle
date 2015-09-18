@@ -297,3 +297,75 @@ def test_illegal_convention():
         assert code == 2
         assert "Illegal convention 'illegal_conv'." in err
         assert 'Possible conventions: pep257' in err
+
+
+def test_unicode_literals():
+
+    if sys.version_info[0] >= 3:
+        return  # ur"" is a syntax error in python 3.x
+
+    # This is all to avoid a syntax error for python 3.2
+    from codecs import unicode_escape_decode
+
+    def u(x):
+        return unicode_escape_decode(x)[0]
+
+    # Check that D302 is reported with unicode docstring
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent(u('''\
+                # -*- coding: utf-8 -*-
+                """This is a modue."""
+
+                def foo():
+                    """Check unicode: \u2611."""
+            ''').encode('utf-8')))
+        _, err, code = env.invoke_pep257()
+        assert code == 1
+        assert 'D302' in err
+
+    # Check that D302 is not reported when import unicode_literals
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent(u('''\
+                # -*- coding: utf-8 -*-
+                """This is a module."""
+
+                from __future__ import unicode_literals
+
+                def foo():
+                    """Check unicode: \u2611."""
+            ''').encode('utf-8')))
+        _, err, code = env.invoke_pep257()
+        assert code == 0, err
+
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent(u('''\
+                # -*- coding: utf-8 -*-
+                """This is a module."""
+
+                from __future__ import (nested_scopes as ns,
+                unicode_literals)
+
+                def foo():
+                    """Check unicode: \u2611."""
+            ''').encode('utf-8')))
+        _, err, code = env.invoke_pep257()
+        assert code == 0, err
+
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent(u('''\
+                # -*- coding: utf-8 -*-
+                """This is a module."""
+
+                from __future__ import \
+                    nested_scopes, \
+                    unicode_literals as ul
+
+                def foo():
+                    """Check unicode: \u2611."""
+            ''').encode('utf-8')))
+        _, err, code = env.invoke_pep257()
+        assert code == 0, err

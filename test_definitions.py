@@ -35,14 +35,19 @@ __all__ = [
     # Inconvenient comment.
     'a', 'b' 'c',]
 '''
+source_unicode_literals = '''
+from __future__ import unicode_literals
+'''
 
 
 def test_parser():
     dunder_all = ('a', 'bc')
+    unicode_literals = False
     module = parse(StringIO(source), 'file.py')
     assert len(list(module)) == 8
     assert Module('file.py', _, 1, len(source.split('\n')),
-                  _, '"""Module."""', _, _, dunder_all) == module
+                  _, '"""Module."""', _, _, dunder_all, unicode_literals) == \
+        module
 
     function, class_ = module.children
     assert Function('function', _, _, _, _, '"Function."', _,
@@ -70,12 +75,17 @@ def test_parser():
 
     module = parse(StringIO(source_alt), 'file_alt.py')
     assert Module('file_alt.py', _, 1, len(source_alt.split('\n')),
-                  _, None, _, _, dunder_all) == module
+                  _, None, _, _, dunder_all, unicode_literals) == module
 
     module = parse(StringIO(source_alt_nl_at_bracket), 'file_alt_nl.py')
     assert Module('file_alt_nl.py', _, 1,
                   len(source_alt_nl_at_bracket.split('\n')), _, None, _, _,
-                  dunder_all) == module
+                  dunder_all, unicode_literals) == module
+
+    module = parse(StringIO(source_unicode_literals), 'file_ucl.py')
+    assert Module('file_ucl.py', _, 1,
+                  _, _, None, _, _,
+                  _, True) == module
 
 
 def _test_module():

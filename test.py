@@ -286,4 +286,11 @@ def a_following_valid_function(x):
 
     """
 
+
+def outer_function():
+    """Do something."""
+    def inner_function():
+        """Do inner something."""
+        return 0
+
 expect('test.py', 'D100: Missing docstring in public module')
