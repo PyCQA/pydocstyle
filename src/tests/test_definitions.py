@@ -1,5 +1,6 @@
-from pep257 import (StringIO, TokenStream, Parser, Error, check,
-                    Module, Class, Method, Function, NestedFunction)
+import os
+from ..pep257 import (StringIO, TokenStream, Parser, Error, check,
+                      Module, Class, Method, Function, NestedFunction)
 
 
 _ = type('', (), dict(__repr__=lambda *a: '_', __eq__=lambda *a: True))()
@@ -116,11 +117,10 @@ def test_token_stream():
 
 def test_pep257():
     """Run domain-specific tests from test.py file."""
-    import test
-    results = list(check(['test.py']))
+    from .test_cases import test
+    results = list(check([os.path.join(os.path.dirname(__file__),
+                                       'test_cases', 'test.py')]))
     for error in results:
         assert isinstance(error, Error)
     results = set([(e.definition.name, e.message) for e in results])
-    print('\nextra: %r' % (results - test.expected))
-    print('\nmissing: %r' % (test.expected - results))
     assert test.expected == results

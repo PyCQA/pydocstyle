@@ -1,6 +1,7 @@
 # encoding: utf-8
 # No docstring, so we can test D100
 import sys
+import os
 
 
 expected = set([])
@@ -293,4 +294,5 @@ def outer_function():
         """Do inner something."""
         return 0
 
-expect('test.py', 'D100: Missing docstring in public module')
+expect(__file__ if __file__[-1] != 'c' else __file__[:-1],
+       'D100: Missing docstring in public module')
