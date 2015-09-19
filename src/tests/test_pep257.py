@@ -315,35 +315,6 @@ def test_unicode_literals():
     def u(x):
         return unicode_escape_decode(x)[0]
 
-    # Check that D302 is reported with unicode docstring
-    with Pep257Env() as env:
-        with env.open('example.py', 'wt') as example:
-            example.write(textwrap.dedent(u('''\
-                # -*- coding: utf-8 -*-
-                """This is a module."""
-
-                def foo():
-                    """Check unicode: \u2611."""
-            ''').encode('utf-8')))
-        _, err, code = env.invoke_pep257()
-        assert code == 1
-        assert 'D302' in err
-
-    # Check that D302 is not reported when import unicode_literals
-    with Pep257Env() as env:
-        with env.open('example.py', 'wt') as example:
-            example.write(textwrap.dedent(u('''\
-                # -*- coding: utf-8 -*-
-                """This is a module."""
-
-                from __future__ import unicode_literals
-
-                def foo():
-                    """Check unicode: \u2611."""
-            ''').encode('utf-8')))
-        _, err, code = env.invoke_pep257()
-        assert code == 0, err
-
     with Pep257Env() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent(u('''\

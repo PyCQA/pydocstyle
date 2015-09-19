@@ -39,6 +39,10 @@ __all__ = [
 source_unicode_literals = '''
 from __future__ import unicode_literals
 '''
+source_multiple_future_imports = '''
+from __future__ import (nested_scopes as ns,
+                        unicode_literals)
+'''
 
 
 def test_parser():
@@ -86,6 +90,12 @@ def test_parser():
     assert Module('file_ucl.py', _, 1,
                   _, _, None, _, _,
                   _, {'unicode_literals': True}) == module
+
+    module = parse(StringIO(source_multiple_future_imports), 'file_mfi.py')
+    assert Module('file_mfi.py', _, 1,
+                  _, _, None, _, _,
+                  _, {'unicode_literals': True, 'nested_scopes': True}) \
+        == module
     assert module.future_imports['unicode_literals']
 
 
