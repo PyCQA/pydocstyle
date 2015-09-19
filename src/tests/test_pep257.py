@@ -302,4 +302,3 @@ def test_illegal_convention():
         assert code == 2
         assert "Illegal convention 'illegal_conv'." in err
         assert 'Possible conventions: pep257' in err
-
