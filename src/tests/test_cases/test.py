@@ -1,21 +1,11 @@
 # encoding: utf-8
 # No docstring, so we can test D100
 import sys
-import os
+from expected import Expectation
 
 
-expected = set([])
-
-
-def expect(*args):
-    """Decorator that expects a certain PEP 257 violation."""
-    def none(a):
-        return None
-
-    if len(args) == 1:
-        return lambda f: expected.add((f.__name__, args[0])) or none(f()) or f
-    expected.add(args)
-
+expectation = Expectation()
+expect = expectation.expect
 
 expect('class_', 'D101: Missing docstring in public class')
 

@@ -127,10 +127,17 @@ def test_token_stream():
 
 def test_pep257():
     """Run domain-specific tests from test.py file."""
-    from .test_cases import test
-    results = list(check([os.path.join(os.path.dirname(__file__),
-                                       'test_cases', 'test.py')]))
-    for error in results:
-        assert isinstance(error, Error)
-    results = set([(e.definition.name, e.message) for e in results])
-    assert test.expected == results
+    test_cases = ('test', 'unicode_literals')
+    for test_case in test_cases:
+        case_module = __import__('test_cases.{0}'.format(test_case),
+                                 globals=globals(),
+                                 locals=locals(),
+                                 fromlist=['expected'],
+                                 level=1)
+        # from .test_cases import test
+        results = list(check([os.path.join(os.path.dirname(__file__),
+                                           'test_cases', test_case + '.py')]))
+        for error in results:
+            assert isinstance(error, Error)
+        results = set([(e.definition.name, e.message) for e in results])
+        assert case_module.expectation.expected == results
