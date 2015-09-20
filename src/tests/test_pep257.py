@@ -4,18 +4,18 @@
 
 from __future__ import with_statement
 from collections import namedtuple
+from functools import partial
 
 import sys
 import os
 import mock
 import shlex
-import pytest
 import shutil
 import tempfile
 import textwrap
 import subprocess
 
-import pep257
+from .. import pep257
 
 __all__ = ()
 
@@ -53,11 +53,13 @@ class Pep257Env():
 
     def invoke_pep257(self, args=""):
         """Run pep257.py on the environment base folder with the given args."""
-        pep257_location = os.path.join(os.path.dirname(__file__), 'pep257')
+        pep257_location = os.path.join(os.path.dirname(__file__),
+                                       '..', 'pep257')
         cmd = shlex.split("python {0} {1} {2}"
                           .format(pep257_location, self.tempdir, args),
                           posix=False)
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+        p = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         out, err = p.communicate()
         return self.Result(out=out.decode('utf-8'),
@@ -72,11 +74,13 @@ class Pep257Env():
 
     def __exit__(self, *args, **kwargs):
         shutil.rmtree(self.tempdir)
+        pass
 
 
 def test_pep257_conformance():
-    errors = list(pep257.check(['pep257.py', 'test_pep257.py']))
-    print(errors)
+    relative = partial(os.path.join, os.path.dirname(__file__))
+    errors = list(pep257.check([relative('..', 'pep257.py'),
+                                relative('test_pep257.py')]))
     assert errors == []
 
 
@@ -90,14 +94,15 @@ def test_ignore_list():
     expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
                                 'D210'))
     mock_open = mock.mock_open(read_data=function_to_check)
-    with mock.patch('pep257.tokenize_open', mock_open, create=True):
+    from .. import pep257
+    with mock.patch.object(pep257, 'tokenize_open', mock_open, create=True):
         errors = tuple(pep257.check(['filepath']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes
 
     # We need to recreate the mock, otherwise the read file is empty
     mock_open = mock.mock_open(read_data=function_to_check)
-    with mock.patch('pep257.tokenize_open', mock_open, create=True):
+    with mock.patch.object(pep257, 'tokenize_open', mock_open, create=True):
         errors = tuple(pep257.check(['filepath'], ignore=['D100', 'D202']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes - set(('D100', 'D202'))

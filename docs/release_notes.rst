@@ -12,6 +12,11 @@ New Features
   previously resulted in D100 errors ("Missing docstring in public module")
   will now result in D104 (#105, #127).
 
+Bug Fixes
+
+* On Python 2.x, D302 ("Use u""" for Unicode docstrings") is not reported
+  if `unicode_literals` is imported from `__future__` (#113, #134).
+
 
 0.6.0 - July 20th, 2015
 ---------------------------

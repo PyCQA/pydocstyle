@@ -1,8 +1,9 @@
 from __future__ import with_statement
+import os
 from setuptools import setup
 
 
-with open('pep257.py') as f:
+with open(os.path.join('src', 'pep257.py')) as f:
     for line in f:
         if line.startswith('__version__'):
             version = eval(line.split('=')[-1])
@@ -25,6 +26,7 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     keywords='PEP 257, pep257, PEP 8, pep8, docstrings',
+    package_dir={'': 'src'},
     py_modules=['pep257'],
-    scripts=['pep257'],
+    scripts=['src/pep257'],
 )

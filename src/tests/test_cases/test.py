@@ -1,20 +1,11 @@
 # encoding: utf-8
 # No docstring, so we can test D100
 import sys
+from .expected import Expectation
 
 
-expected = set([])
-
-
-def expect(*args):
-    """Decorator that expects a certain PEP 257 violation."""
-    def none(a):
-        return None
-
-    if len(args) == 1:
-        return lambda f: expected.add((f.__name__, args[0])) or none(f()) or f
-    expected.add(args)
-
+expectation = Expectation()
+expect = expectation.expect
 
 expect('class_', 'D101: Missing docstring in public class')
 
@@ -286,4 +277,12 @@ def a_following_valid_function(x):
 
     """
 
-expect('test.py', 'D100: Missing docstring in public module')
+
+def outer_function():
+    """Do something."""
+    def inner_function():
+        """Do inner something."""
+        return 0
+
+expect(__file__ if __file__[-1] != 'c' else __file__[:-1],
+       'D100: Missing docstring in public module')

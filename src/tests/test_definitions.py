@@ -1,5 +1,6 @@
-from pep257 import (StringIO, TokenStream, Parser, Error, check,
-                    Module, Class, Method, Function, NestedFunction)
+import os
+from ..pep257 import (StringIO, TokenStream, Parser, Error, check,
+                      Module, Class, Method, Function, NestedFunction)
 
 
 _ = type('', (), dict(__repr__=lambda *a: '_', __eq__=lambda *a: True))()
@@ -35,6 +36,13 @@ __all__ = [
     # Inconvenient comment.
     'a', 'b' 'c',]
 '''
+source_unicode_literals = '''
+from __future__ import unicode_literals
+'''
+source_multiple_future_imports = '''
+from __future__ import (nested_scopes as ns,
+                        unicode_literals)
+'''
 
 
 def test_parser():
@@ -42,7 +50,8 @@ def test_parser():
     module = parse(StringIO(source), 'file.py')
     assert len(list(module)) == 8
     assert Module('file.py', _, 1, len(source.split('\n')),
-                  _, '"""Module."""', _, _, dunder_all) == module
+                  _, '"""Module."""', _, _, dunder_all, {}) == \
+        module
 
     function, class_ = module.children
     assert Function('function', _, _, _, _, '"Function."', _,
@@ -70,12 +79,24 @@ def test_parser():
 
     module = parse(StringIO(source_alt), 'file_alt.py')
     assert Module('file_alt.py', _, 1, len(source_alt.split('\n')),
-                  _, None, _, _, dunder_all) == module
+                  _, None, _, _, dunder_all, {}) == module
 
     module = parse(StringIO(source_alt_nl_at_bracket), 'file_alt_nl.py')
     assert Module('file_alt_nl.py', _, 1,
                   len(source_alt_nl_at_bracket.split('\n')), _, None, _, _,
-                  dunder_all) == module
+                  dunder_all, {}) == module
+
+    module = parse(StringIO(source_unicode_literals), 'file_ucl.py')
+    assert Module('file_ucl.py', _, 1,
+                  _, _, None, _, _,
+                  _, {'unicode_literals': True}) == module
+
+    module = parse(StringIO(source_multiple_future_imports), 'file_mfi.py')
+    assert Module('file_mfi.py', _, 1,
+                  _, _, None, _, _,
+                  _, {'unicode_literals': True, 'nested_scopes': True}) \
+        == module
+    assert module.future_imports['unicode_literals']
 
 
 def _test_module():
@@ -106,11 +127,17 @@ def test_token_stream():
 
 def test_pep257():
     """Run domain-specific tests from test.py file."""
-    import test
-    results = list(check(['test.py']))
-    for error in results:
-        assert isinstance(error, Error)
-    results = set([(e.definition.name, e.message) for e in results])
-    print('\nextra: %r' % (results - test.expected))
-    print('\nmissing: %r' % (test.expected - results))
-    assert test.expected == results
+    test_cases = ('test', 'unicode_literals')
+    for test_case in test_cases:
+        case_module = __import__('test_cases.{0}'.format(test_case),
+                                 globals=globals(),
+                                 locals=locals(),
+                                 fromlist=['expectation'],
+                                 level=1)
+        # from .test_cases import test
+        results = list(check([os.path.join(os.path.dirname(__file__),
+                                           'test_cases', test_case + '.py')]))
+        for error in results:
+            assert isinstance(error, Error)
+        results = set([(e.definition.name, e.message) for e in results])
+        assert case_module.expectation.expected == results

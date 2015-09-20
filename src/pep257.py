@@ -21,6 +21,7 @@ from itertools import takewhile, dropwhile, chain
 from optparse import OptionParser
 from re import compile as re
 import itertools
+from collections import defaultdict
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -100,9 +101,9 @@ class Value(object):
         return other and vars(self) == vars(other)
 
     def __repr__(self):
-        kwargs = ', '.join('{}={!r}'.format(field, getattr(self, field))
+        kwargs = ', '.join('{0}={1!r}'.format(field, getattr(self, field))
                            for field in self._fields)
-        return '{}({})'.format(self.__class__.__name__, kwargs)
+        return '{0}({1})'.format(self.__class__.__name__, kwargs)
 
 
 class Definition(Value):
@@ -131,7 +132,7 @@ class Definition(Value):
 class Module(Definition):
 
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent', '_all')
+               'children', 'parent', '_all', 'future_imports')
     is_public = True
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
@@ -197,7 +198,7 @@ class Decorator(Value):
 
 class TokenKind(int):
     def __repr__(self):
-        return "tk.{}".format(tk.tok_name[self])
+        return "tk.{0}".format(tk.tok_name[self])
 
 
 class Token(Value):
@@ -251,6 +252,8 @@ class Parser(object):
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
+        # TODO: what about Python 3.x?
+        self.future_imports = defaultdict(lambda: False)
         self._accumulated_decorators = []
         return self.parse_module()
 
@@ -349,6 +352,8 @@ class Parser(object):
             elif self.current.kind == tk.DEDENT:
                 self.consume(tk.DEDENT)
                 return
+            elif self.current.value == 'from':
+                self.parse_from_import_statement()
             else:
                 self.stream.move()
 
@@ -410,6 +415,7 @@ class Parser(object):
                      [], docstring, children, None, self.all)
         for child in module.children:
             child.parent = module
+        module.future_imports = self.future_imports
         log.debug("finished parsing module.")
         return module
 
@@ -459,6 +465,44 @@ class Parser(object):
                   class_.__name__, name, self.current.kind,
                   self.current.value)
         return definition
+
+    def parse_from_import_statement(self):
+        """Parse a 'from x import y' statement.
+
+        The purpose is to find __future__ statements.
+
+        """
+        log.debug('parsing from/import statement.')
+        assert self.current.value == 'from', self.current.value
+        self.stream.move()
+        if self.current.value != '__future__':
+            return
+        self.stream.move()
+        assert self.current.value == 'import', self.current.value
+        self.stream.move()
+        if self.current.value == '(':
+            self.consume(tk.OP)
+            expected_end_kind = tk.OP
+        else:
+            expected_end_kind = tk.NEWLINE
+        while self.current.kind != expected_end_kind:
+            if self.current.kind != tk.NAME:
+                self.stream.move()
+                continue
+            log.debug("parsing import, token is %r (%s)",
+                      self.current.kind, self.current.value)
+            log.debug('found future import: %s', self.current.value)
+            self.future_imports[self.current.value] = True
+            self.consume(tk.NAME)
+            log.debug("parsing import, token is %r (%s)",
+                      self.current.kind, self.current.value)
+            if self.current.kind == tk.NAME:
+                self.consume(tk.NAME)  # as
+                self.consume(tk.NAME)  # new name, irrelevant
+            if self.current.value == ',':
+                self.consume(tk.OP)
+            log.debug("parsing import, token is %r (%s)",
+                      self.current.kind, self.current.value)
 
 
 class Error(object):
@@ -1123,6 +1167,9 @@ class PEP257Checker(object):
         For Unicode docstrings, use u"""Unicode triple-quoted strings""".
 
         '''
+        if definition.module.future_imports['unicode_literals']:
+            return
+
         # Just check that docstring is unicode, check_triple_double_quotes
         # ensures the correct quotes.
         if docstring and sys.version_info[0] <= 2:
