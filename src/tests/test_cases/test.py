@@ -1,7 +1,7 @@
 # encoding: utf-8
 # No docstring, so we can test D100
 import sys
-from expected import Expectation
+from .expected import Expectation
 
 
 expectation = Expectation()

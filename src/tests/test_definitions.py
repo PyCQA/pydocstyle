@@ -132,7 +132,7 @@ def test_pep257():
         case_module = __import__('test_cases.{0}'.format(test_case),
                                  globals=globals(),
                                  locals=locals(),
-                                 fromlist=['expected'],
+                                 fromlist=['expectation'],
                                  level=1)
         # from .test_cases import test
         results = list(check([os.path.join(os.path.dirname(__file__),

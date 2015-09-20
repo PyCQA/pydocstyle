@@ -2,7 +2,7 @@
 """This is a module."""
 
 from __future__ import unicode_literals
-from expected import Expectation
+from .expected import Expectation
 
 
 expectation = Expectation()
