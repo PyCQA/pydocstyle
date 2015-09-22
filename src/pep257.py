@@ -692,15 +692,15 @@ def get_option_parser():
            help='show explanation of each error')
     option('-s', '--source', action='store_true',
            help='show source for each error')
-    option('--select', metavar='<codes>', default='',
+    option('--select', metavar='<codes>', default=None,
            help='choose the basic list of checked errors by specifying which '
                 'errors to check for (with a list of comma-separated error '
                 'codes). for example: --select=D101,D202')
-    option('--ignore', metavar='<codes>', default='',
+    option('--ignore', metavar='<codes>', default=None,
            help='choose the basic list of checked errors by specifying which '
                 'errors to ignore (with a list of comma-separated error '
                 'codes). for example: --ignore=D101,D202')
-    option('--convention', metavar='<name>', default='',
+    option('--convention', metavar='<name>', default=None,
            help='choose the basic list of checked errors by specifying an '
                 'existing convention. Possible conventions: {0}'
                 .format(', '.join(conventions)))
@@ -858,11 +858,11 @@ def setup_stream_handlers(options):
 
 def get_checked_error_codes(options):
     codes = set(ErrorRegistry.get_error_codes())
-    if options.ignore:
+    if options.ignore is not None:
         checked_codes = codes - set(options.ignore.split(','))
-    elif options.select:
+    elif options.select is not None:
         checked_codes = set(options.select.split(','))
-    elif options.convention:
+    elif options.convention is not None:
         checked_codes = getattr(conventions, options.convention)
     else:
         checked_codes = conventions.pep257

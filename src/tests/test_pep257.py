@@ -168,7 +168,7 @@ def test_count():
 
 
 def test_select_cli():
-    """Test choosing error codes with --select in the CLI."""
+    """Test choosing error codes with `--select` in the CLI."""
     with Pep257Env() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
@@ -183,7 +183,7 @@ def test_select_cli():
 
 
 def test_select_config():
-    """Test choosing error codes with --select in the config file."""
+    """Test choosing error codes with `select` in the config file."""
     with Pep257Env() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
@@ -302,3 +302,47 @@ def test_illegal_convention():
         assert code == 2
         assert "Illegal convention 'illegal_conv'." in err
         assert 'Possible conventions: pep257' in err
+
+
+def test_empty_select_cli():
+    """Test excluding all error codes with `--select=` in the CLI."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent("""\
+                def foo():
+                    pass
+            """))
+
+        _, _, code = env.invoke_pep257(args="--select=")
+        assert code == 0
+
+
+def test_empty_select_config():
+    """Test excluding all error codes with `select=` in the config file."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent("""\
+                def foo():
+                    pass
+            """))
+
+        env.write_config(select="")
+        _, _, code = env.invoke_pep257()
+        assert code == 0
+
+
+def test_empty_select_with_added_error():
+    """Test excluding all errors but one."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent("""\
+                def foo():
+                    pass
+            """))
+
+        env.write_config(select="")
+        _, err, code = env.invoke_pep257(args="--add-select=D100")
+        assert code == 1
+        assert 'D100' in err
+        assert 'D101' not in err
+        assert 'D103' not in err
