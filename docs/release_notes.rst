@@ -12,10 +12,10 @@ New Features
   previously resulted in D100 errors ("Missing docstring in public module")
   will now result in D104 (#105, #127).
 
-* Support the option to exclude all error codes. Running the script with
+* Support the option to exclude all error codes. Running pep257 with
   `--select=` (or `select=` in the configuration file) will exclude all errors
-  which could then be added one by one using `add-select` (useful for projects
-  new to pep257).
+  which could then be added one by one using `add-select`. Useful for projects
+  new to pep257 (#132, #135).
 
 Bug Fixes
 
