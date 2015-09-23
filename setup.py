@@ -28,5 +28,9 @@ setup(
     keywords='PEP 257, pep257, PEP 8, pep8, docstrings',
     package_dir={'': 'src'},
     py_modules=['pep257'],
-    scripts=['src/pep257'],
+    entry_points={
+        'console_scripts': [
+            'pep257 = pep257:main',
+        ],
+    },
 )

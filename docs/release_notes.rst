@@ -22,6 +22,9 @@ Bug Fixes
 * On Python 2.x, D302 ("Use u""" for Unicode docstrings") is not reported
   if `unicode_literals` is imported from `__future__` (#113, #134).
 
+* Fixed a bug where there was no executable for `pep257` on Windows (#73,
+  #136).
+
 
 0.6.0 - July 20th, 2015
 ---------------------------
