@@ -54,7 +54,7 @@ class Pep257Env():
     def invoke_pep257(self, args=""):
         """Run pep257.py on the environment base folder with the given args."""
         pep257_location = os.path.join(os.path.dirname(__file__),
-                                       '..', 'pep257')
+                                       '..', 'pep257.py')
         cmd = shlex.split("python {0} {1} {2}"
                           .format(pep257_location, self.tempdir, args),
                           posix=False)
