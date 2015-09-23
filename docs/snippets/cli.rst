@@ -3,7 +3,10 @@ Usage
 
 .. code::
 
-    Usage: pep257 [options] [<file|dir>...]
+    Linux/Mac Usage: pep257 [options] [<file|dir>...]
+    Windows Usage: py -m pep257 [options] [<file|dir>...]
+        or: py -2 -m pep257 [options] [<file|dir>...]
+        or: py -3 -m pep257 [options] [<file|dir>...]
 
     Options:
       --version             show program's version number and exit
