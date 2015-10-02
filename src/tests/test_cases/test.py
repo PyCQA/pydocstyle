@@ -78,8 +78,19 @@ class LeadingSpaceMissing:
     """Leading space missing."""
 
 
+expect('WithLeadingSpace',
+       'D211: No blank lines allowed before class docstring (found 1)')
+
+
+class WithLeadingSpace:
+
+    """With leading space."""
+
+
 expect('TrailingSpace',
        'D204: 1 blank line required after class docstring (found 0)')
+expect('TrailingSpace',
+       'D211: No blank lines allowed before class docstring (found 1)')
 
 
 class TrailingSpace:

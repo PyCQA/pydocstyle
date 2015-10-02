@@ -17,6 +17,11 @@ New Features
   which could then be added one by one using `add-select`. Useful for projects
   new to pep257 (#132, #135).
 
+* Added check D211: No blank lines allowed before class docstring. This change
+  is a result of a change to the official PEP257 convention. Therefore, D211
+  will now be checked by default instead of D203, which required a single
+  blank line before a class docstring (#137).
+
 Bug Fixes
 
 * On Python 2.x, D302 ("Use u""" for Unicode docstrings") is not reported
@@ -27,7 +32,7 @@ Bug Fixes
 
 
 0.6.0 - July 20th, 2015
----------------------------
+-----------------------
 
 New Features
 

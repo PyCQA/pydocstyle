@@ -1,6 +1,7 @@
 import os
 from ..pep257 import (StringIO, TokenStream, Parser, Error, check,
-                      Module, Class, Method, Function, NestedFunction)
+                      Module, Class, Method, Function, NestedFunction,
+                      ErrorRegistry)
 
 
 _ = type('', (), dict(__repr__=lambda *a: '_', __eq__=lambda *a: True))()
@@ -136,7 +137,8 @@ def test_pep257():
                                  level=1)
         # from .test_cases import test
         results = list(check([os.path.join(os.path.dirname(__file__),
-                                           'test_cases', test_case + '.py')]))
+                                           'test_cases', test_case + '.py')],
+                             select=set(ErrorRegistry.get_error_codes())))
         for error in results:
             assert isinstance(error, Error)
         results = set([(e.definition.name, e.message) for e in results])
