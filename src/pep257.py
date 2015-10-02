@@ -143,7 +143,6 @@ class Module(Definition):
 
 
 class Package(Module):
-
     """A package is a __init__.py module."""
 
 
@@ -190,7 +189,6 @@ class NestedClass(Class):
 
 
 class Decorator(Value):
-
     """A decorator for function, method or class."""
 
     _fields = 'name arguments'.split()
@@ -252,7 +250,6 @@ class Parser(object):
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
-        # TODO: what about Python 3.x?
         self.future_imports = defaultdict(lambda: False)
         self._accumulated_decorators = []
         return self.parse_module()
@@ -506,7 +503,6 @@ class Parser(object):
 
 
 class Error(object):
-
     """Error in docstring style."""
 
     # should be overridden by inheriting classes
@@ -655,6 +651,8 @@ D209 = D2xx.create_error('D209', 'Multi-line docstring closing quotes should '
                                  'be on a separate line')
 D210 = D2xx.create_error('D210', 'No whitespaces allowed surrounding '
                                  'docstring text')
+D211 = D2xx.create_error('D211', 'No blank lines allowed before class '
+                                 'docstring', 'found %s')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
@@ -677,7 +675,7 @@ class AttrDict(dict):
 
 
 conventions = AttrDict({
-    'pep257': set(ErrorRegistry.get_error_codes()),
+    'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203']),
 })
 
 
@@ -934,7 +932,6 @@ def check_for(kind, terminal=False):
 
 
 class PEP257Checker(object):
-
     """Checker for PEP 257.
 
     D10x: Missing docstrings
@@ -1053,6 +1050,8 @@ class PEP257Checker(object):
             blanks_after = list(map(is_blank, after.split('\n')[1:]))
             blanks_before_count = sum(takewhile(bool, reversed(blanks_before)))
             blanks_after_count = sum(takewhile(bool, blanks_after))
+            if blanks_before_count != 0:
+                yield D211(blanks_before_count)
             if blanks_before_count != 1:
                 yield D203(blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 1:

@@ -21,7 +21,6 @@ __all__ = ()
 
 
 class Pep257Env():
-
     """An isolated environment where pep257.py can be run.
 
     Since running pep257.py as a script is affected by local config files, it's
@@ -80,8 +79,9 @@ class Pep257Env():
 def test_pep257_conformance():
     relative = partial(os.path.join, os.path.dirname(__file__))
     errors = list(pep257.check([relative('..', 'pep257.py'),
-                                relative('test_pep257.py')]))
-    assert errors == []
+                                relative('test_pep257.py')],
+                               select=pep257.conventions.pep257))
+    assert errors == [], errors
 
 
 def test_ignore_list():
@@ -346,3 +346,24 @@ def test_empty_select_with_added_error():
         assert 'D100' in err
         assert 'D101' not in err
         assert 'D103' not in err
+
+
+def test_pep257_convention():
+    """Test that the 'pep257' convention options has the correct errors."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write(textwrap.dedent('''
+                class Foo(object):
+
+
+                    """Docstring for this class"""
+                    def foo():
+                        pass
+            '''))
+
+        env.write_config(convention="pep257")
+        _, err, code = env.invoke_pep257()
+        assert code == 1
+        assert 'D100' in err
+        assert 'D211' in err
+        assert 'D203' not in err
