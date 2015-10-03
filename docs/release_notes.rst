@@ -22,6 +22,9 @@ New Features
   will now be checked by default instead of D203, which required a single
   blank line before a class docstring (#137).
 
+* Now handles configuration filed correctly. The closer a configuration file
+  is to a checked file the more it matters (#133).
+
 Bug Fixes
 
 * On Python 2.x, D302 ("Use u""" for Unicode docstrings") is not reported

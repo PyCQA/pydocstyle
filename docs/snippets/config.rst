@@ -1,13 +1,53 @@
-``pep257`` looks for a config file in the root of the project (the common
-prefix of all checked files) and goes up in the directory tree until it finds
-one of the following files (in this order):
+``pep257`` supports `ini`-like configuration files. In order for ``pep257`` to
+use it, it must be named ``setup.cfg``, ``tox.ini`` or ``.pep257`` and have
+a ``[pep257]`` section.
 
-* ``setup.cfg``
-* ``tox.ini``
-* ``.pep257``
+When searching for a configuration file, ``pep257`` looks for one of the file
+specified above `in that exact order`. If a configuration file was not found,
+it keeps looking for one up the directory tree until one is found or uses
+the default configuration.
 
-The first found file is read, and configurations in the ``[pep257]`` section
-are used, if such a section exists.
+Available Options
+#################
+
+Not all configuration options are available in the configuration files.
+Available options are:
+
+* ``convention``
+* ``select``
+* ``ignore``
+* ``add_select``
+* ``add_ignore``
+* ``match``
+* ``match_dir``
+
+See the :ref:`cli_usage` section for more information.
+
+Inheritance
+###########
+
+By default, when finding a configuration file, ``pep257`` tries to inherit
+the parent directory's configuration and migrate them to the local ones.
+
+The migration process is as follows:
+
+* If one of ``select``, ``ignore`` or ``convention`` was specified in the child
+  configuration - Ignores the parent configuration and set the new error codes
+  to check. Othewise, Simply copies the parent checked error codes.
+* If ``add-ignore`` or ``add-select`` were specified, adds or removes the
+  specified error codes from the checked error codes list.
+* If ``match`` or ``match-dir`` were specified - use them. Otherwise, use the
+  parent's.
+
+In order to disable this (useful for configuration files located in your repo's
+root), simply add ``inherit=false`` to your configuration file.
+
+
+.. note::
+
+  If any of ``select``, ``ignore`` or ``convention`` were specified in
+  the CLI, the configuration files will take no part in choosing which error
+  codes will be checked. ``match`` and ``match-dir`` will still take effect.
 
 Example
 #######
@@ -15,7 +55,7 @@ Example
 .. code::
 
     [pep257]
-    verbose = true
+    inherit = false
     ignore = D100,D203,D405
-    explain = true
+    match = *.py
 
