@@ -840,17 +840,17 @@ class ConfigurationParser(object):
         * If the current directory's configuration exists in
            `self._cache` - return it.
         * If a configuration file does not exist in this directory:
-        *   If the directory is not a root directory:
-        *     Cache its configuration as this directory's and return it.
-        *   Else:
-        *     Cache a default configuration and return it.
+          * If the directory is not a root directory:
+            * Cache its configuration as this directory's and return it.
+          * Else:
+            * Cache a default configuration and return it.
         * Else:
-        *   Read the configuration file.
-        *   If a parent directory exists AND the configuration file
+          * Read the configuration file.
+          * If a parent directory exists AND the configuration file
             allows inheritance:
-        *     Read the parent configuration by calling this function with the
+            * Read the parent configuration by calling this function with the
               parent directory as `node`.
-        *     Merge the parent configuration with the current one and
+            * Merge the parent configuration with the current one and
               cache it.
         * If the user has specified one of `BASE_ERROR_SELECTION_OPTIONS` in
           the CLI - return the CLI configuration with the configuration match
@@ -1087,7 +1087,7 @@ class ConfigurationParser(object):
     @classmethod
     def _has_exclusive_option(cls, options):
         """Return `True` iff one or more exclusive options were selected."""
-        return any([getattr(options, opt) for opt in
+        return any([getattr(options, opt) is not None for opt in
                     cls.BASE_ERROR_SELECTION_OPTIONS])
 
     @staticmethod
@@ -1096,13 +1096,13 @@ class ConfigurationParser(object):
         optional_set_options = ('ignore', 'select')
         mandatory_set_options = ('add_ignore', 'add_select')
 
-        def _get_set(value):
-            """Split `value` by the delimiter `,` and return a set.
+        def _get_set(value_str):
+            """Split `value_str` by the delimiter `,` and return a set.
 
             Removes any occurrences of '' in the set.
 
             """
-            return set(value.split(',')) - set('')
+            return set(value_str.split(',')) - set([''])
 
         for opt in optional_set_options:
             value = getattr(options, opt)
