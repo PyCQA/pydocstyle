@@ -741,7 +741,6 @@ class ConfigurationParser(object):
 
     """
 
-    BOOLEAN_OPTIONS = ('explain', 'source', 'debug', 'verbose', 'count')
     CONFIG_FILE_OPTIONS = ('convention', 'select', 'ignore', 'add-select',
                            'add-ignore', 'match', 'match-dir')
     MUTUALLY_EXCLUSIVE_OPTIONS = ('ignore', 'select', 'convention')
@@ -927,7 +926,7 @@ class ConfigurationParser(object):
                     continue
 
                 if opt.replace('_', '-') not in self.CONFIG_FILE_OPTIONS:
-                    log.warning("Unknown option '{}' ignored".format(opt))
+                    log.warning("Unknown option '{0}' ignored".format(opt))
                     continue
 
                 normalized_opt = opt.replace('-', '_')
@@ -946,7 +945,7 @@ class ConfigurationParser(object):
 
         if options is not None:
             if not self._validate_options(options):
-                raise IllegalConfiguration('in file: {}'.format(path))
+                raise IllegalConfiguration('in file: {0}'.format(path))
 
         return options, should_inherit
 
@@ -979,11 +978,11 @@ class ConfigurationParser(object):
         options, arguments = self._parser.parse_args(args, values)
         return self._fix_set_options(options), arguments
 
-    @classmethod
-    def _create_run_config(cls, options):
+    @staticmethod
+    def _create_run_config(options):
         """Create a `RunConfiguration` object from `options`."""
         values = dict([(opt, getattr(options, opt)) for opt in
-                       cls.BOOLEAN_OPTIONS])
+                       RunConfiguration._fields])
         return RunConfiguration(**values)
 
     @classmethod
