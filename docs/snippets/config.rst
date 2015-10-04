@@ -27,9 +27,9 @@ Inheritance
 ###########
 
 By default, when finding a configuration file, ``pep257`` tries to inherit
-the parent directory's configuration and migrate them to the local ones.
+the parent directory's configuration and merge them to the local ones.
 
-The migration process is as follows:
+The merge process is as follows:
 
 * If one of ``select``, ``ignore`` or ``convention`` was specified in the child
   configuration - Ignores the parent configuration and set the new error codes

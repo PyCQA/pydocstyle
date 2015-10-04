@@ -186,6 +186,21 @@ def test_config_file():
         assert 'D103' not in err
 
 
+def test_verbose():
+    """Test that passing --verbose to pep257 prints more information."""
+    with Pep257Env() as env:
+        with env.open('example.py', 'wt') as example:
+            example.write('"""Module docstring."""\n')
+
+        out, _, code = env.invoke_pep257()
+        assert code == 0
+        assert 'example.py' not in out
+
+        out, _, code = env.invoke_pep257(args="--verbose")
+        assert code == 0
+        assert 'example.py' in out
+
+
 def test_count():
     """Test that passing --count to pep257 correctly prints the error num."""
     with Pep257Env() as env:
@@ -405,7 +420,7 @@ def test_pep257_convention():
 def test_config_file_inheritance():
     """Test configuration files inheritance.
 
-    The test creates 3 configuration files:
+    The test creates 2 configuration files:
 
     env_base
     +-- tox.ini
@@ -416,10 +431,13 @@ def test_config_file_inheritance():
         +-- test.py
             The file will contain code that violates D100,D103.
 
-    When invoking pep257 `test.py` the first config file will not set any
-    of select/ignore/convention, therefore `pep257` will be set as the default
-    convention. The config sets `inherit=false`, therefore we expect it not to
-    set `select=` and raise all the errors stated above.
+    When invoking pep257, the first config file found in the base directory
+    will set `select=`, so no error codes should be checked.
+    The `A/tox.ini` configuration file sets `inherit=false` but has an empty
+    configuration, therefore the default convention will be checked.
+
+    We expect pep257 to ignore the `select=` configuration and raise all
+    the errors stated above.
 
     """
     with Pep257Env() as env:
@@ -579,7 +597,7 @@ def test_cli_overrides_config_file():
 
     We shall run pep257 with `--convention=pep257`.
     We expect `base.py` to be checked and violate `D100` and that `A/a.py` will
-    not be checked because of `match-dir=B` in the config file.
+    not be checked because of `match-dir=foo` in the config file.
 
     """
     with Pep257Env() as env:

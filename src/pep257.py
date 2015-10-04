@@ -21,7 +21,7 @@ import tokenize as tk
 from itertools import takewhile, dropwhile, chain
 from re import compile as re
 import itertools
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, Set
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -724,7 +724,7 @@ class ConfigurationParser(object):
 
     Configuration files are nested within the file system, meaning that the
     closer a configuration file is to a checked file, the more relevant it will
-    be. For instance, imagine this folder structure:
+    be. For instance, imagine this directory structure:
 
     A
     +-- tox.ini: sets `select=D100`
@@ -735,7 +735,7 @@ class ConfigurationParser(object):
     Then `foo.py` will not be checked for `D100`.
     The configuration build algorithm is described in `self._get_config`.
 
-    Note: If any of `MUTUALLY_EXCLUSIVE_OPTIONS` was selected in the CLI, all
+    Note: If any of `BASE_ERROR_SELECTION_OPTIONS` was selected in the CLI, all
     configuration files will be ignored and each file will be checked for
     the error codes supplied in the CLI.
 
@@ -743,7 +743,7 @@ class ConfigurationParser(object):
 
     CONFIG_FILE_OPTIONS = ('convention', 'select', 'ignore', 'add-select',
                            'add-ignore', 'match', 'match-dir')
-    MUTUALLY_EXCLUSIVE_OPTIONS = ('ignore', 'select', 'convention')
+    BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
     DEFAULT_MATCH_RE = '(?!test_).*\.py'
     DEFAULT_MATCH_DIR_RE = '[^\.].*'
@@ -768,7 +768,7 @@ class ConfigurationParser(object):
     def parse(self):
         """Parse the configuration.
 
-        If one of `MUTUALLY_EXCLUSIVE_OPTIONS` was selected, overrides all
+        If one of `BASE_ERROR_SELECTION_OPTIONS` was selected, overrides all
         error codes to check and disregards any error code related
         configurations from the configuration files.
 
@@ -791,12 +791,15 @@ class ConfigurationParser(object):
 
     @check_initialized
     def get_files_to_check(self):
-        """Return a generator of files and error codes to check on each file.
+        """Generate files and error codes to check on each one.
 
         Walk dir trees under `self._arguments` and generate yield filnames
         that `match` under each directory that `match_dir`.
         The method locates the configuration for each file name and yields a
         tuple of (filename, [error_codes]).
+
+        With every discovery of a new configuration file `IllegalConfiguration`
+        might be raised.
 
         """
         def _get_matches(config):
@@ -834,25 +837,25 @@ class ConfigurationParser(object):
 
         The algorithm:
         -------------
-        1.  If the current directory's configuration exists in
-            `self._cache` - return it.
-        2.  If a configuration file does not exist in this directory:
-        3.    If there's a parent directory:
-        4.      Cache it's configuration as this directory's and return it.
-        5.    Else:
-        6.      Cache a default configuration and return it.
-        7.  Else:
-        8.    Read the configuration file.
-        9.    If a parent directory exists AND the configuration file
-              allows inheritance:
-        10.     Read the parent configuration by calling this function with the
-                parent directory as `node`.
-        11.     Migrate the parent configuration with the current one and
-                cache it.
-        12. If the user has specified one of `MUTUALLY_EXCLUSIVE_OPTIONS` in
-            the CLI - return the CLI configuration with the configuration match
-            clauses
-        13. Set the `--add-select` and `--add-ignore` CLI configurations.
+        * If the current directory's configuration exists in
+           `self._cache` - return it.
+        * If a configuration file does not exist in this directory:
+        *   If the directory is not a root directory:
+        *     Cache its configuration as this directory's and return it.
+        *   Else:
+        *     Cache a default configuration and return it.
+        * Else:
+        *   Read the configuration file.
+        *   If a parent directory exists AND the configuration file
+            allows inheritance:
+        *     Read the parent configuration by calling this function with the
+              parent directory as `node`.
+        *     Merge the parent configuration with the current one and
+              cache it.
+        * If the user has specified one of `BASE_ERROR_SELECTION_OPTIONS` in
+          the CLI - return the CLI configuration with the configuration match
+          clauses
+        * Set the `--add-select` and `--add-ignore` CLI configurations.
 
         """
         path = os.path.abspath(node)
@@ -873,16 +876,16 @@ class ConfigurationParser(object):
                 # Use the default configuration or the one given in the CLI.
                 config = self._create_check_config(self._options)
         else:
-            # There's a config file! Read it and migrate if necessary.
+            # There's a config file! Read it and merge if necessary.
             options, inherit = self._read_configuration_file(config_file)
 
             parent_dir, tail = os.path.split(path)
             if tail and inherit:
-                # There is a parent dir and we should try to migrate.
+                # There is a parent dir and we should try to merge.
                 parent_config = self._get_config(parent_dir)
-                config = self._migrate_configuration(parent_config, options)
+                config = self._merge_configuration(parent_config, options)
             else:
-                # No need to migrate or parent dir does not exist.
+                # No need to merge or parent dir does not exist.
                 config = self._create_check_config(options)
 
         # Make the CLI always win
@@ -949,8 +952,8 @@ class ConfigurationParser(object):
 
         return options, should_inherit
 
-    def _migrate_configuration(self, parent_config, child_options):
-        """Migrate parent config into the child options.
+    def _merge_configuration(self, parent_config, child_options):
+        """Merge parent config into the child options.
 
         The migration process requires an `options` object for the child in
         order to distinguish between mutually exclusive codes, add-select and
@@ -1057,18 +1060,18 @@ class ConfigurationParser(object):
 
         cls._set_add_options(checked_codes, options)
 
-        return checked_codes - set('')
+        return checked_codes
 
     @classmethod
     def _validate_options(cls, options):
         """Validate the mutually exclusive options.
 
-        Return `True` iff only zero or one of `MUTUALLY_EXCLUSIVE_OPTIONS` was
-        selected.
+        Return `True` iff only zero or one of `BASE_ERROR_SELECTION_OPTIONS`
+        was selected.
 
         """
         for opt1, opt2 in \
-                itertools.permutations(cls.MUTUALLY_EXCLUSIVE_OPTIONS, 2):
+                itertools.permutations(cls.BASE_ERROR_SELECTION_OPTIONS, 2):
             if getattr(options, opt1) and getattr(options, opt2):
                 log.error('Cannot pass both {0} and {1}. They are '
                           'mutually exclusive.'.format(opt1, opt2))
@@ -1085,7 +1088,7 @@ class ConfigurationParser(object):
     def _has_exclusive_option(cls, options):
         """Return `True` iff one or more exclusive options were selected."""
         return any([getattr(options, opt) for opt in
-                    cls.MUTUALLY_EXCLUSIVE_OPTIONS])
+                    cls.BASE_ERROR_SELECTION_OPTIONS])
 
     @staticmethod
     def _fix_set_options(options):
@@ -1093,19 +1096,26 @@ class ConfigurationParser(object):
         optional_set_options = ('ignore', 'select')
         mandatory_set_options = ('add_ignore', 'add_select')
 
+        def _get_set(value):
+            """Split `value` by the delimiter `,` and return a set.
+
+            Removes any occurrences of '' in the set.
+
+            """
+            return set(value.split(',')) - set('')
+
         for opt in optional_set_options:
             value = getattr(options, opt)
             if value is not None:
-                value = set(value.split(','))
-                setattr(options, opt, value)
+                setattr(options, opt, _get_set(value))
 
         for opt in mandatory_set_options:
             value = getattr(options, opt)
             if value is None:
                 value = ''
 
-            if not isinstance(value, set):
-                value = set(value.split(','))
+            if not isinstance(value, Set):
+                value = _get_set(value)
 
             setattr(options, opt, value)
 
@@ -1258,6 +1268,7 @@ def run_pep257():
         for filename, checked_codes in conf.get_files_to_check():
             errors.extend(check((filename,), select=checked_codes))
     except IllegalConfiguration:
+        # An illegal configuration file was found during file generation.
         return INVALID_OPTIONS_RETURN_CODE
 
     code = NO_VIOLATIONS_RETURN_CODE
