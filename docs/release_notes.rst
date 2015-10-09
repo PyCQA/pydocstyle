@@ -12,6 +12,14 @@ New Features
   previously resulted in D100 errors ("Missing docstring in public module")
   will now result in D104 (#105, #127).
 
+* Added the D105 error code - "Missing docstring in magic method'. This new
+  error is turned on by default. Missing docstrings in magic method which
+  previously resulted in D102 error ("Missing docstring in public method")
+  will now result in D105. Note that exceptions to this rule are variadic
+  magic methods - specifically `__init__`, `__call__` and `__new__`, which
+  will be considered non-magic and missing docstrings in them will result
+  in D102 (#60, #139).
+
 * Support the option to exclude all error codes. Running pep257 with
   `--select=` (or `select=` in the configuration file) will exclude all errors
   which could then be added one by one using `add-select`. Useful for projects
