@@ -2,8 +2,8 @@ Release Notes
 =============
 
 
-Current Development Version
----------------------------
+0.7.0 - October 9th, 2015
+-------------------------
 
 New Features
 
