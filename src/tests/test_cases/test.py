@@ -28,6 +28,14 @@ class class_:
     def __init__(self=None):
         pass
 
+    @expect('D105: Missing docstring in magic method')
+    def __str__(self=None):
+        pass
+
+    @expect('D102: Missing docstring in public method')
+    def __call__(self=None, x=None, y=None, z=None):
+        pass
+
 
 @expect('D103: Missing docstring in public function')
 def function():
