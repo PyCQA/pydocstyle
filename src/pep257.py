@@ -67,6 +67,7 @@ PROJECT_CONFIG = ('setup.cfg', 'tox.ini', '.pep257')
 NO_VIOLATIONS_RETURN_CODE = 0
 VIOLATIONS_RETURN_CODE = 1
 INVALID_OPTIONS_RETURN_CODE = 2
+VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
 
 
 def humanize(string):
@@ -74,7 +75,9 @@ def humanize(string):
 
 
 def is_magic(name):
-    return name.startswith('__') and name.endswith('__')
+    return (name.startswith('__') and
+            name.endswith('__') and
+            name not in VARIADIC_MAGIC_METHODS)
 
 
 def is_ascii(string):
@@ -156,8 +159,8 @@ class Function(Definition):
     def is_public(self):
         if self.all is not None:
             return self.name in self.all
-        else:  # TODO: are there any magic functions? not methods
-            return not self.name.startswith('_') or is_magic(self.name)
+        else:
+            return not self.name.startswith('_')
 
 
 class NestedFunction(Function):
@@ -174,7 +177,9 @@ class Method(Function):
             # Given 'foo', match 'foo.bar' but not 'foobar' or 'sfoo'
             if re(r"^{0}\.".format(self.name)).match(decorator.name):
                 return False
-        name_is_public = not self.name.startswith('_') or is_magic(self.name)
+        name_is_public = (not self.name.startswith('_') or
+                          self.name in VARIADIC_MAGIC_METHODS or
+                          is_magic(self.name))
         return self.parent.is_public and name_is_public
 
 
@@ -633,6 +638,7 @@ D101 = D1xx.create_error('D101', 'Missing docstring in public class')
 D102 = D1xx.create_error('D102', 'Missing docstring in public method')
 D103 = D1xx.create_error('D103', 'Missing docstring in public function')
 D104 = D1xx.create_error('D104', 'Missing docstring in public package')
+D105 = D1xx.create_error('D105', 'Missing docstring in magic method')
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '
@@ -988,8 +994,9 @@ class PEP257Checker(object):
         if (not docstring and definition.is_public or
                 docstring and is_blank(eval(docstring))):
             codes = {Module: D100, Class: D101, NestedClass: D101,
-                     Method: D102, Function: D103, NestedFunction: D103,
-                     Package: D104}
+                     Method: (lambda: D105() if is_magic(definition.name)
+                              else D102()),
+                     Function: D103, NestedFunction: D103, Package: D104}
             return codes[type(definition)]()
 
     @check_for(Definition)
