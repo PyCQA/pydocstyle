@@ -60,7 +60,7 @@ except AttributeError:
     tokenize_open = open
 
 
-__version__ = '0.6.1-alpha'
+__version__ = '0.7.0'
 __all__ = ('check', 'collect')
 
 NO_VIOLATIONS_RETURN_CODE = 0
