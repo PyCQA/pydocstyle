@@ -10,6 +10,10 @@ pep257's documentation
 compliance with Python `PEP 257
 <http://www.python.org/dev/peps/pep-0257/>`_.
 
+
+.. include:: quickstart.rst
+
+
 Contents:
 
 .. toctree::
@@ -20,8 +24,6 @@ Contents:
    release_notes
    license
 
-
-.. include:: quickstart.rst
 
 Credits
 =======

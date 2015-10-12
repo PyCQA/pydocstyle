@@ -10,7 +10,7 @@ custom checks can be easily added, for example to cover
 NumPy `docstring conventions
 <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
 
-**pep257** supports Python 2.6, 2.7, 3.2, 3.3, 3.4, pypy and pypy3.
+**pep257** supports Python 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, pypy and pypy3.
 
 Quick Start
 -----------
