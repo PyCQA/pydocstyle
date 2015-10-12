@@ -2,6 +2,15 @@ Release Notes
 =============
 
 
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Fixed an issue where a `NameError` was raised when parsing complex defintions
+  of `__all__` (#142, #143).
+
+
 0.7.0 - October 9th, 2015
 -------------------------
 
