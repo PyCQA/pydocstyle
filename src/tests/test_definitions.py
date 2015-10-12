@@ -1,7 +1,8 @@
 import os
+import pytest
 from ..pep257 import (StringIO, TokenStream, Parser, Error, check,
                       Module, Class, Method, Function, NestedFunction,
-                      ErrorRegistry)
+                      ErrorRegistry, AllError)
 
 
 _ = type('', (), dict(__repr__=lambda *a: '_', __eq__=lambda *a: True))()
@@ -43,6 +44,13 @@ from __future__ import unicode_literals
 source_multiple_future_imports = '''
 from __future__ import (nested_scopes as ns,
                         unicode_literals)
+'''
+source_complex_all = '''
+import foo
+import bar
+
+__all__ = (foo.__all__ +
+           bar.__all)
 '''
 
 
@@ -98,6 +106,8 @@ def test_parser():
                   _, {'unicode_literals': True, 'nested_scopes': True}) \
         == module
     assert module.future_imports['unicode_literals']
+    with pytest.raises(AllError):
+        parse(StringIO(source_complex_all), 'file_complex_all.py')
 
 
 def _test_module():
