@@ -9,6 +9,11 @@ New Features
 
 * Added support for Python 3.5 (#145).
 
+* Classes nested inside classes are no longer considered private. Nested
+  classes are considered public if their names are not prepended with an
+  underscore and if their parent class is public, recursively (#13, #146).
+
+
 Bug Fixes
 
 * Fixed an issue where a `NameError` was raised when parsing complex defintions

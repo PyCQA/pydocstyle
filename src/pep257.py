@@ -119,6 +119,7 @@ class Definition(Value):
     all = property(lambda self: self.module.all)
     _slice = property(lambda self: slice(self.start - 1, self.end))
     source = property(lambda self: ''.join(self._source[self._slice]))
+    is_class = False
 
     def __iter__(self):
         return chain([self], *self.children)
@@ -185,11 +186,16 @@ class Class(Definition):
 
     _nest = staticmethod(lambda s: {'def': Method, 'class': NestedClass}[s])
     is_public = Function.is_public
+    is_class = True
 
 
 class NestedClass(Class):
 
-    is_public = False
+    @property
+    def is_public(self):
+        return (not self.name.startswith('_') and
+                self.parent.is_class and
+                self.parent.is_public)
 
 
 class Decorator(Value):
@@ -335,9 +341,9 @@ class Parser(object):
             Decorator(''.join(name), ''.join(arguments)))
 
     def parse_definitions(self, class_, all=False):
-        """Parse multiple defintions and yield them."""
+        """Parse multiple definitions and yield them."""
         while self.current is not None:
-            log.debug("parsing defintion list, current token is %r (%s)",
+            log.debug("parsing definition list, current token is %r (%s)",
                       self.current.kind, self.current.value)
             if all and self.current.value == '__all__':
                 self.parse_all()
