@@ -5,5 +5,7 @@
 
 sudo: false
 language: python
-install: pip install tox --use-mirrors
+install: pip install tox
 script: tox
+python:
+  - 3.5

@@ -5,6 +5,10 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
+* Added support for Python 3.5 (#145).
+
 Bug Fixes
 
 * Fixed an issue where a `NameError` was raised when parsing complex defintions
