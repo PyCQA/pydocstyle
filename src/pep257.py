@@ -1402,7 +1402,7 @@ class PEP257Checker(object):
                 yield D202(blanks_after_count)
 
     @check_for(Class)
-    def check_blank_before_after_class(slef, class_, docstring):
+    def check_blank_before_after_class(self, class_, docstring):
         """D20{3,4}: Class docstring should have 1 blank line around them.
 
         Insert a blank line before and after all docstrings (one-line or
