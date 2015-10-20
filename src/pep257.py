@@ -61,7 +61,7 @@ except AttributeError:
 
 
 __version__ = '0.7.1-alpha'
-__all__ = ('check', 'collect')
+__all__ = ('check')
 
 NO_VIOLATIONS_RETURN_CODE = 0
 VIOLATIONS_RETURN_CODE = 1
@@ -761,7 +761,7 @@ class ConfigurationParser(object):
     DEFAULT_MATCH_DIR_RE = '[^\.].*'
     DEFAULT_CONVENTION = conventions.pep257
 
-    PROJECT_CONFIG_FILES = ('setup.cfg', 'tox.ini', '.pep257')
+    PROJECT_CONFIG_FILES = ('setup.cfg', 'tox.ini', '.pep257', '.pep257rc')
 
     def __init__(self):
         """Create a configuration parser."""

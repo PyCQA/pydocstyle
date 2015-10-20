@@ -1,6 +1,6 @@
 ``pep257`` supports `ini`-like configuration files. In order for ``pep257`` to
-use it, it must be named ``setup.cfg``, ``tox.ini`` or ``.pep257`` and have
-a ``[pep257]`` section.
+use it, it must be named ``setup.cfg``, ``tox.ini``, ``.pep257``, or
+``.pep257rc`` and have a ``[pep257]`` section.
 
 When searching for a configuration file, ``pep257`` looks for one of the file
 specified above `in that exact order`. If a configuration file was not found,
