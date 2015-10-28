@@ -21,7 +21,9 @@ import tokenize as tk
 from itertools import takewhile, dropwhile, chain
 from re import compile as re
 import itertools
+import pkgutil
 from collections import defaultdict, namedtuple, Set
+from .stemmer import PorterStemmer
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -59,6 +61,17 @@ try:
 except AttributeError:
     tokenize_open = open
 
+COMMENT_RE = re(r'\s*#.*')
+
+
+def load_wordlist(name):
+    lines = pkgutil.get_data(__name__, 'data/' + name).splitlines()
+    for l in lines:
+        l = COMMENT_RE.sub('', l).strip()
+        if l:
+            yield l
+stem = PorterStemmer().stem
+
 
 __version__ = '0.7.1-alpha'
 __all__ = ('check')
@@ -67,6 +80,10 @@ NO_VIOLATIONS_RETURN_CODE = 0
 VIOLATIONS_RETURN_CODE = 1
 INVALID_OPTIONS_RETURN_CODE = 2
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
+IMPERATIVE_VERBS = dict(
+    (stem(v), v) for v in load_wordlist('pep257_imperatives.txt')
+)
+IMPERATIVE_BLACKLIST = set(load_wordlist('pep257_imperatives_blacklist.txt'))
 
 
 def humanize(string):
@@ -676,6 +693,8 @@ D400 = D4xx.create_error('D400', 'First line should end with a period',
                          'not %r')
 D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
                          '%r, not %r')
+D401b = D4xx.create_error('D401', 'First line should be in imperative mood; '
+                          'try rephrasing', 'found %r')
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 
@@ -1573,11 +1592,16 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            stripped = eval(docstring).strip()
+            stripped = literal_eval(docstring).strip()
             if stripped:
-                first_word = stripped.split()[0]
-                if first_word.endswith('s') and not first_word.endswith('ss'):
-                    return D401(first_word[:-1], first_word)
+                first_word = stripped.split()[0].lower()
+
+                if first_word in IMPERATIVE_BLACKLIST:
+                    return D401b(first_word)
+
+                correct_form = IMPERATIVE_VERBS.get(stem(first_word))
+                if correct_form and correct_form != first_word:
+                    return D401(correct_form, first_word)
 
     @check_for(Function)
     def check_no_signature(self, function, docstring):  # def context
