@@ -434,7 +434,7 @@ class Parser(object):
         self.consume(tk.OP)
         all_content += ")"
         try:
-            self.all = literal_eval(all_content, {})
+            self.all = literal_eval(all_content)
         except BaseException as e:
             raise AllError('Could not evaluate contents of __all__.'
                            '\bThe value was %s. The exception was:\n%s'
@@ -1518,7 +1518,8 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = [l for l in literal_eval(docstring).split('\n') if not is_blank(l)]
+            lines = literal_eval(docstring).split('\n')
+            lines = [l for l in lines if not is_blank(l)]
             if len(lines) > 1:
                 if docstring.split("\n")[-1].strip() not in ['"""', "'''"]:
                     return D209()
@@ -1545,12 +1546,14 @@ class PEP257Checker(object):
               """ quotes in its body.
 
         '''
-        if docstring and '"""' in literal_eval(docstring) and docstring.startswith(
+        if not docstring:
+            return
+        if '"""' in literal_eval(docstring) and docstring.startswith(
                 ("'''", "r'''", "u'''", "ur'''")):
             # Allow ''' quotes if docstring contains """, because otherwise """
             # quotes could not be expressed inside docstring.  Not in PEP 257.
             return
-        if docstring and not docstring.startswith(
+        if not docstring.startswith(
                 ('"""', 'r"""', 'u"""', 'ur"""')):
             quotes = "'''" if "'''" in docstring[:4] else "'"
             return D300(quotes)
