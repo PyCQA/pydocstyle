@@ -11,6 +11,8 @@
 # - Particles are also followed by a noun
 # - Some adverbs don't really indicate an imperative sentence, for example
 #   "importantly" or "currently".
+# - Some irregular verb forms that don't stem to the same string as the
+#   imperative does (eg. 'does')
 :param
 :return
 :return:
@@ -44,6 +46,7 @@ description
 description:
 dict
 dictionary
+does
 dummy
 example
 factory

@@ -23,7 +23,7 @@ from re import compile as re
 import itertools
 import pkgutil
 from collections import defaultdict, namedtuple, Set
-from .stemmer import PorterStemmer
+from .stemmer import stem
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -53,6 +53,11 @@ except NameError:  # Python 2.5 and earlier
             except StopIteration:
                 return default
 
+try:
+    from ast import literal_eval
+except ImportError:  # Python 2.5 and earlier
+    literal_eval = eval
+
 
 # If possible (python >= 3.2) use tokenize.open to open files, so PEP 263
 # encoding markers are interpreted.
@@ -61,29 +66,39 @@ try:
 except AttributeError:
     tokenize_open = open
 
-COMMENT_RE = re(r'\s*#.*')
-
-
-def load_wordlist(name):
-    lines = pkgutil.get_data(__name__, 'data/' + name).splitlines()
-    for l in lines:
-        l = COMMENT_RE.sub('', l).strip()
-        if l:
-            yield l
-stem = PorterStemmer().stem
-
 
 __version__ = '0.7.1-alpha'
-__all__ = ('check')
+__all__ = ('check',)
 
 NO_VIOLATIONS_RETURN_CODE = 0
 VIOLATIONS_RETURN_CODE = 1
 INVALID_OPTIONS_RETURN_CODE = 2
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
+
+
+COMMENT_RE = re(r'\s*#.*')
+
+
+def load_wordlist(name):
+    """Iterate over lines of a wordlist data file.
+
+    `name` should be the name of a package data file within the data/
+    directory.
+
+    Whitespace and #-prefixed comments are stripped from each line.
+
+    """
+    text = pkgutil.get_data(__name__, 'data/' + name).decode('utf8')
+    for l in text.splitlines():
+        l = COMMENT_RE.sub('', l).strip()
+        if l:
+            yield l
+
+
 IMPERATIVE_VERBS = dict(
-    (stem(v), v) for v in load_wordlist('pep257_imperatives.txt')
+    (stem(v), v) for v in load_wordlist('imperatives.txt')
 )
-IMPERATIVE_BLACKLIST = set(load_wordlist('pep257_imperatives_blacklist.txt'))
+IMPERATIVE_BLACKLIST = set(load_wordlist('imperatives_blacklist.txt'))
 
 
 def humanize(string):
@@ -315,9 +330,10 @@ class Parser(object):
         return None
 
     def parse_decorators(self):
-        """Called after first @ is found.
+        """Parse decorators into self._accumulated_decorators.
 
-        Parse decorators into self._accumulated_decorators.
+        Called after first @ is found.
+
         Continue to do so until encountering the 'def' or 'class' start token.
         """
         name = []
@@ -692,9 +708,9 @@ D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
 D400 = D4xx.create_error('D400', 'First line should end with a period',
                          'not %r')
 D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
-                         '%r, not %r')
+                         "'%s', not '%s'")
 D401b = D4xx.create_error('D401', 'First line should be in imperative mood; '
-                          'try rephrasing', 'found %r')
+                          'try rephrasing', "found '%s'")
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 
@@ -1249,7 +1265,7 @@ def check(filenames, select=None, ignore=None):
 
 
 def setup_stream_handlers(conf):
-    """Setup logging stream handlers according to the options."""
+    """Set up logging stream handlers according to the options."""
     class StdoutFilter(logging.Filter):
         def filter(self, record):
             return record.levelno in (logging.DEBUG, logging.INFO)

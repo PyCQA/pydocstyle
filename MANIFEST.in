@@ -1,1 +1,2 @@
 include README.rst LICENSE-MIT
+recursive-include src/pep257/data *.txt
