@@ -434,7 +434,7 @@ class Parser(object):
         self.consume(tk.OP)
         all_content += ")"
         try:
-            self.all = eval(all_content, {})
+            self.all = literal_eval(all_content, {})
         except BaseException as e:
             raise AllError('Could not evaluate contents of __all__.'
                            '\bThe value was %s. The exception was:\n%s'
@@ -1392,7 +1392,7 @@ class PEP257Checker(object):
 
         """
         if (not docstring and definition.is_public or
-                docstring and is_blank(eval(docstring))):
+                docstring and is_blank(literal_eval(docstring))):
             codes = {Module: D100, Class: D101, NestedClass: D101,
                      Method: (lambda: D105() if is_magic(definition.name)
                               else D102()),
@@ -1408,7 +1408,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = eval(docstring).split('\n')
+            lines = literal_eval(docstring).split('\n')
             if len(lines) > 1:
                 non_empty_lines = sum(1 for l in lines if not is_blank(l))
                 if non_empty_lines == 1:
@@ -1479,7 +1479,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = eval(docstring).strip().split('\n')
+            lines = literal_eval(docstring).strip().split('\n')
             if len(lines) > 1:
                 post_summary_blanks = list(map(is_blank, lines[1:]))
                 blanks_count = sum(takewhile(bool, post_summary_blanks))
@@ -1518,7 +1518,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = [l for l in eval(docstring).split('\n') if not is_blank(l)]
+            lines = [l for l in literal_eval(docstring).split('\n') if not is_blank(l)]
             if len(lines) > 1:
                 if docstring.split("\n")[-1].strip() not in ['"""', "'''"]:
                     return D209()
@@ -1527,7 +1527,7 @@ class PEP257Checker(object):
     def check_surrounding_whitespaces(self, definition, docstring):
         """D210: No whitespaces allowed surrounding docstring text."""
         if docstring:
-            lines = eval(docstring).split('\n')
+            lines = literal_eval(docstring).split('\n')
             if lines[0].startswith(' ') or \
                     len(lines) == 1 and lines[0].endswith(' '):
                 return D210()
@@ -1545,7 +1545,7 @@ class PEP257Checker(object):
               """ quotes in its body.
 
         '''
-        if docstring and '"""' in eval(docstring) and docstring.startswith(
+        if docstring and '"""' in literal_eval(docstring) and docstring.startswith(
                 ("'''", "r'''", "u'''", "ur'''")):
             # Allow ''' quotes if docstring contains """, because otherwise """
             # quotes could not be expressed inside docstring.  Not in PEP 257.
@@ -1594,7 +1594,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            summary_line = eval(docstring).strip().split('\n')[0]
+            summary_line = literal_eval(docstring).strip().split('\n')[0]
             if not summary_line.endswith('.'):
                 return D400(summary_line[-1])
 
@@ -1628,7 +1628,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            first_line = eval(docstring).strip().split('\n')[0]
+            first_line = literal_eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
                 return D402()
 
