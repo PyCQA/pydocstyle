@@ -492,7 +492,8 @@ class Parser(object):
             expected_end_kind = tk.OP
         else:
             expected_end_kind = tk.NEWLINE
-        while self.current.kind != expected_end_kind:
+        while self.current.kind != expected_end_kind and not(
+                self.current.kind == tk.OP and self.current.value == ';'):
             if self.current.kind != tk.NAME:
                 self.stream.move()
                 continue
@@ -503,9 +504,10 @@ class Parser(object):
             self.consume(tk.NAME)
             log.debug("parsing import, token is %r (%s)",
                       self.current.kind, self.current.value)
-            if self.current.kind == tk.NAME:
+            if self.current.kind == tk.NAME and self.current.value == 'as':
                 self.consume(tk.NAME)  # as
-                self.consume(tk.NAME)  # new name, irrelevant
+                if self.current.kind == tk.NAME:
+                    self.consume(tk.NAME)  # new name, irrelevant
             if self.current.value == ',':
                 self.consume(tk.OP)
             log.debug("parsing import, token is %r (%s)",
