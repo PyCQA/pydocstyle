@@ -59,7 +59,6 @@ display
 download
 drop
 dump
-dumps
 emit
 empty
 enable
