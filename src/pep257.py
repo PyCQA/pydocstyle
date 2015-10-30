@@ -61,7 +61,7 @@ except AttributeError:
 
 
 __version__ = '0.7.1-alpha'
-__all__ = ('check')
+__all__ = ('check',)
 
 NO_VIOLATIONS_RETURN_CODE = 0
 VIOLATIONS_RETURN_CODE = 1
