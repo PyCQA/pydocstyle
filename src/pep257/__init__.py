@@ -1604,3 +1604,10 @@ class PEP257Checker(object):
         if docstring and function.returns_value:
             if 'return' not in docstring.lower():
                 return Error()
+
+
+def main():
+    try:
+        sys.exit(run_pep257())
+    except KeyboardInterrupt:
+        pass
