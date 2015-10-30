@@ -70,19 +70,17 @@ class Pep257Env(object):
         the environment base folder.
 
         """
-        pep257_location = os.path.join(os.path.dirname(__file__), '..')
+        pep257_location = os.path.join(os.path.dirname(__file__), '..',
+                                       '..', 'run_pep257.py')
         run_target = self.tempdir if target is None else \
             os.path.join(self.tempdir, target)
 
-        cmd = shlex.split("python -m pep257 {0} {1}"
-                          .format(run_target, args),
+        cmd = shlex.split("python {0} {1} {2}"
+                          .format(pep257_location, run_target, args),
                           posix=False)
-        env = os.environ.copy()
-        env['PYTHONPATH'] = pep257_location
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             env=env)
+                             stderr=subprocess.PIPE)
         out, err = p.communicate()
         return self.Result(out=out.decode('utf-8'),
                            err=err.decode('utf-8'),
