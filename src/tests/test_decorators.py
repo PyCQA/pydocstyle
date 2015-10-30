@@ -10,7 +10,7 @@ except ImportError:
 
 import textwrap
 
-from .. import pep257
+import pep257
 
 
 class TestParser:

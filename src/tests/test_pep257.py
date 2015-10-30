@@ -15,7 +15,7 @@ import tempfile
 import textwrap
 import subprocess
 
-from .. import pep257
+import pep257
 
 __all__ = ()
 
@@ -64,23 +64,25 @@ class Pep257Env(object):
         os.makedirs(os.path.join(self.tempdir, path), *args, **kwargs)
 
     def invoke_pep257(self, args="", target=None):
-        """Run pep257.py on the environment base folder with the given args.
+        """Run pep257 on the environment base folder with the given args.
 
         If `target` is not None, will run pep257 on `target` instead of
         the environment base folder.
 
         """
-        pep257_location = os.path.join(os.path.dirname(__file__),
-                                       '..', 'pep257.py')
+        pep257_location = os.path.join(os.path.dirname(__file__), '..')
         run_target = self.tempdir if target is None else \
             os.path.join(self.tempdir, target)
 
-        cmd = shlex.split("python {0} {1} {2}"
-                          .format(pep257_location, run_target, args),
+        cmd = shlex.split("python -m pep257 {0} {1}"
+                          .format(run_target, args),
                           posix=False)
+        env = os.environ.copy()
+        env['PYTHONPATH'] = pep257_location
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+                             stderr=subprocess.PIPE,
+                             env=env)
         out, err = p.communicate()
         return self.Result(out=out.decode('utf-8'),
                            err=err.decode('utf-8'),
@@ -121,7 +123,7 @@ def parse_errors(err):
 
 def test_pep257_conformance():
     relative = partial(os.path.join, os.path.dirname(__file__))
-    errors = list(pep257.check([relative('..', 'pep257.py'),
+    errors = list(pep257.check([relative('..', 'pep257', '__init__.py'),
                                 relative('test_pep257.py')],
                                select=pep257.conventions.pep257))
     assert errors == [], errors
@@ -137,7 +139,7 @@ def test_ignore_list():
     expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
                                 'D210'))
     mock_open = mock.mock_open(read_data=function_to_check)
-    from .. import pep257
+    import pep257
     with mock.patch.object(pep257, 'tokenize_open', mock_open, create=True):
         errors = tuple(pep257.check(['filepath']))
         error_codes = set(error.code for error in errors)
