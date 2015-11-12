@@ -268,7 +268,9 @@ class Parser(object):
     line = property(lambda self: self.stream.line)
 
     def consume(self, kind):
-        assert self.stream.move().kind == kind
+        """Consume one token and verify it is of the expected kind."""
+        next_token = self.stream.move()
+        assert next_token.kind == kind
 
     def leapfrog(self, kind, value=None):
         """Skip tokens in the stream until a certain token kind is reached.
