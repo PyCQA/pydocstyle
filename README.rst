@@ -1,6 +1,10 @@
 PEP 257 docstring style checker
 ===========================================================
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/GreenSteam/pep257
+   :target: https://gitter.im/GreenSteam/pep257?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 **pep257** is a static analysis tool for checking
 compliance with Python `PEP 257
 <http://www.python.org/dev/peps/pep-0257/>`_.
