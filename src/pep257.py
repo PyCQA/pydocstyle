@@ -668,6 +668,9 @@ D210 = D2xx.create_error('D210', 'No whitespaces allowed surrounding '
                                  'docstring text')
 D211 = D2xx.create_error('D211', 'No blank lines allowed before class '
                                  'docstring', 'found %s')
+D212 = D2xx.create_error('D212', '1 blank line required between summary line '
+                                 'and description in __init__ method',
+                         'found %s')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
@@ -682,6 +685,12 @@ D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
                          '%r, not %r')
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
+
+D403 = D4xx.create_error('D403', 'First line in __init__ should end with a'
+                         'period', 'not %r')
+D404 = D4xx.create_error('D404', 'First line in __init__ should be in'
+                         'imperative mood',
+                         '%r, not %r')
 
 
 class AttrDict(dict):
@@ -1453,7 +1462,12 @@ class PEP257Checker(object):
                 post_summary_blanks = list(map(is_blank, lines[1:]))
                 blanks_count = sum(takewhile(bool, post_summary_blanks))
                 if blanks_count != 1:
-                    return D205(blanks_count)
+                    if definition.kind == 'method' and \
+                            definition.name == '__init__':
+                        Error = D212
+                    else:
+                        Error = D205
+                    return Error(blanks_count)
 
     @check_for(Definition)
     def check_indent(self, definition, docstring):
@@ -1565,7 +1579,12 @@ class PEP257Checker(object):
         if docstring:
             summary_line = eval(docstring).strip().split('\n')[0]
             if not summary_line.endswith('.'):
-                return D400(summary_line[-1])
+                if definition.kind == 'method' and \
+                        definition.name == '__init__':
+                    Error = D403
+                else:
+                    Error = D400
+                return Error(summary_line[-1])
 
     @check_for(Function)
     def check_imperative_mood(self, function, docstring):  # def context
@@ -1576,12 +1595,18 @@ class PEP257Checker(object):
         "Returns the pathname ...".
 
         """
+
         if docstring:
             stripped = eval(docstring).strip()
             if stripped:
                 first_word = stripped.split()[0]
                 if first_word.endswith('s') and not first_word.endswith('ss'):
-                    return D401(first_word[:-1], first_word)
+                    if function.kind == 'method' \
+                            and function.name == '__init__':
+                        Error = D404
+                    else:
+                        Error = D401
+                    return Error(first_word[:-1], first_word)
 
     @check_for(Function)
     def check_no_signature(self, function, docstring):  # def context
