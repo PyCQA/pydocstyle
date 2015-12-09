@@ -23,7 +23,7 @@ from re import compile as re
 import itertools
 import pkgutil
 from collections import defaultdict, namedtuple, Set
-from .stemmer import stem
+import snowballstemmer
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -77,6 +77,7 @@ VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
 
 
 COMMENT_RE = re(r'\s*#.*')
+stem = snowballstemmer.stemmer('english').stemWord
 
 
 def load_wordlist(name):

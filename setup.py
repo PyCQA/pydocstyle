@@ -29,6 +29,9 @@ setup(
     packages=['pep257'],
     package_dir={'pep257': 'src/pep257'},
     package_data={'pep257': ['data/*.txt']},
+    install_requires=[
+        'snowballstemmer==1.2.0',
+    ],
     entry_points={
         'console_scripts': [
             'pep257 = pep257:main',
