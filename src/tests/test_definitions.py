@@ -138,7 +138,7 @@ def test_token_stream():
 
 def test_pep257():
     """Run domain-specific tests from test.py file."""
-    test_cases = ('test', 'unicode_literals', 'nested_class')
+    test_cases = ('test', 'unicode_literals', 'nested_class', 'capitalization')
     for test_case in test_cases:
         case_module = __import__('test_cases.{0}'.format(test_case),
                                  globals=globals(),
