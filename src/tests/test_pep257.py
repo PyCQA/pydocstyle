@@ -70,8 +70,8 @@ class Pep257Env(object):
         the environment base folder.
 
         """
-        pep257_location = os.path.join(os.path.dirname(__file__),
-                                       '..', '..', 'run_pep257.py')
+        pep257_location = os.path.join(os.path.dirname(__file__), '..',
+                                       '..', 'run_pep257.py')
         run_target = self.tempdir if target is None else \
             os.path.join(self.tempdir, target)
 
