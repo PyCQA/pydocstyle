@@ -38,13 +38,91 @@ __all__ = [
     # Inconvenient comment.
     'a', 'b' 'c',]
 '''
-source_unicode_literals = '''
+source_unicode_literals1 = """
 from __future__ import unicode_literals
-'''
-source_multiple_future_imports = '''
+"""
+source_unicode_literals2 = """
+from __future__ import unicode_literals;
+"""
+source_unicode_literals3 = """
+from \
+__future__ \
+import \
+unicode_literals
+"""
+source_unicode_literals4 = """
+from __future__ \
+import unicode_literals \
+;
+"""
+source_unicode_literals5 = """
+from __future__ import unicode_literals as foo;
+"""
+source_unicode_literals6 = """
+from __future__ import unicode_literals as foo; import string
+"""
+source_multiple_future_imports1 = """
 from __future__ import (nested_scopes as ns,
                         unicode_literals)
-'''
+"""
+source_multiple_future_imports2 = """
+from __future__ import nested_scopes as ns
+from __future__ import unicode_literals
+"""
+source_multiple_future_imports3 = """
+from __future__ import nested_scopes, unicode_literals
+"""
+source_multiple_future_imports4 = """
+from __future__ import (nested_scopes as ns, )
+from __future__ import (unicode_literals)
+"""
+source_multiple_future_imports5 = """
+from __future__ \
+import nested_scopes
+from __future__ \
+import unicode_literals
+"""
+source_multiple_future_imports6 = """
+from __future__ import nested_scopes; from __future__ import unicode_literals
+"""
+# pep257 does not detect that 'import string' prevents
+# unicode_literals from being a valid __future__.
+# That is detected by pyflakes.
+source_multiple_future_imports7 = """
+from __future__ import nested_scopes; import string; from __future__ import \
+    unicode_literals
+"""
+
+source_future_import_invalid1 = """
+from __future__ import unicode_literals as;
+"""
+source_future_import_invalid2 = """
+from __future__ import unicode_literals as \
+;
+"""
+source_future_import_invalid3 = """
+from __future__ import
+"""
+source_future_import_invalid4 = """
+from __future__ import \
+
+"""
+source_future_import_invalid5 = """
+from __future__ import \
+;
+"""
+source_future_import_invalid6 = """
+from __future__ import \
+;
+"""
+source_future_import_invalid7 = """
+from __future__ import unicode_literals, (\
+nested_scopes)
+"""
+source_future_import_invalid8 = """
+from __future__ import (, )
+"""
+
 source_complex_all = '''
 import foo
 import bar
@@ -95,19 +173,58 @@ def test_parser():
                   len(source_alt_nl_at_bracket.split('\n')), _, None, _, _,
                   dunder_all, {}) == module
 
-    module = parse(StringIO(source_unicode_literals), 'file_ucl.py')
-    assert Module('file_ucl.py', _, 1,
-                  _, _, None, _, _,
-                  _, {'unicode_literals': True}) == module
-
-    module = parse(StringIO(source_multiple_future_imports), 'file_mfi.py')
-    assert Module('file_mfi.py', _, 1,
-                  _, _, None, _, _,
-                  _, {'unicode_literals': True, 'nested_scopes': True}) \
-        == module
-    assert module.future_imports['unicode_literals']
     with pytest.raises(AllError):
         parse(StringIO(source_complex_all), 'file_complex_all.py')
+
+
+def test_import_parser():
+    for i, source_ucl in enumerate((
+            source_unicode_literals1,
+            source_unicode_literals2,
+            source_unicode_literals3,
+            source_unicode_literals4,
+            source_unicode_literals5,
+            source_unicode_literals6,
+            ), 1):
+        module = parse(StringIO(source_ucl), 'file_ucl{0}.py'.format(i))
+
+        assert Module('file_ucl{0}.py'.format(i), _, 1,
+                      _, _, None, _, _,
+                      _, {'unicode_literals': True}) == module
+        assert module.future_imports['unicode_literals']
+
+    for i, source_mfi in enumerate((
+            source_multiple_future_imports1,
+            source_multiple_future_imports2,
+            source_multiple_future_imports3,
+            source_multiple_future_imports4,
+            source_multiple_future_imports5,
+            source_multiple_future_imports6,
+            source_multiple_future_imports7,
+            ), 1):
+        module = parse(StringIO(source_mfi), 'file_mfi{0}.py'.format(i))
+        assert Module('file_mfi{0}.py'.format(i), _, 1,
+                      _, _, None, _, _,
+                      _, {'unicode_literals': True, 'nested_scopes': True}) \
+            == module
+        assert module.future_imports['unicode_literals']
+
+    # These are invalid syntax, so there is no need to verify the result
+    for i, source_ucli in enumerate((
+            source_future_import_invalid1,
+            source_future_import_invalid2,
+            source_future_import_invalid3,
+            source_future_import_invalid4,
+            source_future_import_invalid5,
+            source_future_import_invalid6,
+            source_future_import_invalid7,
+            source_future_import_invalid8,
+            ), 1):
+        module = parse(StringIO(source_ucl), 'file_invalid{0}.py'.format(i))
+
+        assert Module('file_invalid{0}.py'.format(i), _, 1,
+                      _, _, None, _, _,
+                      _, _) == module
 
 
 def _test_module():
