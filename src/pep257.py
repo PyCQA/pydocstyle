@@ -16,6 +16,7 @@ from __future__ import with_statement
 import os
 import sys
 import copy
+import string
 import logging
 import tokenize as tk
 from itertools import takewhile, dropwhile, chain
@@ -456,9 +457,9 @@ class Parser(object):
             docstring = self.parse_docstring()
             decorators = self._accumulated_decorators
             self._accumulated_decorators = []
-            log.debug("parsing nested defintions.")
+            log.debug("parsing nested definitions.")
             children = list(self.parse_definitions(class_))
-            log.debug("finished parsing nested defintions for '%s'", name)
+            log.debug("finished parsing nested definitions for '%s'", name)
             end = self.line - 1
         else:  # one-liner definition
             docstring = self.parse_docstring()
@@ -682,6 +683,11 @@ D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
                          '%r, not %r')
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
+D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
+                                 '"signature"')
+D403 = D4xx.create_error('D403', 'First word of the first line should be '
+                                 'properly capitalized', '%r, not %r')
+
 
 
 class AttrDict(dict):
@@ -1595,6 +1601,18 @@ class PEP257Checker(object):
             first_line = eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
                 return D402()
+
+    @check_for(Function)
+    def check_capitalized(self, function, docstring):
+        """D403: First word of the first line should be properly capitalized.
+
+        The [first line of a] docstring is a phrase ending in a period.
+
+        """
+        if docstring:
+            first_word = eval(docstring).split()[0]
+            if first_word != first_word.capitalize():
+                return D403(first_word.capitalize(), first_word)
 
     # Somewhat hard to determine if return value is mentioned.
     # @check(Function)
