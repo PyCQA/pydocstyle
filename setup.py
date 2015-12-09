@@ -3,7 +3,7 @@ import os
 from setuptools import setup
 
 
-with open(os.path.join('src', 'pep257.py')) as f:
+with open(os.path.join('src', 'pep257', '__init__.py')) as f:
     for line in f:
         if line.startswith('__version__'):
             version = eval(line.split('=')[-1])
@@ -26,8 +26,12 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     keywords='PEP 257, pep257, PEP 8, pep8, docstrings',
-    package_dir={'': 'src'},
-    py_modules=['pep257'],
+    packages=['pep257'],
+    package_dir={'pep257': 'src/pep257'},
+    package_data={'pep257': ['data/*.txt']},
+    install_requires=[
+        'snowballstemmer==1.2.0',
+    ],
     entry_points={
         'console_scripts': [
             'pep257 = pep257:main',

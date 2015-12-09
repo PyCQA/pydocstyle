@@ -243,10 +243,16 @@ def lwnlkjl():
     """Summary"""
 
 
-@expect("D401: First line should be in imperative mood ('Return', not "
-        "'Returns')")
+@expect("D401: First line should be in imperative mood ('return', not "
+        "'returns')")
 def liouiwnlkjl():
     """Returns foo."""
+
+
+@expect("D401: First line should be in imperative mood; try rephrasing "
+        "(found 'constructor')")
+def sdgfsdg23245():
+    """Constructor for a foo."""
 
 
 @expect('D402: First line should not be the function\'s "signature"')
@@ -286,7 +292,7 @@ def docstring_start_in_same_line(): """First Line.
 
 
 def function_with_lambda_arg(x=lambda y: y):
-    """A valid docstring."""
+    """Return x."""
 
 
 def a_following_valid_function(x):

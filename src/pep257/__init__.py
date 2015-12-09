@@ -21,7 +21,9 @@ import tokenize as tk
 from itertools import takewhile, dropwhile, chain
 from re import compile as re
 import itertools
+import pkgutil
 from collections import defaultdict, namedtuple, Set
+import snowballstemmer
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -51,6 +53,11 @@ except NameError:  # Python 2.5 and earlier
             except StopIteration:
                 return default
 
+try:
+    from ast import literal_eval
+except ImportError:  # Python 2.5 and earlier
+    literal_eval = eval
+
 
 # If possible (python >= 3.2) use tokenize.open to open files, so PEP 263
 # encoding markers are interpreted.
@@ -67,6 +74,32 @@ NO_VIOLATIONS_RETURN_CODE = 0
 VIOLATIONS_RETURN_CODE = 1
 INVALID_OPTIONS_RETURN_CODE = 2
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
+
+
+COMMENT_RE = re(r'\s*#.*')
+stem = snowballstemmer.stemmer('english').stemWord
+
+
+def load_wordlist(name):
+    """Iterate over lines of a wordlist data file.
+
+    `name` should be the name of a package data file within the data/
+    directory.
+
+    Whitespace and #-prefixed comments are stripped from each line.
+
+    """
+    text = pkgutil.get_data(__name__, 'data/' + name).decode('utf8')
+    for l in text.splitlines():
+        l = COMMENT_RE.sub('', l).strip()
+        if l:
+            yield l
+
+
+IMPERATIVE_VERBS = dict(
+    (stem(v), v) for v in load_wordlist('imperatives.txt')
+)
+IMPERATIVE_BLACKLIST = set(load_wordlist('imperatives_blacklist.txt'))
 
 
 def humanize(string):
@@ -300,9 +333,10 @@ class Parser(object):
         return None
 
     def parse_decorators(self):
-        """Called after first @ is found.
+        """Parse decorators into self._accumulated_decorators.
 
-        Parse decorators into self._accumulated_decorators.
+        Called after first @ is found.
+
         Continue to do so until encountering the 'def' or 'class' start token.
         """
         name = []
@@ -403,7 +437,7 @@ class Parser(object):
         self.consume(tk.OP)
         all_content += ")"
         try:
-            self.all = eval(all_content, {})
+            self.all = literal_eval(all_content)
         except BaseException as e:
             raise AllError('Could not evaluate contents of __all__.'
                            '\bThe value was %s. The exception was:\n%s'
@@ -679,7 +713,9 @@ D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
 D400 = D4xx.create_error('D400', 'First line should end with a period',
                          'not %r')
 D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
-                         '%r, not %r')
+                         "'%s', not '%s'")
+D401b = D4xx.create_error('D401', 'First line should be in imperative mood; '
+                          'try rephrasing', "found '%s'")
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 
@@ -1234,7 +1270,7 @@ def check(filenames, select=None, ignore=None):
 
 
 def setup_stream_handlers(conf):
-    """Setup logging stream handlers according to the options."""
+    """Set up logging stream handlers according to the options."""
     class StdoutFilter(logging.Filter):
         def filter(self, record):
             return record.levelno in (logging.DEBUG, logging.INFO)
@@ -1361,7 +1397,7 @@ class PEP257Checker(object):
 
         """
         if (not docstring and definition.is_public or
-                docstring and is_blank(eval(docstring))):
+                docstring and is_blank(literal_eval(docstring))):
             codes = {Module: D100, Class: D101, NestedClass: D101,
                      Method: (lambda: D105() if is_magic(definition.name)
                               else D102()),
@@ -1377,7 +1413,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = eval(docstring).split('\n')
+            lines = literal_eval(docstring).split('\n')
             if len(lines) > 1:
                 non_empty_lines = sum(1 for l in lines if not is_blank(l))
                 if non_empty_lines == 1:
@@ -1448,7 +1484,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = eval(docstring).strip().split('\n')
+            lines = literal_eval(docstring).strip().split('\n')
             if len(lines) > 1:
                 post_summary_blanks = list(map(is_blank, lines[1:]))
                 blanks_count = sum(takewhile(bool, post_summary_blanks))
@@ -1487,7 +1523,8 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = [l for l in eval(docstring).split('\n') if not is_blank(l)]
+            lines = literal_eval(docstring).split('\n')
+            lines = [l for l in lines if not is_blank(l)]
             if len(lines) > 1:
                 if docstring.split("\n")[-1].strip() not in ['"""', "'''"]:
                     return D209()
@@ -1496,7 +1533,7 @@ class PEP257Checker(object):
     def check_surrounding_whitespaces(self, definition, docstring):
         """D210: No whitespaces allowed surrounding docstring text."""
         if docstring:
-            lines = eval(docstring).split('\n')
+            lines = literal_eval(docstring).split('\n')
             if lines[0].startswith(' ') or \
                     len(lines) == 1 and lines[0].endswith(' '):
                 return D210()
@@ -1514,12 +1551,14 @@ class PEP257Checker(object):
               """ quotes in its body.
 
         '''
-        if docstring and '"""' in eval(docstring) and docstring.startswith(
+        if not docstring:
+            return
+        if '"""' in literal_eval(docstring) and docstring.startswith(
                 ("'''", "r'''", "u'''", "ur'''")):
             # Allow ''' quotes if docstring contains """, because otherwise """
             # quotes could not be expressed inside docstring.  Not in PEP 257.
             return
-        if docstring and not docstring.startswith(
+        if not docstring.startswith(
                 ('"""', 'r"""', 'u"""', 'ur"""')):
             quotes = "'''" if "'''" in docstring[:4] else "'"
             return D300(quotes)
@@ -1563,7 +1602,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            summary_line = eval(docstring).strip().split('\n')[0]
+            summary_line = literal_eval(docstring).strip().split('\n')[0]
             if not summary_line.endswith('.'):
                 return D400(summary_line[-1])
 
@@ -1577,11 +1616,16 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            stripped = eval(docstring).strip()
+            stripped = literal_eval(docstring).strip()
             if stripped:
-                first_word = stripped.split()[0]
-                if first_word.endswith('s') and not first_word.endswith('ss'):
-                    return D401(first_word[:-1], first_word)
+                first_word = stripped.split()[0].lower()
+
+                if first_word in IMPERATIVE_BLACKLIST:
+                    return D401b(first_word)
+
+                correct_form = IMPERATIVE_VERBS.get(stem(first_word))
+                if correct_form and correct_form != first_word:
+                    return D401(correct_form, first_word)
 
     @check_for(Function)
     def check_no_signature(self, function, docstring):  # def context
@@ -1592,7 +1636,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            first_line = eval(docstring).strip().split('\n')[0]
+            first_line = literal_eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
                 return D402()
 
@@ -1615,7 +1659,3 @@ def main():
         sys.exit(run_pep257())
     except KeyboardInterrupt:
         pass
-
-
-if __name__ == '__main__':
-    main()
