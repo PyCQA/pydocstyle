@@ -119,7 +119,6 @@ class Definition(Value):
     module = property(lambda self: self.parent.module)
     all = property(lambda self: self.module.all)
     _slice = property(lambda self: slice(self.start - 1, self.end))
-    source = property(lambda self: ''.join(self._source[self._slice]))
     is_class = False
 
     def __iter__(self):
@@ -128,6 +127,17 @@ class Definition(Value):
     @property
     def _publicity(self):
         return {True: 'public', False: 'private'}[self.is_public]
+
+    @property
+    def source(self):
+        """Return the source code for the definition."""
+        full_src = self._source[self._slice]
+
+        def predicate(line):
+            return line.strip() == '' or line.strip().startswith('#')
+
+        filtered_src = dropwhile(predicate, reversed(full_src))
+        return ''.join(reversed(list(filtered_src)))
 
     def __str__(self):
         return 'in %s %s `%s`' % (self._publicity, self._human, self.name)
@@ -428,7 +438,7 @@ class Parser(object):
         return module
 
     def parse_definition(self, class_):
-        """Parse a defintion and return its value in a `class_` object."""
+        """Parse a definition and return its value in a `class_` object."""
         start = self.line
         self.consume(tk.NAME)
         name = self.current.value
