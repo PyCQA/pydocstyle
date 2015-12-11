@@ -13,11 +13,16 @@ New Features
   classes are considered public if their names are not prepended with an
   underscore and if their parent class is public, recursively (#13, #146).
 
+* Added the D403 error code - "First word of the first line should be
+  properly capitalized". This new error is turned on by default (#164, #165).
 
 Bug Fixes
 
-* Fixed an issue where a `NameError` was raised when parsing complex defintions
-  of `__all__` (#142, #143).
+* Fixed an issue where a ``NameError`` was raised when parsing complex defintions
+  of ``__all__`` (#142, #143).
+
+* Fixed a bug where D202 was falsely reported when a function with just a
+  docstring and no content was followed by a comment (#165).
 
 
 0.7.0 - October 9th, 2015
@@ -26,7 +31,7 @@ Bug Fixes
 New Features
 
 * Added the D104 error code - "Missing docstring in public package". This new
-  error is turned on by default. Missing docstring in `__init__.py` files which
+  error is turned on by default. Missing docstring in ``__init__.py`` files which
   previously resulted in D100 errors ("Missing docstring in public module")
   will now result in D104 (#105, #127).
 
@@ -34,13 +39,13 @@ New Features
   error is turned on by default. Missing docstrings in magic method which
   previously resulted in D102 error ("Missing docstring in public method")
   will now result in D105. Note that exceptions to this rule are variadic
-  magic methods - specifically `__init__`, `__call__` and `__new__`, which
+  magic methods - specifically ``__init__``, ``__call__`` and ``__new__``, which
   will be considered non-magic and missing docstrings in them will result
   in D102 (#60, #139).
 
 * Support the option to exclude all error codes. Running pep257 with
-  `--select=` (or `select=` in the configuration file) will exclude all errors
-  which could then be added one by one using `add-select`. Useful for projects
+  ``--select=`` (or ``select=`` in the configuration file) will exclude all errors
+  which could then be added one by one using ``add-select``. Useful for projects
   new to pep257 (#132, #135).
 
 * Added check D211: No blank lines allowed before class docstring. This change

@@ -133,10 +133,10 @@ class Definition(Value):
         """Return the source code for the definition."""
         full_src = self._source[self._slice]
 
-        def predicate(line):
+        def is_empty_or_comment(line):
             return line.strip() == '' or line.strip().startswith('#')
 
-        filtered_src = dropwhile(predicate, reversed(full_src))
+        filtered_src = dropwhile(is_empty_or_comment, reversed(full_src))
         return ''.join(reversed(list(filtered_src)))
 
     def __str__(self):
@@ -691,8 +691,6 @@ D400 = D4xx.create_error('D400', 'First line should end with a period',
                          'not %r')
 D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
                          '%r, not %r')
-D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
-                                 '"signature"')
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 D403 = D4xx.create_error('D403', 'First word of the first line should be '
