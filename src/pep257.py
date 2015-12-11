@@ -1403,7 +1403,6 @@ class PEP257Checker(object):
         There's no blank line either before or after the docstring.
 
         """
-        # NOTE: This does not take comments into account.
         # NOTE: This does not take into account functions with groups of code.
         if docstring:
             before, _, after = function.source.partition(docstring)
