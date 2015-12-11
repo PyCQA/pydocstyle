@@ -699,7 +699,6 @@ D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '%r, not %r')
 
 
-
 class AttrDict(dict):
     def __getattr__(self, item):
         return self[item]
