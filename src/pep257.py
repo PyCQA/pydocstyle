@@ -15,8 +15,8 @@ from __future__ import with_statement
 
 import os
 import sys
+import ast
 import copy
-import string
 import logging
 import tokenize as tk
 from itertools import takewhile, dropwhile, chain
@@ -1370,7 +1370,7 @@ class PEP257Checker(object):
 
         """
         if (not docstring and definition.is_public or
-                docstring and is_blank(eval(docstring))):
+                docstring and is_blank(ast.literal_eval(docstring))):
             codes = {Module: D100, Class: D101, NestedClass: D101,
                      Method: (lambda: D105() if is_magic(definition.name)
                               else D102()),
@@ -1386,7 +1386,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = eval(docstring).split('\n')
+            lines = ast.literal_eval(docstring).split('\n')
             if len(lines) > 1:
                 non_empty_lines = sum(1 for l in lines if not is_blank(l))
                 if non_empty_lines == 1:
@@ -1456,7 +1456,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = eval(docstring).strip().split('\n')
+            lines = ast.literal_eval(docstring).strip().split('\n')
             if len(lines) > 1:
                 post_summary_blanks = list(map(is_blank, lines[1:]))
                 blanks_count = sum(takewhile(bool, post_summary_blanks))
@@ -1495,7 +1495,8 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = [l for l in eval(docstring).split('\n') if not is_blank(l)]
+            lines = [l for l in ast.literal_eval(docstring).split('\n')
+                     if not is_blank(l)]
             if len(lines) > 1:
                 if docstring.split("\n")[-1].strip() not in ['"""', "'''"]:
                     return D209()
@@ -1504,7 +1505,7 @@ class PEP257Checker(object):
     def check_surrounding_whitespaces(self, definition, docstring):
         """D210: No whitespaces allowed surrounding docstring text."""
         if docstring:
-            lines = eval(docstring).split('\n')
+            lines = ast.literal_eval(docstring).split('\n')
             if lines[0].startswith(' ') or \
                     len(lines) == 1 and lines[0].endswith(' '):
                 return D210()
@@ -1522,8 +1523,8 @@ class PEP257Checker(object):
               """ quotes in its body.
 
         '''
-        if docstring and '"""' in eval(docstring) and docstring.startswith(
-                ("'''", "r'''", "u'''", "ur'''")):
+        if (docstring and '"""' in ast.literal_eval(docstring) and
+                docstring.startswith(("'''", "r'''", "u'''", "ur'''"))):
             # Allow ''' quotes if docstring contains """, because otherwise """
             # quotes could not be expressed inside docstring.  Not in PEP 257.
             return
@@ -1571,7 +1572,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            summary_line = eval(docstring).strip().split('\n')[0]
+            summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
             if not summary_line.endswith('.'):
                 return D400(summary_line[-1])
 
@@ -1585,7 +1586,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            stripped = eval(docstring).strip()
+            stripped = ast.literal_eval(docstring).strip()
             if stripped:
                 first_word = stripped.split()[0]
                 if first_word.endswith('s') and not first_word.endswith('ss'):
@@ -1600,7 +1601,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            first_line = eval(docstring).strip().split('\n')[0]
+            first_line = ast.literal_eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
                 return D402()
 
@@ -1612,7 +1613,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            first_word = eval(docstring).split()[0]
+            first_word = ast.literal_eval(docstring).split()[0]
             if first_word != first_word.capitalize():
                 return D403(first_word.capitalize(), first_word)
 
