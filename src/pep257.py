@@ -15,6 +15,7 @@ from __future__ import with_statement
 
 import os
 import sys
+import ast
 import copy
 import logging
 import tokenize as tk
@@ -118,7 +119,6 @@ class Definition(Value):
     module = property(lambda self: self.parent.module)
     all = property(lambda self: self.module.all)
     _slice = property(lambda self: slice(self.start - 1, self.end))
-    source = property(lambda self: ''.join(self._source[self._slice]))
     is_class = False
 
     def __iter__(self):
@@ -127,6 +127,17 @@ class Definition(Value):
     @property
     def _publicity(self):
         return {True: 'public', False: 'private'}[self.is_public]
+
+    @property
+    def source(self):
+        """Return the source code for the definition."""
+        full_src = self._source[self._slice]
+
+        def is_empty_or_comment(line):
+            return line.strip() == '' or line.strip().startswith('#')
+
+        filtered_src = dropwhile(is_empty_or_comment, reversed(full_src))
+        return ''.join(reversed(list(filtered_src)))
 
     def __str__(self):
         return 'in %s %s `%s`' % (self._publicity, self._human, self.name)
@@ -429,7 +440,7 @@ class Parser(object):
         return module
 
     def parse_definition(self, class_):
-        """Parse a defintion and return its value in a `class_` object."""
+        """Parse a definition and return its value in a `class_` object."""
         start = self.line
         self.consume(tk.NAME)
         name = self.current.value
@@ -456,9 +467,9 @@ class Parser(object):
             docstring = self.parse_docstring()
             decorators = self._accumulated_decorators
             self._accumulated_decorators = []
-            log.debug("parsing nested defintions.")
+            log.debug("parsing nested definitions.")
             children = list(self.parse_definitions(class_))
-            log.debug("finished parsing nested defintions for '%s'", name)
+            log.debug("finished parsing nested definitions for '%s'", name)
             end = self.line - 1
         else:  # one-liner definition
             docstring = self.parse_docstring()
@@ -682,6 +693,8 @@ D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
                          '%r, not %r')
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
+D403 = D4xx.create_error('D403', 'First word of the first line should be '
+                                 'properly capitalized', '%r, not %r')
 
 
 class AttrDict(dict):
@@ -1361,7 +1374,7 @@ class PEP257Checker(object):
 
         """
         if (not docstring and definition.is_public or
-                docstring and is_blank(eval(docstring))):
+                docstring and is_blank(ast.literal_eval(docstring))):
             codes = {Module: D100, Class: D101, NestedClass: D101,
                      Method: (lambda: D105() if is_magic(definition.name)
                               else D102()),
@@ -1377,7 +1390,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = eval(docstring).split('\n')
+            lines = ast.literal_eval(docstring).split('\n')
             if len(lines) > 1:
                 non_empty_lines = sum(1 for l in lines if not is_blank(l))
                 if non_empty_lines == 1:
@@ -1390,7 +1403,6 @@ class PEP257Checker(object):
         There's no blank line either before or after the docstring.
 
         """
-        # NOTE: This does not take comments into account.
         # NOTE: This does not take into account functions with groups of code.
         if docstring:
             before, _, after = function.source.partition(docstring)
@@ -1448,7 +1460,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = eval(docstring).strip().split('\n')
+            lines = ast.literal_eval(docstring).strip().split('\n')
             if len(lines) > 1:
                 post_summary_blanks = list(map(is_blank, lines[1:]))
                 blanks_count = sum(takewhile(bool, post_summary_blanks))
@@ -1487,7 +1499,8 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            lines = [l for l in eval(docstring).split('\n') if not is_blank(l)]
+            lines = [l for l in ast.literal_eval(docstring).split('\n')
+                     if not is_blank(l)]
             if len(lines) > 1:
                 if docstring.split("\n")[-1].strip() not in ['"""', "'''"]:
                     return D209()
@@ -1496,7 +1509,7 @@ class PEP257Checker(object):
     def check_surrounding_whitespaces(self, definition, docstring):
         """D210: No whitespaces allowed surrounding docstring text."""
         if docstring:
-            lines = eval(docstring).split('\n')
+            lines = ast.literal_eval(docstring).split('\n')
             if lines[0].startswith(' ') or \
                     len(lines) == 1 and lines[0].endswith(' '):
                 return D210()
@@ -1514,8 +1527,8 @@ class PEP257Checker(object):
               """ quotes in its body.
 
         '''
-        if docstring and '"""' in eval(docstring) and docstring.startswith(
-                ("'''", "r'''", "u'''", "ur'''")):
+        if (docstring and '"""' in ast.literal_eval(docstring) and
+                docstring.startswith(("'''", "r'''", "u'''", "ur'''"))):
             # Allow ''' quotes if docstring contains """, because otherwise """
             # quotes could not be expressed inside docstring.  Not in PEP 257.
             return
@@ -1563,7 +1576,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            summary_line = eval(docstring).strip().split('\n')[0]
+            summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
             if not summary_line.endswith('.'):
                 return D400(summary_line[-1])
 
@@ -1577,7 +1590,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            stripped = eval(docstring).strip()
+            stripped = ast.literal_eval(docstring).strip()
             if stripped:
                 first_word = stripped.split()[0]
                 if first_word.endswith('s') and not first_word.endswith('ss'):
@@ -1592,9 +1605,21 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            first_line = eval(docstring).strip().split('\n')[0]
+            first_line = ast.literal_eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
                 return D402()
+
+    @check_for(Function)
+    def check_capitalized(self, function, docstring):
+        """D403: First word of the first line should be properly capitalized.
+
+        The [first line of a] docstring is a phrase ending in a period.
+
+        """
+        if docstring:
+            first_word = ast.literal_eval(docstring).split()[0]
+            if first_word != first_word.capitalize():
+                return D403(first_word.capitalize(), first_word)
 
     # Somewhat hard to determine if return value is mentioned.
     # @check(Function)
