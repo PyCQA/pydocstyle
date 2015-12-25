@@ -14,6 +14,7 @@ http://github.com/GreenSteam/pep257
 from __future__ import with_statement
 
 import os
+import string
 import sys
 import ast
 import copy
@@ -151,6 +152,10 @@ class Module(Definition):
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
     all = property(lambda self: self._all)
+
+    def __init__(self, *args, **kwargs):
+        super(Module, self).__init__(*args, **kwargs)
+        self.name = self.name.lower()
 
     def __str__(self):
         return 'at module level'
@@ -1618,6 +1623,11 @@ class PEP257Checker(object):
         """
         if docstring:
             first_word = ast.literal_eval(docstring).split()[0]
+            if first_word == first_word.upper():
+                return
+            for char in first_word:
+                if char not in string.ascii_letters and char != "'":
+                    return
             if first_word != first_word.capitalize():
                 return D403(first_word.capitalize(), first_word)
 
