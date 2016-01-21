@@ -103,6 +103,7 @@ def parse_errors(err):
     This is for test purposes only. All file names should be different.
 
     """
+    print(err)
     result = {}
     py_ext = '.py'
     lines = err.split('\n')
