@@ -110,12 +110,11 @@ def parse_errors(err):
     while lines:
         curr_line = lines.pop(0)
         filename = curr_line[:curr_line.find(py_ext) + len(py_ext)]
-        if os.path.isfile(filename):
-            if lines:
-                err_line = lines.pop(0).strip()
-                err_code = err_line.split(':')[0]
-                basename = os.path.basename(filename)
-                result.setdefault(basename, set()).add(err_code)
+        if lines:
+            err_line = lines.pop(0).strip()
+            err_code = err_line.split(':')[0]
+            basename = os.path.basename(filename)
+            result.setdefault(basename, set()).add(err_code)
 
     return result
 
