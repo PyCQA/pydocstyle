@@ -495,10 +495,10 @@ def test_config_file_cumulative_add_ignores():
         err = parse_errors(err)
 
         assert code == 1
-        assert 'base.py' in err
-        assert 'a.py' not in err
-        assert 'D100' not in err['base.py']
-        assert 'D103' in err['base.py']
+        assert 'base.py' in err, err
+        assert 'a.py' not in err, err
+        assert 'D100' not in err['base.py'], err
+        assert 'D103' in err['base.py'], err
 
 
 def test_config_file_cumulative_add_select():
