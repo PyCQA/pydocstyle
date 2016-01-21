@@ -539,10 +539,10 @@ def test_config_file_cumulative_add_select():
         err = parse_errors(err)
 
         assert code == 1
-        assert 'base.py' in err
-        assert 'a.py' in err
-        assert err['base.py'] == set(['D100'])
-        assert err['a.py'] == set(['D100', 'D103'])
+        assert 'base.py' in err, err
+        assert 'a.py' in err, err
+        assert err['base.py'] == set(['D100']), err
+        assert err['a.py'] == set(['D100', 'D103']), err
 
 
 def test_config_file_convention_overrides_select():
@@ -578,9 +578,9 @@ def test_config_file_convention_overrides_select():
         _, err, code = env.invoke_pep257()
 
         assert code == 1
-        assert 'D100' in err
-        assert 'base.py' not in err
-        assert 'a.py' in err
+        assert 'D100' in err, err
+        assert 'base.py' not in err, err
+        assert 'a.py' in err, err
 
 
 def test_cli_overrides_config_file():
@@ -616,10 +616,10 @@ def test_cli_overrides_config_file():
         _, err, code = env.invoke_pep257(args="--convention=pep257")
 
         assert code == 1
-        assert 'D100' in err
-        assert 'D103' not in err
-        assert 'base.py' in err
-        assert 'a.py' not in err
+        assert 'D100' in err, err
+        assert 'D103' not in err, err
+        assert 'base.py' in err, err
+        assert 'a.py' not in err, err
 
 
 def test_cli_match_overrides_config_file():
@@ -656,10 +656,10 @@ def test_cli_match_overrides_config_file():
         _, err, code = env.invoke_pep257(args="--match=a.py --match-dir=A")
 
         assert code == 1
-        assert 'D100' in err
-        assert 'D103' not in err
-        assert 'base.py' not in err
-        assert 'a.py' in err
+        assert 'D100' in err, err
+        assert 'D103' not in err, err
+        assert 'base.py' not in err, err
+        assert 'a.py' in err, err
 
 
 def test_config_file_convention_overrides_ignore():
@@ -698,10 +698,10 @@ def test_config_file_convention_overrides_ignore():
         _, err, code = env.invoke_pep257()
 
         assert code == 1
-        assert 'D100' in err
-        assert 'D103' in err
-        assert 'base.py' not in err
-        assert 'a.py' in err
+        assert 'D100' in err, err
+        assert 'D103' in err, err
+        assert 'base.py' not in err, err
+        assert 'a.py' in err, err
 
 
 def test_config_file_ignore_overrides_select():
@@ -743,10 +743,10 @@ def test_config_file_ignore_overrides_select():
         err = parse_errors(err)
 
         assert code == 1
-        assert 'base.py' in err
-        assert 'a.py' in err
-        assert err['base.py'] == set(['D100'])
-        assert err['a.py'] == set(['D100', 'D101'])
+        assert 'base.py' in err, err
+        assert 'a.py' in err, err
+        assert err['base.py'] == set(['D100']), err
+        assert err['a.py'] == set(['D100', 'D101']), err
 
 
 def test_config_file_nearest_to_checked_file():
@@ -800,12 +800,12 @@ def test_config_file_nearest_to_checked_file():
         err = parse_errors(err)
 
         assert code == 1
-        assert 'base.py' in err
-        assert 'a.py' in err
-        assert 'b.py' in err
-        assert err['base.py'] == set(['D101', 'D102'])
-        assert err['a.py'] == set(['D101', 'D102'])
-        assert err['b.py'] == set(['D102'])
+        assert 'base.py' in err, err
+        assert 'a.py' in err, err
+        assert 'b.py' in err, err
+        assert err['base.py'] == set(['D101', 'D102']), err
+        assert err['a.py'] == set(['D101', 'D102']), err
+        assert err['b.py'] == set(['D102']), err
 
 
 def test_config_file_nearest_match_re():
