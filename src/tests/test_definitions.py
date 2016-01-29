@@ -1,8 +1,8 @@
 import os
 import pytest
-from ..pep257 import (StringIO, TokenStream, Parser, Error, check,
-                      Module, Class, Method, Function, NestedFunction,
-                      ErrorRegistry, AllError)
+from ..pydocstyle import (StringIO, TokenStream, Parser, Error, check,
+                          Module, Class, Method, Function, NestedFunction,
+                          ErrorRegistry, AllError)
 
 
 _ = type('', (), dict(__repr__=lambda *a: '_', __eq__=lambda *a: True))()

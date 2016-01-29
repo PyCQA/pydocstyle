@@ -15,18 +15,18 @@ import tempfile
 import textwrap
 import subprocess
 
-from .. import pep257
+from .. import pydocstyle
 
 __all__ = ()
 
 
-class Pep257Env(object):
-    """An isolated environment where pep257.py can be run.
+class TestEnv(object):
+    """An isolated environment where pydocstyle can be run.
 
-    Since running pep257.py as a script is affected by local config files, it's
-    important that tests will run in an isolated environment. This class should
-    be used as a context manager and offers utility methods for adding files
-    to the environment and changing the environment's configuration.
+    Since running pydocstyle as a script is affected by local config files,
+    it's important that tests will run in an isolated environment. This class
+    should be used as a context manager and offers utility methods for adding
+    files to the environment and changing the environment's configuration.
 
     """
 
@@ -47,7 +47,7 @@ class Pep257Env(object):
             self.makedirs(base)
 
         with open(os.path.join(base, 'tox.ini'), 'wt') as conf:
-            conf.write("[pep257]\n")
+            conf.write("[pydocstyle]\n")
             for k, v in kwargs.items():
                 conf.write("{0} = {1}\n".format(k.replace('_', '-'), v))
 
@@ -63,20 +63,20 @@ class Pep257Env(object):
         """Create a directory in a path relative to the environment base."""
         os.makedirs(os.path.join(self.tempdir, path), *args, **kwargs)
 
-    def invoke_pep257(self, args="", target=None):
-        """Run pep257.py on the environment base folder with the given args.
+    def invoke(self, args="", target=None):
+        """Run pydocstyle on the environment base folder with the given args.
 
-        If `target` is not None, will run pep257 on `target` instead of
+        If `target` is not None, will run pydocstyle on `target` instead of
         the environment base folder.
 
         """
-        pep257_location = os.path.join(os.path.dirname(__file__),
-                                       '..', 'pep257.py')
+        script_location = os.path.join(os.path.dirname(__file__),
+                                       '..', 'pydocstyle.py')
         run_target = self.tempdir if target is None else \
             os.path.join(self.tempdir, target)
 
         cmd = shlex.split("python {0} {1} {2}"
-                          .format(pep257_location, run_target, args),
+                          .format(script_location, run_target, args),
                           posix=False)
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
@@ -119,10 +119,11 @@ def parse_errors(err):
 
 
 def test_pep257_conformance():
+    """Test that we conform to PEP 257."""
     relative = partial(os.path.join, os.path.dirname(__file__))
-    errors = list(pep257.check([relative('..', 'pep257.py'),
-                                relative('test_pep257.py')],
-                               select=pep257.conventions.pep257))
+    errors = list(pydocstyle.check([relative('..', 'pydocstyle.py'),
+                                    relative('integration.py')],
+                                   select=pydocstyle.conventions.pep257))
     assert errors == [], errors
 
 
@@ -136,16 +137,18 @@ def test_ignore_list():
     expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
                                 'D210', 'D403'))
     mock_open = mock.mock_open(read_data=function_to_check)
-    from .. import pep257
-    with mock.patch.object(pep257, 'tokenize_open', mock_open, create=True):
-        errors = tuple(pep257.check(['filepath']))
+    from .. import pydocstyle
+    with mock.patch.object(
+            pydocstyle, 'tokenize_open', mock_open, create=True):
+        errors = tuple(pydocstyle.check(['filepath']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes
 
     # We need to recreate the mock, otherwise the read file is empty
     mock_open = mock.mock_open(read_data=function_to_check)
-    with mock.patch.object(pep257, 'tokenize_open', mock_open, create=True):
-        errors = tuple(pep257.check(['filepath'], ignore=['D100', 'D202']))
+    with mock.patch.object(
+            pydocstyle, 'tokenize_open', mock_open, create=True):
+        errors = tuple(pydocstyle.check(['filepath'], ignore=['D100', 'D202']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes - set(('D100', 'D202'))
 
@@ -154,12 +157,12 @@ def test_config_file():
     """Test that options are correctly loaded from a config file.
 
     This test create a temporary directory and creates two files in it: a
-    Python file that has two pep257 violations (D100 and D103) and a config
+    Python file that has two violations (D100 and D103) and a config
     file (tox.ini). This test alternates settings in the config file and checks
-    that pep257 gives the correct output.
+    that we give the correct output.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 def foo():
@@ -167,63 +170,63 @@ def test_config_file():
             """))
 
         env.write_config(ignore='D100')
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
         assert code == 1
         assert 'D100' not in err
         assert 'D103' in err
 
         env.write_config(ignore='')
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
         assert code == 1
         assert 'D100' in err
         assert 'D103' in err
 
         env.write_config(ignore='D100,D103')
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
         assert code == 0
         assert 'D100' not in err
         assert 'D103' not in err
 
 
 def test_verbose():
-    """Test that passing --verbose to pep257 prints more information."""
-    with Pep257Env() as env:
+    """Test that passing --verbose prints more information."""
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write('"""Module docstring."""\n')
 
-        out, _, code = env.invoke_pep257()
+        out, _, code = env.invoke()
         assert code == 0
         assert 'example.py' not in out
 
-        out, _, code = env.invoke_pep257(args="--verbose")
+        out, _, code = env.invoke(args="--verbose")
         assert code == 0
         assert 'example.py' in out
 
 
 def test_count():
-    """Test that passing --count to pep257 correctly prints the error num."""
-    with Pep257Env() as env:
+    """Test that passing --count correctly prints the error num."""
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 def foo():
                     pass
             """))
 
-        out, err, code = env.invoke_pep257(args='--count')
+        out, err, code = env.invoke(args='--count')
         assert code == 1
         assert '2' in out
 
 
 def test_select_cli():
     """Test choosing error codes with `--select` in the CLI."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 def foo():
                     pass
             """))
 
-        _, err, code = env.invoke_pep257(args="--select=D100")
+        _, err, code = env.invoke(args="--select=D100")
         assert code == 1
         assert 'D100' in err
         assert 'D103' not in err
@@ -231,7 +234,7 @@ def test_select_cli():
 
 def test_select_config():
     """Test choosing error codes with `select` in the config file."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 def foo():
@@ -239,7 +242,7 @@ def test_select_config():
             """))
 
         env.write_config(select="D100")
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
         assert code == 1
         assert 'D100' in err
         assert 'D103' not in err
@@ -247,7 +250,7 @@ def test_select_config():
 
 def test_add_select_cli():
     """Test choosing error codes with --add-select in the CLI."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 class Foo(object):
@@ -256,7 +259,7 @@ def test_add_select_cli():
             """))
 
         env.write_config(select="D100")
-        _, err, code = env.invoke_pep257(args="--add-select=D101")
+        _, err, code = env.invoke(args="--add-select=D101")
         assert code == 1
         assert 'D100' in err
         assert 'D101' in err
@@ -265,7 +268,7 @@ def test_add_select_cli():
 
 def test_add_ignore_cli():
     """Test choosing error codes with --add-ignore in the CLI."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 class Foo(object):
@@ -274,7 +277,7 @@ def test_add_ignore_cli():
             """))
 
         env.write_config(select="D100,D101")
-        _, err, code = env.invoke_pep257(args="--add-ignore=D101")
+        _, err, code = env.invoke(args="--add-ignore=D101")
         assert code == 1
         assert 'D100' in err
         assert 'D101' not in err
@@ -283,27 +286,27 @@ def test_add_ignore_cli():
 
 def test_conflicting_select_ignore_config():
     """Test that select and ignore are mutually exclusive."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(select="D100", ignore="D101")
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
         assert code == 2
         assert 'mutually exclusive' in err
 
 
 def test_conflicting_select_convention_config():
     """Test that select and convention are mutually exclusive."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(select="D100", convention="pep257")
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
         assert code == 2
         assert 'mutually exclusive' in err
 
 
 def test_conflicting_ignore_convention_config():
     """Test that select and convention are mutually exclusive."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(ignore="D100", convention="pep257")
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
         assert code == 2
         assert 'mutually exclusive' in err
 
@@ -319,7 +322,7 @@ def test_unicode_raw():
     def u(x):
         return unicode_escape_decode(x)[0]
 
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent(u('''\
                 # -*- coding: utf-8 -*-
@@ -327,25 +330,25 @@ def test_unicode_raw():
                     ur"""Check unicode: \u2611 and raw: \\\\\\\\."""
             ''').encode('utf-8')))
         env.write_config(ignore='D100', verbose=True)
-        out, err, code = env.invoke_pep257()
+        out, err, code = env.invoke()
         assert code == 0
         assert 'D301' not in err
         assert 'D302' not in err
 
 
 def test_missing_docstring_in_package():
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('__init__.py', 'wt') as init:
             pass  # an empty package file
-        out, err, code = env.invoke_pep257()
+        out, err, code = env.invoke()
         assert code == 1
         assert 'D100' not in err  # shouldn't be treated as a module
         assert 'D104' in err  # missing docstring in package
 
 
 def test_illegal_convention():
-    with Pep257Env() as env:
-        out, err, code = env.invoke_pep257('--convention=illegal_conv')
+    with TestEnv() as env:
+        out, err, code = env.invoke('--convention=illegal_conv')
         assert code == 2
         assert "Illegal convention 'illegal_conv'." in err
         assert 'Possible conventions: pep257' in err
@@ -353,20 +356,20 @@ def test_illegal_convention():
 
 def test_empty_select_cli():
     """Test excluding all error codes with `--select=` in the CLI."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 def foo():
                     pass
             """))
 
-        _, _, code = env.invoke_pep257(args="--select=")
+        _, _, code = env.invoke(args="--select=")
         assert code == 0
 
 
 def test_empty_select_config():
     """Test excluding all error codes with `select=` in the config file."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 def foo():
@@ -374,13 +377,13 @@ def test_empty_select_config():
             """))
 
         env.write_config(select="")
-        _, _, code = env.invoke_pep257()
+        _, _, code = env.invoke()
         assert code == 0
 
 
 def test_empty_select_with_added_error():
     """Test excluding all errors but one."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent("""\
                 def foo():
@@ -388,7 +391,7 @@ def test_empty_select_with_added_error():
             """))
 
         env.write_config(select="")
-        _, err, code = env.invoke_pep257(args="--add-select=D100")
+        _, err, code = env.invoke(args="--add-select=D100")
         assert code == 1
         assert 'D100' in err
         assert 'D101' not in err
@@ -397,7 +400,7 @@ def test_empty_select_with_added_error():
 
 def test_pep257_convention():
     """Test that the 'pep257' convention options has the correct errors."""
-    with Pep257Env() as env:
+    with TestEnv() as env:
         with env.open('example.py', 'wt') as example:
             example.write(textwrap.dedent('''
                 class Foo(object):
@@ -409,7 +412,7 @@ def test_pep257_convention():
             '''))
 
         env.write_config(convention="pep257")
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
         assert code == 1
         assert 'D100' in err
         assert 'D211' in err
@@ -430,16 +433,16 @@ def test_config_file_inheritance():
         +-- test.py
             The file will contain code that violates D100,D103.
 
-    When invoking pep257, the first config file found in the base directory
+    When invoking pydocstyle, the first config file found in the base directory
     will set `select=`, so no error codes should be checked.
     The `A/tox.ini` configuration file sets `inherit=false` but has an empty
     configuration, therefore the default convention will be checked.
 
-    We expect pep257 to ignore the `select=` configuration and raise all
+    We expect pydocstyle to ignore the `select=` configuration and raise all
     the errors stated above.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(select='')
         env.write_config(prefix='A', inherit=False)
 
@@ -449,7 +452,7 @@ def test_config_file_inheritance():
                     pass
             """))
 
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
 
         assert code == 1
         assert 'D100' in err
@@ -474,7 +477,7 @@ def test_config_file_cumulative_add_ignores():
     `a.py` will pass.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(select='D100,D103', add_ignore='D100')
         env.write_config(prefix='A', add_ignore='D103')
 
@@ -489,7 +492,7 @@ def test_config_file_cumulative_add_ignores():
         with env.open(os.path.join('A', 'a.py'), 'wt') as test:
             test.write(test_content)
 
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
 
         err = parse_errors(err)
 
@@ -518,7 +521,7 @@ def test_config_file_cumulative_add_select():
     `a.py` will fail with D100,D103.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(select='', add_select='D100')
         env.write_config(prefix='A', add_select='D103')
 
@@ -533,7 +536,7 @@ def test_config_file_cumulative_add_select():
         with env.open(os.path.join('A', 'a.py'), 'wt') as test:
             test.write(test_content)
 
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
 
         err = parse_errors(err)
 
@@ -562,7 +565,7 @@ def test_config_file_convention_overrides_select():
     `a.py` will violate D100.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(select='D103')
         env.write_config(prefix='A', convention='pep257')
 
@@ -574,7 +577,7 @@ def test_config_file_convention_overrides_select():
         with env.open(os.path.join('A', 'a.py'), 'wt') as test:
             test.write(test_content)
 
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
 
         assert code == 1
         assert 'D100' in err, err
@@ -594,12 +597,12 @@ def test_cli_overrides_config_file():
         +-- a.py
             Will violate D100,D103.
 
-    We shall run pep257 with `--convention=pep257`.
+    We shall run with `--convention=pep257`.
     We expect `base.py` to be checked and violate `D100` and that `A/a.py` will
     not be checked because of `match-dir=foo` in the config file.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(select='D103', match_dir='foo')
 
         with env.open('base.py', 'wt') as test:
@@ -612,7 +615,7 @@ def test_cli_overrides_config_file():
                     pass
             """))
 
-        _, err, code = env.invoke_pep257(args="--convention=pep257")
+        _, err, code = env.invoke(args="--convention=pep257")
 
         assert code == 1
         assert 'D100' in err, err
@@ -635,11 +638,11 @@ def test_cli_match_overrides_config_file():
         +-- a.py
             Will violate D100.
 
-    We shall run pep257 with `--match=a.py` and `--match-dir=A`.
+    We shall run with `--match=a.py` and `--match-dir=A`.
     We expect `base.py` will not be checked and that `A/a.py` will be checked.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(match_dir='foo')
         env.write_config(prefix='A', match='bar.py')
 
@@ -652,7 +655,7 @@ def test_cli_match_overrides_config_file():
         with env.open(os.path.join('A', 'a.py'), 'wt') as test:
             test.write("")
 
-        _, err, code = env.invoke_pep257(args="--match=a.py --match-dir=A")
+        _, err, code = env.invoke(args="--match=a.py --match-dir=A")
 
         assert code == 1
         assert 'D100' in err, err
@@ -679,7 +682,7 @@ def test_config_file_convention_overrides_ignore():
     `a.py` will violate D103.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(ignore='D100,D103')
         env.write_config(prefix='A', convention='pep257')
 
@@ -694,7 +697,7 @@ def test_config_file_convention_overrides_ignore():
         with env.open(os.path.join('A', 'a.py'), 'wt') as test:
             test.write(test_content)
 
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
 
         assert code == 1
         assert 'D100' in err, err
@@ -721,7 +724,7 @@ def test_config_file_ignore_overrides_select():
     `a.py` will violate D100,D101.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(select='D100')
         env.write_config(prefix='A', ignore='D102')
 
@@ -737,7 +740,7 @@ def test_config_file_ignore_overrides_select():
         with env.open(os.path.join('A', 'a.py'), 'wt') as test:
             test.write(test_content)
 
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
 
         err = parse_errors(err)
 
@@ -774,7 +777,7 @@ def test_config_file_nearest_to_checked_file():
     `b.py` violates D102, since it's configured by `B/tox.ini` as well.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(convention='pep257', add_ignore='D100')
         env.write_config(prefix='B', add_ignore='D101')
 
@@ -794,7 +797,7 @@ def test_config_file_nearest_to_checked_file():
         with env.open(os.path.join('B', 'b.py'), 'wt') as test:
             test.write(test_content)
 
-        _, err, code = env.invoke_pep257()
+        _, err, code = env.invoke()
 
         err = parse_errors(err)
 
@@ -827,11 +830,11 @@ def test_config_file_nearest_match_re():
             +-- bla.py
                 Will violate D100.
 
-    We expect the call to pep257 to be successful, since `b.py` and
+    We expect the call to pydocstyle to be successful, since `b.py` and
     `c.py` are not supposed to be found by the re.
 
     """
-    with Pep257Env() as env:
+    with TestEnv() as env:
         env.write_config(convention='pep257', add_ignore='D100')
         env.write_config(prefix='A', match_dir='C')
         env.write_config(prefix=os.path.join('A', 'C'), match='bla.py')
@@ -851,6 +854,6 @@ def test_config_file_nearest_match_re():
         with env.open(os.path.join('A', 'C', 'bla.py'), 'wt') as test:
             test.write('')
 
-        _, _, code = env.invoke_pep257()
+        _, _, code = env.invoke()
 
         assert code == 0

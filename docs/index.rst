@@ -1,14 +1,14 @@
-.. pep257 documentation master file, created by
-   sphinx-quickstart on Fri Jan 30 20:30:42 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+pydocstyle's documentation
+==========================
 
-pep257's documentation
-======================
+(formerly pep257)
 
-**pep257** is a static analysis tool for checking
-compliance with Python `PEP 257
-<http://www.python.org/dev/peps/pep-0257/>`_.
+**pydocstyle** is a static analysis tool for checking compliance with Python
+docstring conventions.
+
+**pydocstyle** supports most of
+`PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ out of the box, but it
+should not be considered a reference implementation.
 
 
 .. include:: quickstart.rst
@@ -28,7 +28,8 @@ Contents:
 Credits
 =======
 
-Created by Vladimir Keleshev.
+pydocstyle is a rename and continuation of pep257, a project created by
+Vladimir Keleshev.
 
 Maintained by Amir Rachum.
 

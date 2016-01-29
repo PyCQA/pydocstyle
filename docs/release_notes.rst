@@ -18,11 +18,20 @@ New Features
 
 Bug Fixes
 
-* Fixed an issue where a ``NameError`` was raised when parsing complex defintions
-  of ``__all__`` (#142, #143).
+* Fixed an issue where a ``NameError`` was raised when parsing complex
+  definitions of ``__all__`` (#142, #143).
 
 * Fixed a bug where D202 was falsely reported when a function with just a
   docstring and no content was followed by a comment (#165).
+
+
+Older Versions
+==============
+
+.. note::
+
+    Versions documented below are before renaming the project from **pep257**
+    to **pydocstyle**.
 
 
 0.7.0 - October 9th, 2015

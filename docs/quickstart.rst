@@ -5,13 +5,13 @@ Quick Start
 
     .. code::
 
-        pip install pep257
+        pip install pydocstyle
 
 2. Run
 
     .. code::
 
-        $ pep257 test.py
+        $ pydocstyle test.py
         test.py:18 in private nested class `meta`:
                 D101: Docstring missing
         test.py:22 in public method `method`:

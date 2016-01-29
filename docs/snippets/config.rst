@@ -1,11 +1,23 @@
-``pep257`` supports `ini`-like configuration files. In order for ``pep257`` to
-use it, it must be named ``setup.cfg``, ``tox.ini``, ``.pep257``, or
-``.pep257rc`` and have a ``[pep257]`` section.
+``pydocstyle`` supports *ini*-like configuration files.
+In order for ``pydocstyle`` to use it, it must be named one of the following
+options, and have a ``[pydocstyle]`` section.
 
-When searching for a configuration file, ``pep257`` looks for one of the file
-specified above `in that exact order`. If a configuration file was not found,
-it keeps looking for one up the directory tree until one is found or uses
+* ``setup.cfg``
+* ``tox.ini``
+* ``.pydocstyle``
+* ``.pydocstylerc``
+
+When searching for a configuration file, ``pydocstyle`` looks for one of the
+file specified above *in that exact order*. If a configuration file was not
+found,it keeps looking for one up the directory tree until one is found or uses
 the default configuration.
+
+.. deprecated::
+
+    For backwards compatibility purposes, **pydocstyle** supports configuration
+    files named ``.pep257`` and ``.pep257rc``, as well as section header
+    ``[pep257]``. However, these are considered deprecated and support will be
+    removed in version 2.0.0.
 
 Available Options
 #################
@@ -26,14 +38,14 @@ See the :ref:`cli_usage` section for more information.
 Inheritance
 ###########
 
-By default, when finding a configuration file, ``pep257`` tries to inherit
+By default, when finding a configuration file, ``pydocstyle`` tries to inherit
 the parent directory's configuration and merge them to the local ones.
 
 The merge process is as follows:
 
 * If one of ``select``, ``ignore`` or ``convention`` was specified in the child
   configuration - Ignores the parent configuration and set the new error codes
-  to check. Othewise, Simply copies the parent checked error codes.
+  to check. Otherwise, simply copies the parent checked error codes.
 * If ``add-ignore`` or ``add-select`` were specified, adds or removes the
   specified error codes from the checked error codes list.
 * If ``match`` or ``match-dir`` were specified - use them. Otherwise, use the
@@ -54,7 +66,7 @@ Example
 
 .. code::
 
-    [pep257]
+    [pydocstyle]
     inherit = false
     ignore = D100,D203,D405
     match = *.py
