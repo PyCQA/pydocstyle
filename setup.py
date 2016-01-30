@@ -16,6 +16,7 @@ setup(
     long_description=open('README.rst').read(),
     license='MIT',
     author='Amir Rachum',
+    author_email='amir@rachum.com',
     url='https://github.com/PyCQA/pydocstyle/',
     classifiers=[
         'Intended Audience :: Developers',
