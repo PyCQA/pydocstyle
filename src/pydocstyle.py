@@ -56,7 +56,7 @@ except AttributeError:
     tokenize_open = open
 
 
-__version__ = '0.7.1-alpha'
+__version__ = '1.0.0a0'
 __all__ = ('check',)
 
 NO_VIOLATIONS_RETURN_CODE = 0
@@ -1052,9 +1052,10 @@ class ConfigurationParser(object):
         return CheckConfiguration(checked_codes=checked_codes,
                                   match=match, match_dir=match_dir)
 
-    def _get_section_name(parser):
+    @classmethod
+    def _get_section_name(cls, parser):
         """Parse options from relevant section."""
-        for section_name in POSSIBLE_SECTION_NAMES:
+        for section_name in cls.POSSIBLE_SECTION_NAMES:
             if parser.has_section(section_name):
                 return section_name
 
@@ -1073,7 +1074,7 @@ class ConfigurationParser(object):
         for fn in cls.PROJECT_CONFIG_FILES:
             config = RawConfigParser()
             full_path = os.path.join(path, fn)
-            if config.read(full_path) and self._get_section_name(config):
+            if config.read(full_path) and cls._get_section_name(config):
                 return full_path
 
     @staticmethod
@@ -1271,9 +1272,7 @@ def setup_stream_handlers(conf):
         def filter(self, record):
             return record.levelno in (logging.DEBUG, logging.INFO)
 
-    if log.handlers:
-        for handler in log.handlers:
-            log.removeHandler(handler)
+    log.handlers = []
 
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.WARNING)
@@ -1307,9 +1306,9 @@ def run_pydocstyle(used_pep257=False):
     setup_stream_handlers(run_conf)
 
     if used_pep257:
-        log.warning("Deprecation Warning:"
+        log.warning("Deprecation Warning:\n"
                     "pep257 has been renamed to pydocstyle and the use of the "
-                    "pep257 executable is deprecated and will be removed in"
+                    "pep257 executable is deprecated and will be removed in "
                     "version 2.0.0. Please use pydocstyle instead.")
 
     log.debug("starting in debug mode.")
@@ -1665,11 +1664,15 @@ class PEP257Checker(object):
                 return Error()
 
 
-def main():
+def main(use_pep257=False):
     try:
-        sys.exit(run_pydocstyle())
+        sys.exit(run_pydocstyle(use_pep257))
     except KeyboardInterrupt:
         pass
+
+
+def main_pep257():
+    main(use_pep257=True)
 
 
 if __name__ == '__main__':
