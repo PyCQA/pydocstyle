@@ -1,14 +1,8 @@
 #! /usr/bin/env python
 """Static analysis tool for checking docstring conventions and style.
 
-Implemented checks cover PEP257:
-http://www.python.org/dev/peps/pep-0257/
-
-Other checks can be added, e.g. NumPy docstring conventions:
-https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt
-
 The repository is located at:
-http://github.com/GreenSteam/pep257
+http://github.com/PyCQA/pydocstyle
 
 """
 from __future__ import with_statement
@@ -62,7 +56,7 @@ except AttributeError:
     tokenize_open = open
 
 
-__version__ = '0.7.1-alpha'
+__version__ = '1.0.0a0'
 __all__ = ('check',)
 
 NO_VIOLATIONS_RETURN_CODE = 0
@@ -262,8 +256,8 @@ class AllError(Exception):
     def __init__(self, message):
         Exception.__init__(
             self, message +
-            'That means pep257 cannot decide which definitions are public. '
-            'Variable __all__ should be present at most once in each file, '
+            'That means pydocstyle cannot decide which definitions are public.'
+            ' Variable __all__ should be present at most once in each file, '
             "in form `__all__ = ('a_public_function', 'APublicClass', ...)`. "
             'More info on __all__: http://stackoverflow.com/q/44834/. ')
 
@@ -393,14 +387,15 @@ class Parser(object):
             raise AllError('Could not evaluate contents of __all__. ')
         if self.current.value == '[':
             msg = ("%s WARNING: __all__ is defined as a list, this means "
-                   "pep257 cannot reliably detect contents of the __all__ "
+                   "pydocstyle cannot reliably detect contents of the __all__ "
                    "variable, because it can be mutated. Change __all__ to be "
                    "an (immutable) tuple, to remove this warning. Note, "
-                   "pep257 uses __all__ to detect which definitions are "
+                   "pydocstyle uses __all__ to detect which definitions are "
                    "public, to warn if public definitions are missing "
-                   "docstrings. If __all__ is a (mutable) list, pep257 cannot "
-                   "reliably assume its contents. pep257 will proceed "
-                   "assuming __all__ is not mutated.\n" % self.filename)
+                   "docstrings. If __all__ is a (mutable) list, pydocstyle "
+                   "cannot reliably assume its contents. pydocstyle will "
+                   "proceed assuming __all__ is not mutated.\n"
+                   % self.filename)
             sys.stderr.write(msg)
         self.consume(tk.OP)
 
@@ -712,7 +707,7 @@ conventions = AttrDict({
 })
 
 
-# General configurations for pep257 run.
+# General configurations for pydocstyle run.
 RunConfiguration = namedtuple('RunConfiguration',
                               ('explain', 'source', 'debug',
                                'verbose', 'count'))
@@ -783,7 +778,17 @@ class ConfigurationParser(object):
     DEFAULT_MATCH_DIR_RE = '[^\.].*'
     DEFAULT_CONVENTION = conventions.pep257
 
-    PROJECT_CONFIG_FILES = ('setup.cfg', 'tox.ini', '.pep257', '.pep257rc')
+    PROJECT_CONFIG_FILES = (
+        'setup.cfg',
+        'tox.ini',
+        '.pydocstyle',
+        '.pydocstylerc',
+        # The following are deprecated, but remain for backwards compatibility.
+        '.pep257',
+        '.pep257rc',
+    )
+
+    POSSIBLE_SECTION_NAMES = ('pydocstyle', 'pep257')
 
     def __init__(self):
         """Create a configuration parser."""
@@ -820,7 +825,7 @@ class ConfigurationParser(object):
 
     @check_initialized
     def get_user_run_configuration(self):
-        """Return the run configuration for pep257."""
+        """Return the run configuration for the script."""
         return self._run_conf
 
     @check_initialized
@@ -936,7 +941,7 @@ class ConfigurationParser(object):
         return self._cache[path]
 
     def _read_configuration_file(self, path):
-        """Try to read and parse `path` as a pep257 configuration file.
+        """Try to read and parse `path` as a configuration file.
 
         If the configurations were illegal (checked with
         `self._validate_options`), raises `IllegalConfiguration`.
@@ -948,7 +953,7 @@ class ConfigurationParser(object):
         options = None
         should_inherit = True
 
-        if parser.read(path) and parser.has_section('pep257'):
+        if parser.read(path) and self._get_section_name(parser):
             option_list = dict([(o.dest, o.type or o.action)
                                 for o in self._parser.option_list])
 
@@ -956,10 +961,10 @@ class ConfigurationParser(object):
             new_options, _ = self._parse_args([])
 
             # Second, parse the configuration
-            pep257_section = 'pep257'
-            for opt in parser.options(pep257_section):
+            section_name = self._get_section_name(parser)
+            for opt in parser.options(section_name):
                 if opt == 'inherit':
-                    should_inherit = parser.getboolean(pep257_section, opt)
+                    should_inherit = parser.getboolean(section_name, opt)
                     continue
 
                 if opt.replace('_', '-') not in self.CONFIG_FILE_OPTIONS:
@@ -969,12 +974,12 @@ class ConfigurationParser(object):
                 normalized_opt = opt.replace('-', '_')
                 opt_type = option_list[normalized_opt]
                 if opt_type in ('int', 'count'):
-                    value = parser.getint(pep257_section, opt)
+                    value = parser.getint(section_name, opt)
                 elif opt_type == 'string':
-                    value = parser.get(pep257_section, opt)
+                    value = parser.get(section_name, opt)
                 else:
                     assert opt_type in ('store_true', 'store_false')
-                    value = parser.getboolean(pep257_section, opt)
+                    value = parser.getboolean(section_name, opt)
                 setattr(new_options, normalized_opt, value)
 
             # Third, fix the set-options
@@ -1048,6 +1053,15 @@ class ConfigurationParser(object):
                                   match=match, match_dir=match_dir)
 
     @classmethod
+    def _get_section_name(cls, parser):
+        """Parse options from relevant section."""
+        for section_name in cls.POSSIBLE_SECTION_NAMES:
+            if parser.has_section(section_name):
+                return section_name
+
+        return None
+
+    @classmethod
     def _get_config_file_in_folder(cls, path):
         """Look for a configuration file in `path`.
 
@@ -1060,7 +1074,7 @@ class ConfigurationParser(object):
         for fn in cls.PROJECT_CONFIG_FILES:
             config = RawConfigParser()
             full_path = os.path.join(path, fn)
-            if config.read(full_path) and config.has_section('pep257'):
+            if config.read(full_path) and cls._get_section_name(config):
                 return full_path
 
     @staticmethod
@@ -1160,8 +1174,9 @@ class ConfigurationParser(object):
         """Return an option parser to parse the command line arguments."""
         from optparse import OptionParser
 
-        parser = OptionParser(version=__version__,
-                              usage='Usage: pep257 [options] [<file|dir>...]')
+        parser = OptionParser(
+            version=__version__,
+            usage='Usage: pydocstyle [options] [<file|dir>...]')
 
         option = parser.add_option
 
@@ -1221,7 +1236,7 @@ def check(filenames, select=None, ignore=None):
 
     Example
     -------
-    >>> check(['pep257.py'], checked_codes=['D100'])
+    >>> check([ppydocstyle.py.py], checked_codes=['D100'])
     <generator object check at 0x...>
 
     """
@@ -1257,9 +1272,7 @@ def setup_stream_handlers(conf):
         def filter(self, record):
             return record.levelno in (logging.DEBUG, logging.INFO)
 
-    if log.handlers:
-        for handler in log.handlers:
-            log.removeHandler(handler)
+    log.handlers = []
 
     stdout_handler = logging.StreamHandler(sys.stdout)
     stdout_handler.setLevel(logging.WARNING)
@@ -1277,7 +1290,7 @@ def setup_stream_handlers(conf):
     log.addHandler(stderr_handler)
 
 
-def run_pep257():
+def run_pydocstyle(used_pep257=False):
     log.setLevel(logging.DEBUG)
     conf = ConfigurationParser()
     setup_stream_handlers(conf.get_default_run_configuration())
@@ -1292,7 +1305,13 @@ def run_pep257():
     # Reset the logger according to the command line arguments
     setup_stream_handlers(run_conf)
 
-    log.debug("starting pep257 in debug mode.")
+    if used_pep257:
+        log.warning("Deprecation Warning:\n"
+                    "pep257 has been renamed to pydocstyle and the use of the "
+                    "pep257 executable is deprecated and will be removed in "
+                    "version 2.0.0. Please use pydocstyle instead.")
+
+    log.debug("starting in debug mode.")
 
     Error.explain = run_conf.explain
     Error.source = run_conf.source
@@ -1645,11 +1664,15 @@ class PEP257Checker(object):
                 return Error()
 
 
-def main():
+def main(use_pep257=False):
     try:
-        sys.exit(run_pep257())
+        sys.exit(run_pydocstyle(use_pep257))
     except KeyboardInterrupt:
         pass
+
+
+def main_pep257():
+    main(use_pep257=True)
 
 
 if __name__ == '__main__':
