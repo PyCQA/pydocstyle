@@ -49,7 +49,7 @@ class TestEnv(object):
             self.makedirs(base)
 
         with open(os.path.join(base, 'tox.ini'), 'wt') as conf:
-            conf.write("[{}]\n".format(self.script_name))
+            conf.write("[{0}]\n".format(self.script_name))
             for k, v in kwargs.items():
                 conf.write("{0} = {1}\n".format(k.replace('_', '-'), v))
 
@@ -855,4 +855,3 @@ def test_pep257_entry_point():
         _, err, code = env.invoke()
         assert code == 0
         assert 'Deprecation Warning' in err, err
-
