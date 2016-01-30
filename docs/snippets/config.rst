@@ -9,10 +9,10 @@ options, and have a ``[pydocstyle]`` section.
 
 When searching for a configuration file, ``pydocstyle`` looks for one of the
 file specified above *in that exact order*. If a configuration file was not
-found,it keeps looking for one up the directory tree until one is found or uses
-the default configuration.
+found, it keeps looking for one up the directory tree until one is found or
+uses the default configuration.
 
-.. deprecated::
+.. note::
 
     For backwards compatibility purposes, **pydocstyle** supports configuration
     files named ``.pep257``, as well as section header ``[pep257]``. However,
