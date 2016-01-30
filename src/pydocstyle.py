@@ -56,7 +56,7 @@ except AttributeError:
     tokenize_open = open
 
 
-__version__ = '1.0.0a0'
+__version__ = '1.0.0'
 __all__ = ('check',)
 
 NO_VIOLATIONS_RETURN_CODE = 0
@@ -783,9 +783,8 @@ class ConfigurationParser(object):
         'tox.ini',
         '.pydocstyle',
         '.pydocstylerc',
-        # The following are deprecated, but remain for backwards compatibility.
+        # The following is deprecated, but remains for backwards compatibility.
         '.pep257',
-        '.pep257rc',
     )
 
     POSSIBLE_SECTION_NAMES = ('pydocstyle', 'pep257')

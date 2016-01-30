@@ -1,9 +1,15 @@
 Release Notes
 =============
 
+**pydocstyle** version numbers follow the
+`Semantic Versioning <http://semver.org/>`_ specification.
 
-Current Development Version
----------------------------
+1.0.0 - January 30th, 2016
+--------------------------
+
+Major Updates
+
+* The project was renamed to **pydocstyle** and the new release will be 1.0.0!
 
 New Features
 
@@ -14,7 +20,11 @@ New Features
   underscore and if their parent class is public, recursively (#13, #146).
 
 * Added the D403 error code - "First word of the first line should be
-  properly capitalized". This new error is turned on by default (#164, #165).
+  properly capitalized". This new error is turned on by default (#164, #165,
+  #170).
+
+* Added support for ``.pydocstylerc`` and as configuration file name
+  (#140, #173).
 
 Bug Fixes
 
@@ -23,6 +33,11 @@ Bug Fixes
 
 * Fixed a bug where D202 was falsely reported when a function with just a
   docstring and no content was followed by a comment (#165).
+
+* Fixed wrong ``__all__`` definition in main module (#150, #156).
+
+* Fixed a bug where an ``AssertionError`` could occur when parsing
+  ``__future__`` imports (#154).
 
 
 Older Versions

@@ -15,9 +15,9 @@ the default configuration.
 .. deprecated::
 
     For backwards compatibility purposes, **pydocstyle** supports configuration
-    files named ``.pep257`` and ``.pep257rc``, as well as section header
-    ``[pep257]``. However, these are considered deprecated and support will be
-    removed in version 2.0.0.
+    files named ``.pep257``, as well as section header ``[pep257]``. However,
+    these are considered deprecated and support will be removed in the next
+    major version.
 
 Available Options
 #################
