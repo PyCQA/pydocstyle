@@ -5,13 +5,16 @@ Usage
 
 .. code::
 
-    Usage: pep257 [options] [<file|dir>...]
+    Usage: pydocstyle [options] [<file|dir>...]
 
     Options:
       --version             show program's version number and exit
       -h, --help            show this help message and exit
       -e, --explain         show explanation of each error
       -s, --source          show source for each error
+      -d, --debug           print debug information
+      -v, --verbose         print status information
+      --count               print total number of errors to stdout
       --select=<codes>      choose the basic list of checked errors by specifying
                             which errors to check for (with a list of comma-
                             separated error codes). for example:
@@ -33,9 +36,6 @@ Usage
                             search only dirs that exactly match <pattern> regular
                             expression; default is --match-dir='[^\.].*', which
                             matches all dirs that don't start with a dot
-      -d, --debug           print debug information
-      -v, --verbose         print status information
-      --count               print total number of errors to stdout
 
 
 Return Code
