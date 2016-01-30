@@ -1308,7 +1308,7 @@ def run_pydocstyle(used_pep257=False):
         log.warning("Deprecation Warning:\n"
                     "pep257 has been renamed to pydocstyle and the use of the "
                     "pep257 executable is deprecated and will be removed in "
-                    "version 2.0.0. Please use pydocstyle instead.")
+                    "the next major version. Please use `pydocstyle` instead.")
 
     log.debug("starting in debug mode.")
 
