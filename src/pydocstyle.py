@@ -59,9 +59,13 @@ except AttributeError:
 __version__ = '1.0.1-rc1'
 __all__ = ('check',)
 
-NO_VIOLATIONS_RETURN_CODE = 0
-VIOLATIONS_RETURN_CODE = 1
-INVALID_OPTIONS_RETURN_CODE = 2
+
+class ReturnCode(object):
+    no_violations_found = 0
+    violations_found = 1
+    invalid_options = 2
+
+
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
 
 
@@ -1297,7 +1301,7 @@ def run_pydocstyle(used_pep257=False):
     try:
         conf.parse()
     except IllegalConfiguration:
-        return INVALID_OPTIONS_RETURN_CODE
+        return ReturnCode.invalid_options
 
     run_conf = conf.get_user_run_configuration()
 
@@ -1321,13 +1325,13 @@ def run_pydocstyle(used_pep257=False):
             errors.extend(check((filename,), select=checked_codes))
     except IllegalConfiguration:
         # An illegal configuration file was found during file generation.
-        return INVALID_OPTIONS_RETURN_CODE
+        return ReturnCode.invalid_options
 
-    code = NO_VIOLATIONS_RETURN_CODE
+    code = ReturnCode.no_violations_found
     count = 0
     for error in errors:
         sys.stderr.write('%s\n' % error)
-        code = VIOLATIONS_RETURN_CODE
+        code = ReturnCode.violations_found
         count += 1
     if run_conf.count:
         print(count)
