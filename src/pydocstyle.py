@@ -683,6 +683,10 @@ D210 = D2xx.create_error('D210', 'No whitespaces allowed surrounding '
                                  'docstring text')
 D211 = D2xx.create_error('D211', 'No blank lines allowed before class '
                                  'docstring', 'found %s')
+D212 = D2xx.create_error('D212', 'Multi-line docstring summary should start '
+                                 'at the first line')
+D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
+                                 'at the second line')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
@@ -707,7 +711,8 @@ class AttrDict(dict):
 
 
 conventions = AttrDict({
-    'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203']),
+    'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203', 'D212',
+                                                          'D213'])
 })
 
 
@@ -1540,6 +1545,30 @@ class PEP257Checker(object):
             if lines[0].startswith(' ') or \
                     len(lines) == 1 and lines[0].endswith(' '):
                 return D210()
+
+    @check_for(Definition)
+    def check_multi_line_summary_start(self, definition, docstring):
+        """D21{2,3}: Multi-line docstring summary style check.
+
+        A multi-line docstring summary should start either at the first,
+        or separately at the second line of a docstring.
+
+        """
+        if docstring:
+            start_triple = [
+                '"""', "'''",
+                'u"""', "u'''",
+                'r"""', "r'''",
+                'ur"""', "ur'''"
+            ]
+
+            lines = ast.literal_eval(docstring).split('\n')
+            if len(lines) > 1:
+                first = docstring.split("\n")[0].strip().lower()
+                if first in start_triple:
+                    return D212()
+                else:
+                    return D213()
 
     @check_for(Definition)
     def check_triple_double_quotes(self, definition, docstring):

@@ -50,6 +50,7 @@ def function():
 
 @expect('D200: One-line docstring should fit on one line with quotes '
         '(found 3)')
+@expect('D212: Multi-line docstring summary should start at the first line')
 def asdlkfasd():
     """
     Wrong.
@@ -120,6 +121,7 @@ class LeadingAndTrailingSpaceMissing:
 
 @expect('D205: 1 blank line required between summary line and description '
         '(found 0)')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def multi_line_zero_separating_blanks():
     """Summary.
     Description.
@@ -129,6 +131,7 @@ def multi_line_zero_separating_blanks():
 
 @expect('D205: 1 blank line required between summary line and description '
         '(found 2)')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def multi_line_two_separating_blanks():
     """Summary.
 
@@ -138,6 +141,7 @@ def multi_line_two_separating_blanks():
     """
 
 
+@expect('D213: Multi-line docstring summary should start at the second line')
 def multi_line_one_separating_blanks():
     """Summary.
 
@@ -147,6 +151,7 @@ def multi_line_one_separating_blanks():
 
 
 @expect('D207: Docstring is under-indented')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def asdfsdf():
     """Summary.
 
@@ -156,6 +161,7 @@ Description.
 
 
 @expect('D207: Docstring is under-indented')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def asdsdfsdffsdf():
     """Summary.
 
@@ -165,6 +171,7 @@ def asdsdfsdffsdf():
 
 
 @expect('D208: Docstring is over-indented')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def asdfsdsdf24():
     """Summary.
 
@@ -174,6 +181,7 @@ def asdfsdsdf24():
 
 
 @expect('D208: Docstring is over-indented')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def asdfsdsdfsdf24():
     """Summary.
 
@@ -183,6 +191,7 @@ def asdfsdsdfsdf24():
 
 
 @expect('D208: Docstring is over-indented')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def asdfsdfsdsdsdfsdf24():
     """Summary.
 
@@ -193,6 +202,7 @@ def asdfsdfsdsdsdfsdf24():
 
 @expect('D209: Multi-line docstring closing quotes should be on a separate '
         'line')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def asdfljdf24():
     """Summary.
 
@@ -210,6 +220,7 @@ def around():
 
 
 @expect('D210: No whitespaces allowed surrounding docstring text')
+@expect('D213: Multi-line docstring summary should start at the second line')
 def multiline():
     """ Whitespace at the begining.
 
@@ -275,6 +286,7 @@ def foobar():
     """Signature: foobar()."""
 
 
+@expect('D213: Multi-line docstring summary should start at the second line')
 def new_209():
     """First line.
 
@@ -283,6 +295,7 @@ def new_209():
     pass
 
 
+@expect('D213: Multi-line docstring summary should start at the second line')
 def old_209():
     """One liner.
 
@@ -300,6 +313,7 @@ def oneliner_withdoc(): """One liner"""
 
 
 @expect("D207: Docstring is under-indented")
+@expect('D213: Multi-line docstring summary should start at the second line')
 def docstring_start_in_same_line(): """First Line.
 
     Second Line
@@ -310,7 +324,8 @@ def function_with_lambda_arg(x=lambda y: y):
     """A valid docstring."""
 
 
-def a_following_valid_function(x):
+@expect('D213: Multi-line docstring summary should start at the second line')
+def a_following_valid_function(x=None):
     """Check for a bug where the previous function caused an assertion.
 
     The assertion was caused in the next function, so this one is necessary.
