@@ -218,23 +218,44 @@ def multiline():
 
 
 @expect('D300: Use """triple double quotes""" (found \'\'\'-quotes)')
-def lsfklkjllkjl():
+def triple_single_quotes_raw():
     r'''Summary.'''
 
 
+@expect('D300: Use """triple double quotes""" (found \'\'\'-quotes)')
+def triple_single_quotes_raw_uppercase():
+    R'''Summary.'''
+
+
 @expect('D300: Use """triple double quotes""" (found \'-quotes)')
-def lalskklkjllkjl():
+def single_quotes_raw():
     r'Summary.'
 
 
+@expect('D300: Use """triple double quotes""" (found \'-quotes)')
+def single_quotes_raw_uppercase():
+    R'Summary.'
+
+
+@expect('D300: Use """triple double quotes""" (found \'-quotes)')
 @expect('D301: Use r""" if any backslashes in a docstring')
-def lalsksdewnlkjl():
+def single_quotes_raw_uppercase_backslash():
+    R'Sum\mary.'
+
+
+@expect('D301: Use r""" if any backslashes in a docstring')
+def double_quotes_backslash():
     """Sum\\mary."""
+
+
+@expect('D301: Use r""" if any backslashes in a docstring')
+def double_quotes_backslash_uppercase():
+    R"""Sum\\mary."""
 
 
 if sys.version_info[0] <= 2:
     @expect('D302: Use u""" for Unicode docstrings')
-    def lasewnlkjl():
+    def unicode_unmarked():
         """Юникод."""
 
 

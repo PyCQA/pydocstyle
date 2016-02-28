@@ -4,6 +4,12 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+x.x.x - Current Development Version
+-----------------------------------
+
+* The error code D300 is now also being reported if a docstring has
+  uppercase literals (``R`` or ``U``) as prefix (#176).
+
 1.0.0 - January 30th, 2016
 --------------------------
 
