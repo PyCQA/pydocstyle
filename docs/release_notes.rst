@@ -7,6 +7,9 @@ Release Notes
 Current Development Version
 ---------------------------
 
+* The error code D302 is now also being reported for Python versions
+  3.3 and following (#178).
+
 * The error code D300 is now also being reported if a docstring has
   uppercase literals (``R`` or ``U``) as prefix (#176).
 

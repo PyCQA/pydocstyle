@@ -1592,9 +1592,11 @@ class PEP257Checker(object):
 
         # Just check that docstring is unicode, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and sys.version_info[0] <= 2:
-            if not is_ascii(docstring) and not docstring.startswith(
-                    ('u', 'ur')):
+        if docstring and not docstring.startswith('u'):
+            if sys.version_info < (3, 0) and not is_ascii(docstring):
+                return D302()
+
+            if sys.version_info >= (3, 3) and docstring.startswith('U'):
                 return D302()
 
     @check_for(Definition)

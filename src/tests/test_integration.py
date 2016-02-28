@@ -319,28 +319,73 @@ def test_conflicting_ignore_convention_config(env):
     assert 'mutually exclusive' in err
 
 
-def test_unicode_raw(env):
-    """Test acceptance of unicode raw docstrings for python 2.x."""
-    if sys.version_info[0] >= 3:
-        return  # ur"" is a syntax error in python 3.x
+def test_unicode_prefix(env):
+    """Test acceptance of unicode docstrings with literal prefix."""
+    if (3, 0) <= sys.version_info < (3, 3):
+        return  # Unicode prefix is not valid in Python 3.0 - 3.2.
 
-    # This is all to avoid a syntax error for python 3.2
-    from codecs import unicode_escape_decode
+    if sys.version_info < (3, 0):
+        from codecs import unicode_escape_decode
 
-    def u(x):
-        return unicode_escape_decode(x)[0]
+        def u(x):
+            return unicode_escape_decode(x)[0]
+    else:
+        def u(x):
+            return x
 
-    with env.open('example.py', 'wt') as example:
-        example.write(textwrap.dedent(u('''\
-            # -*- coding: utf-8 -*-
-            def foo():
-                ur"""Check unicode: \u2611 and raw: \\\\\\\\."""
-        ''').encode('utf-8')))
-    env.write_config(ignore='D100', verbose=True)
-    out, err, code = env.invoke()
-    assert code == 0
-    assert 'D301' not in err
-    assert 'D302' not in err
+    env.write_config(convention='pep257')
+
+    def prepare_test(content):
+        content = u(textwrap.dedent(content)).encode("utf-8")
+        with env.open('example.py', 'wb') as example:
+            example.write(content)
+
+    def test_lowercase():
+        prepare_test(
+            '''\
+                # -*- coding: utf-8 -*-
+                """Module Docstring."""
+                def unicode_lowercase():
+                    u"""Check unicode: \u2611."""
+            '''
+        )
+        out, err, code = env.invoke()
+        assert code == 0
+        assert 'D300' not in err
+        assert 'D302' not in err
+
+    def test_uppercase():
+        prepare_test(
+            '''\
+                # -*- coding: utf-8 -*-
+                """Module Docstring."""
+                def unicode_uppercase():
+                    U"""Check unicode: \u2611."""
+            '''
+        )
+        out, err, code = env.invoke()
+        assert code == 1
+        assert 'D300' not in err
+        assert 'D302' in err
+
+    def test_raw():
+        prepare_test(
+            '''\
+                # -*- coding: utf-8 -*-
+                """Module Docstring."""
+                def unicode_raw():
+                    ur"""Check unicode: \u2611 and raw: \\\\\\\\."""
+            '''
+        )
+        out, err, code = env.invoke()
+        assert code == 0
+        assert 'D300' not in err
+        assert 'D302' not in err
+
+    test_lowercase()
+    test_uppercase()
+    if sys.version_info < (3, 0):
+        test_raw()  # Raw unicode prefix is valid in Python 2, only.
 
 
 def test_missing_docstring_in_package(env):
