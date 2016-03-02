@@ -1554,15 +1554,17 @@ class PEP257Checker(object):
               """ quotes in its body.
 
         '''
-        if (docstring and '"""' in ast.literal_eval(docstring) and
-                docstring.startswith(("'''", "r'''", "u'''", "ur'''"))):
-            # Allow ''' quotes if docstring contains """, because otherwise """
-            # quotes could not be expressed inside docstring.  Not in PEP 257.
-            return
-        if docstring and not docstring.startswith(
-                ('"""', 'r"""', 'u"""', 'ur"""')):
-            quotes = "'''" if "'''" in docstring[:4] else "'"
-            return D300(quotes)
+        if docstring:
+            opening = docstring[:5].lower()
+            if '"""' in ast.literal_eval(docstring) and opening.startswith(
+                    ("'''", "r'''", "u'''", "ur'''")):
+                # Allow ''' quotes if docstring contains """, because
+                # otherwise """ quotes could not be expressed inside
+                # docstring. Not in PEP 257.
+                return
+            if not opening.startswith(('"""', 'r"""', 'u"""', 'ur"""')):
+                quotes = "'''" if "'''" in opening else "'"
+                return D300(quotes)
 
     @check_for(Definition)
     def check_backslashes(self, definition, docstring):
