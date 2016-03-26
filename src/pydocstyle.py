@@ -151,10 +151,6 @@ class Module(Definition):
     module = property(lambda self: self)
     all = property(lambda self: self._all)
 
-    def __init__(self, *args, **kwargs):
-        super(Module, self).__init__(*args, **kwargs)
-        self.name = self.name.lower()
-
     def __str__(self):
         return 'at module level'
 
