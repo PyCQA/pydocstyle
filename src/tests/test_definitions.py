@@ -253,26 +253,25 @@ def test_token_stream():
     assert stream.line == 1
 
 
-def test_pep257():
+@pytest.mark.parametrize('test_case', [
+    'test',
+    'unicode_literals',
+    'nested_class',
+    'capitalization',
+    'comment_after_def_bug',
+    'multi_line_summary_start',
+])
+def test_pep257(test_case):
     """Run domain-specific tests from test.py file."""
-    test_cases = (
-        'test',
-        'unicode_literals',
-        'nested_class',
-        'capitalization',
-        'comment_after_def_bug',
-        'multi_line_summary_start'
-    )
-    for test_case in test_cases:
-        case_module = __import__('test_cases.{0}'.format(test_case),
-                                 globals=globals(),
-                                 locals=locals(),
-                                 fromlist=['expectation'],
-                                 level=1)
-        results = list(check([os.path.join(os.path.dirname(__file__),
-                                           'test_cases', test_case + '.py')],
-                             select=set(ErrorRegistry.get_error_codes())))
-        for error in results:
-            assert isinstance(error, Error)
-        results = set([(e.definition.name, e.message) for e in results])
-        assert case_module.expectation.expected == results
+    case_module = __import__('test_cases.{0}'.format(test_case),
+                             globals=globals(),
+                             locals=locals(),
+                             fromlist=['expectation'],
+                             level=1)
+    results = list(check([os.path.join(os.path.dirname(__file__),
+                                       'test_cases', test_case + '.py')],
+                         select=set(ErrorRegistry.get_error_codes())))
+    for error in results:
+        assert isinstance(error, Error)
+    results = set([(e.definition.name, e.message) for e in results])
+    assert case_module.expectation.expected == results
