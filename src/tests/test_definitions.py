@@ -261,6 +261,7 @@ def test_pep257():
         'nested_class',
         'capitalization',
         'comment_after_def_bug',
+        'multi_line_summary_start'
     )
     for test_case in test_cases:
         case_module = __import__('test_cases.{0}'.format(test_case),

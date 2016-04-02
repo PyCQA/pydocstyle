@@ -167,9 +167,10 @@ def test_ignore_list():
     mock_open = mock.mock_open(read_data=function_to_check)
     with mock.patch.object(
             pydocstyle, 'tokenize_open', mock_open, create=True):
-        errors = tuple(pydocstyle.check(['filepath'], ignore=['D100', 'D202']))
+        ignored = set(('D100', 'D202', 'D213'))
+        errors = tuple(pydocstyle.check(['filepath'], ignore=ignored))
         error_codes = set(error.code for error in errors)
-        assert error_codes == expected_error_codes - set(('D100', 'D202'))
+        assert error_codes == expected_error_codes - ignored
 
 
 def test_config_file(env):
@@ -419,6 +420,8 @@ def test_pep257_convention(env):
     assert 'D100' in err
     assert 'D211' in err
     assert 'D203' not in err
+    assert 'D212' not in err
+    assert 'D213' not in err
 
 
 def test_config_file_inheritance(env):
