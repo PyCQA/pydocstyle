@@ -339,5 +339,5 @@ def outer_function():
         """Do inner something."""
         return 0
 
-expect(__file__.lower() if __file__[-1] != 'c' else __file__[:-1].lower(),
+expect(__file__ if __file__[-1] != 'c' else __file__[:-1],
        'D100: Missing docstring in public module')
