@@ -717,7 +717,10 @@ D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '%r, not %r')
-
+D404 = D4xx.create_error('D404', 'Section name should be properly capitalized',
+                         '%r, not %r')
+D405 = D4xx.create_error('D405', 'Section underline should match the length of '
+                                 'the section\'s name', 'len(%r) == %r, not %r')
 
 class AttrDict(dict):
     def __getattr__(self, item):
@@ -1711,6 +1714,100 @@ class PEP257Checker(object):
             if 'return' not in docstring.lower():
                 return Error()
 
+    @check_for(Function)
+    def check_numpy(self, function, docstring):
+        """D403: First word of the first line should be properly capitalized.
+
+        The [first line of a] docstring is a phrase ending in a period.
+
+        """
+        SECTIONS = ['Summary',
+                    'Extended Summary',
+                    'Parameters',
+                    'Returns',
+                    'Yields',
+                    'Raises',
+                    'Other Parameters',
+                    'See Also',
+                    'Notes',
+                    'References',
+                    'Examples']
+
+        if not docstring:
+            return
+
+        ds = DocstringStream(docstring)
+        if ds.line_number < 2:
+            return
+
+        _ = ds.consume_line()  # Skipping the first line
+        curr_line = ds.consume_line()
+
+        while curr_line is not None:
+            for section in SECTIONS:
+                if section.lower() == curr_line.strip().lower():
+                    if len(curr_line) > len(curr_line.lstrip()):
+                        return D208()
+                    if section not in curr_line:
+                        return D404(section, curr_line.strip())
+
+                    curr_line = ds.consume_line()
+                    if curr_line.rstrip() != "-" * len(section):
+                        return D405(section, len(section),
+                                    len(curr_line.rstrip()))
+            curr_line = ds.consume_line()
+
+
+class DocstringStream(object):
+    """Reads numpy conventions."""
+
+    def __init__(self, docstring):
+        self._lines = ast.literal_eval(docstring).split('\n')
+        self._base_indent = self._find_indent_level(docstring)
+        self._line_index = 0
+
+        self._handlers = {'parameters': self._consume_parameters_section}
+        self.line_number = len(self._lines)
+
+    def consume_line(self):
+        if self._line_index >= len(self._lines):
+            return None
+        try:
+            return self.peek_current_line()
+        finally:
+            self._line_index += 1
+
+    def peek_current_line(self):
+        # First line is not indented
+        if self._line_index == 0:
+            return self._lines[self._line_index]
+
+        return self._lines[self._line_index][self._base_indent:]
+
+    def peek_next_line(self):
+        if self._line_index + 1 >= self.line_number:
+            return None
+
+        return self._lines[self._line_index + 1][self._base_indent:]
+
+    def _verify_section_header(self, section_name):
+        curr_line = self.peek_current_line()
+
+    def _consume_parameters_section(self):
+        pass
+
+
+    @staticmethod
+    def _find_indent_level(docstring):
+        lines = docstring.split('\n')
+        if len(lines) > 1:
+            last_line = lines[-1]
+            if last_line.endswith('"""'):
+                return last_line.find('"""')
+            else:
+                return last_line.find("'''")
+        return 0
+
 
 def main(use_pep257=False):
     try:
@@ -1722,6 +1819,12 @@ def main(use_pep257=False):
 def main_pep257():
     main(use_pep257=True)
 
+def foo():
+    """A.
+
+    Parameters
+    ---------
+    """
 
 if __name__ == '__main__':
     main()
