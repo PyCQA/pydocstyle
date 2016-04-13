@@ -18,6 +18,7 @@ from itertools import takewhile, dropwhile, chain
 from re import compile as re
 import itertools
 from collections import defaultdict, namedtuple, Set
+from functools import partial
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -119,6 +120,7 @@ class Definition(Value):
     all = property(lambda self: self.module.all)
     _slice = property(lambda self: slice(self.start - 1, self.end))
     is_class = False
+    is_function = False
 
     def __iter__(self):
         return chain([self], *self.children)
@@ -161,6 +163,9 @@ class Package(Module):
 
 class Function(Definition):
 
+    is_function = True
+    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+               'children', 'parent', 'parameters')
     _nest = staticmethod(lambda s: {'def': NestedFunction,
                                     'class': NestedClass}[s])
 
@@ -448,6 +453,8 @@ class Parser(object):
         self.stream.move()
         if self.current.kind == tk.OP and self.current.value == '(':
             parenthesis_level = 0
+            arguments = []
+            is_default_assignment = False
             while True:
                 if self.current.kind == tk.OP:
                     if self.current.value == '(':
@@ -456,6 +463,14 @@ class Parser(object):
                         parenthesis_level -= 1
                         if parenthesis_level == 0:
                             break
+                    elif self.current.value == '=':
+                        is_default_assignment = True
+                elif self.current.kind == tk.NAME:
+                    if is_default_assignment:
+                        is_default_assignment = False
+                    else:
+                        arguments.append(self.current.value)
+
                 self.stream.move()
         if self.current.kind != tk.OP or self.current.value != ':':
             self.leapfrog(tk.OP, value=":")
@@ -477,8 +492,11 @@ class Parser(object):
             children = []
             end = self.line
             self.leapfrog(tk.NEWLINE)
-        definition = class_(name, self.source, start, end,
-                            decorators, docstring, children, None)
+
+        creator = partial(class_, name, self.source, start, end,
+                          decorators, docstring, children, None)
+
+        definition = creator(arguments) if class_.is_function else creator()
         for child in definition.children:
             child.parent = definition
         log.debug("finished parsing %s '%s'. Next token is %r (%s)",
