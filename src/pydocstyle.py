@@ -701,6 +701,8 @@ D212 = D2xx.create_error('D212', 'Multi-line docstring summary should start '
                                  'at the first line')
 D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
                                  'at the second line')
+D214 = D2xx.create_error('D214', 'Section or section underline is '
+                                 'over-indented', 'in section %r')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
@@ -719,8 +721,10 @@ D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '%r, not %r')
 D404 = D4xx.create_error('D404', 'Section name should be properly capitalized',
                          '%r, not %r')
-D405 = D4xx.create_error('D405', 'Section underline should match the length of '
-                                 'the section\'s name', 'len(%r) == %r, not %r')
+D405 = D4xx.create_error('D405', 'Section name should not end with a colon',
+                         '%r, not %r')
+D406 = D4xx.create_error('D406', 'Section underline should match the length of '
+                                 'the section\'s name', 'len(%r) == %r')
 
 class AttrDict(dict):
     def __getattr__(self, item):
@@ -1281,7 +1285,7 @@ def check(filenames, select=None, ignore=None):
         try:
             with tokenize_open(filename) as file:
                 source = file.read()
-            for error in PEP257Checker().check_source(source, filename):
+            for error in ConventionChecker().check_source(source, filename):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error
@@ -1371,7 +1375,7 @@ def check_for(kind, terminal=False):
     return decorator
 
 
-class PEP257Checker(object):
+class ConventionChecker(object):
     """Checker for PEP 257.
 
     D10x: Missing docstrings
@@ -1381,13 +1385,27 @@ class PEP257Checker(object):
 
     """
 
+    ALL_NUMPY_SECTIONS = ['Short Summary',
+                          'Extended Summary',
+                          'Parameters',
+                          'Returns',
+                          'Yields',
+                          'Other Parameters',
+                          'Raises',
+                          'See Also',
+                          'Notes',
+                          'References',
+                          'Examples',
+                          'Attributes',
+                          'Methods']
+
     def check_source(self, source, filename):
         module = parse(StringIO(source), filename)
         for definition in module:
             for check in self.checks:
                 terminate = False
                 if isinstance(definition, check._check_for):
-                    error = check(None, definition, definition.docstring)
+                    error = check(self, definition, definition.docstring)
                     errors = error if hasattr(error, '__iter__') else [error]
                     for error in errors:
                         if error is not None:
@@ -1516,6 +1534,13 @@ class PEP257Checker(object):
                 if blanks_count != 1:
                     return D205(blanks_count)
 
+    @staticmethod
+    def _get_docstring_indent(definition, docstring):
+        """Return the indentation of the docstring's opening quotes."""
+        before_docstring, _, _ = definition.source.partition(docstring)
+        _, _, indent = before_docstring.rpartition('\n')
+        return indent
+
     @check_for(Definition)
     def check_indent(self, definition, docstring):
         """D20{6,7,8}: The entire docstring should be indented same as code.
@@ -1525,8 +1550,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            before_docstring, _, _ = definition.source.partition(docstring)
-            _, _, indent = before_docstring.rpartition('\n')
+            indent = self._get_docstring_indent(definition, docstring)
             lines = docstring.split('\n')
             if len(lines) > 1:
                 lines = lines[1:]  # First line does not need indent.
@@ -1714,99 +1738,90 @@ class PEP257Checker(object):
             if 'return' not in docstring.lower():
                 return Error()
 
-    @check_for(Function)
-    def check_numpy(self, function, docstring):
+    @check_for(Definition)
+    def check_numpy_content(self, definition, docstring):
+        """Check the content of the docstring for numpy conventions."""
+        pass
+
+    @check_for(Definition)
+    def check_numpy(self, definition, docstring):
         """D403: First word of the first line should be properly capitalized.
 
         The [first line of a] docstring is a phrase ending in a period.
 
         """
-        SECTIONS = ['Summary',
-                    'Extended Summary',
-                    'Parameters',
-                    'Returns',
-                    'Yields',
-                    'Raises',
-                    'Other Parameters',
-                    'See Also',
-                    'Notes',
-                    'References',
-                    'Examples']
-
         if not docstring:
             return
 
-        ds = DocstringStream(docstring)
-        if ds.line_number < 2:
+        lines = docstring.split("\n")
+        if len(lines) < 2:
+            # It's not a multiple lined docstring
             return
 
-        _ = ds.consume_line()  # Skipping the first line
-        curr_line = ds.consume_line()
+        lines_generator = ScrollableGenerator(lines[1:])  # Skipping first line
+        indent = self._get_docstring_indent(definition, docstring)
 
-        while curr_line is not None:
-            for section in SECTIONS:
-                if section.lower() == curr_line.strip().lower():
-                    if len(curr_line) > len(curr_line.lstrip()):
-                        return D208()
-                    if section not in curr_line:
-                        return D404(section, curr_line.strip())
+        for line in lines_generator:
+            for section in self.ALL_NUMPY_SECTIONS:
+                with_colon = section.lower() + ':'
+                if line.strip().lower() in [section.lower(), with_colon]:
+                    # There's a chance that this line is a numpy parameter
+                    try:
+                        next_line = lines_generator.next()
+                    except StopIteration:
+                        # It probably isn't :)
+                        return
 
-                    curr_line = ds.consume_line()
-                    if curr_line.rstrip() != "-" * len(section):
-                        return D405(section, len(section),
-                                    len(curr_line.rstrip()))
-            curr_line = ds.consume_line()
+                    if ''.join(set(next_line.strip())) == '-':
+                        # The next line contains only dashes, it's a good chance
+                        # that it's a numpy section
+
+                        if (leading_space(line) > indent or
+                                leading_space(next_line) > indent):
+                            yield D214(section)
+
+                        if section not in line:
+                            yield D404(section, line.strip())
+                        elif line.strip().lower() == with_colon:
+                            yield D405(section, line.strip())
+
+                        if next_line.strip() != "-" * len(section):
+                            yield D406(section, len(section))
+                    else:
+                        # The next line does not contain only dashes, so it's
+                        # not likely to be a section header.
+                        lines_generator.scroll_back()
 
 
-class DocstringStream(object):
-    """Reads numpy conventions."""
+class ScrollableGenerator(object):
+    """A generator over a list that can be moved back during iteration."""
 
-    def __init__(self, docstring):
-        self._lines = ast.literal_eval(docstring).split('\n')
-        self._base_indent = self._find_indent_level(docstring)
-        self._line_index = 0
+    def __init__(self, list_like):
+        self._list_like = list_like
+        self._index = 0
 
-        self._handlers = {'parameters': self._consume_parameters_section}
-        self.line_number = len(self._lines)
+    def __iter__(self):
+        return self
 
-    def consume_line(self):
-        if self._line_index >= len(self._lines):
-            return None
+    def next(self):
+        """Generate the next item or raise StopIteration."""
         try:
-            return self.peek_current_line()
+            return self._list_like[self._index]
+        except IndexError:
+            raise StopIteration()
         finally:
-            self._line_index += 1
+            self._index += 1
 
-    def peek_current_line(self):
-        # First line is not indented
-        if self._line_index == 0:
-            return self._lines[self._line_index]
+    def scroll_back(self, num=1):
+        """Move the generator `num` items backwards."""
+        if num < 0:
+            raise ValueError('num cannot be a negative number')
+        self._index = max(0, self._index - num)
 
-        return self._lines[self._line_index][self._base_indent:]
-
-    def peek_next_line(self):
-        if self._line_index + 1 >= self.line_number:
-            return None
-
-        return self._lines[self._line_index + 1][self._base_indent:]
-
-    def _verify_section_header(self, section_name):
-        curr_line = self.peek_current_line()
-
-    def _consume_parameters_section(self):
-        pass
-
-
-    @staticmethod
-    def _find_indent_level(docstring):
-        lines = docstring.split('\n')
-        if len(lines) > 1:
-            last_line = lines[-1]
-            if last_line.endswith('"""'):
-                return last_line.find('"""')
-            else:
-                return last_line.find("'''")
-        return 0
+    def clone(self):
+        """Return a copy of the generator set to the same item index."""
+        obj_copy = self.__class__(self._list_like)
+        obj_copy._index = self._index
 
 
 def main(use_pep257=False):
@@ -1823,7 +1838,11 @@ def foo():
     """A.
 
     Parameters
-    ---------
+    ----------
+
+    This is a string that defines some things, such as the following
+    parameters
+    a, b, d.
     """
 
 if __name__ == '__main__':
