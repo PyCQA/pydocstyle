@@ -723,8 +723,9 @@ D404 = D4xx.create_error('D404', 'Section name should be properly capitalized',
                          '%r, not %r')
 D405 = D4xx.create_error('D405', 'Section name should not end with a colon',
                          '%r, not %r')
-D406 = D4xx.create_error('D406', 'Section underline should match the length of '
-                                 'the section\'s name', 'len(%r) == %r')
+D406 = D4xx.create_error('D406', 'Section underline should match the length '
+                                 'of the section\'s name', 'len(%r) == %r')
+
 
 class AttrDict(dict):
     def __getattr__(self, item):
@@ -1765,7 +1766,7 @@ class ConventionChecker(object):
             for section in self.ALL_NUMPY_SECTIONS:
                 with_colon = section.lower() + ':'
                 if line.strip().lower() in [section.lower(), with_colon]:
-                    # There's a chance that this line is a numpy parameter
+                    # There's a chance that this line is a numpy section
                     try:
                         next_line = lines_generator.next()
                     except StopIteration:
@@ -1773,8 +1774,8 @@ class ConventionChecker(object):
                         return
 
                     if ''.join(set(next_line.strip())) == '-':
-                        # The next line contains only dashes, it's a good chance
-                        # that it's a numpy section
+                        # The next line contains only dashes, there's a good
+                        # chance that it's a numpy section
 
                         if (leading_space(line) > indent or
                                 leading_space(next_line) > indent):
@@ -1833,6 +1834,7 @@ def main(use_pep257=False):
 
 def main_pep257():
     main(use_pep257=True)
+
 
 def foo():
     """A.
