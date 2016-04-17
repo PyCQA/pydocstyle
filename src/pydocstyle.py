@@ -734,7 +734,11 @@ class AttrDict(dict):
 
 conventions = AttrDict({
     'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203', 'D212',
-                                                          'D213'])
+                                                          'D213', 'D214',
+                                                          'D404', 'D405',
+                                                          'D406']),
+    'numpy': set(ErrorRegistry.get_error_codes()) - set(['D203', 'D212',
+                                                         'D213', 'D402'])
 })
 
 
