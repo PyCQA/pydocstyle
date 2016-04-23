@@ -21,7 +21,7 @@ from .. import pydocstyle
 __all__ = ()
 
 
-class TestEnv(object):
+class SandboxEnv(object):
     """An isolated environment where pydocstyle can be run.
 
     Since running pydocstyle as a script is affected by local config files,
@@ -109,7 +109,7 @@ def install_package(request):
 
 @pytest.yield_fixture(scope="function", params=('pydocstyle', 'pep257'))
 def env(request):
-    with TestEnv(request.param) as test_env:
+    with SandboxEnv(request.param) as test_env:
         yield test_env
 
 
@@ -855,7 +855,7 @@ def test_config_file_nearest_match_re(env):
 
 
 def test_pep257_entry_point():
-    with TestEnv('pep257') as env:
+    with SandboxEnv('pep257') as env:
         _, err, code = env.invoke()
         assert code == 0
         assert 'Deprecation Warning' in err, err
