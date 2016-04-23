@@ -15,4 +15,4 @@ check only error codes that are part of the `PEP257
 <http://www.python.org/dev/peps/pep-0257/>`_ official convention.
 
 All of the above error codes are checked for by default except for D203,
-D212 and D213.
+D212, D213 and D404.

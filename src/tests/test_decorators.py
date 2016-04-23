@@ -13,7 +13,7 @@ import textwrap
 from .. import pydocstyle
 
 
-class TestParser:
+class TestParser(object):
     """Check parsing of Python source code."""
 
     def test_parse_class_single_decorator(self):
