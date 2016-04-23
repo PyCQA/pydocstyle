@@ -253,8 +253,8 @@ def test_token_stream():
     assert stream.line == 1
 
 
-def test_pep257():
-    """Run domain-specific tests from test.py file."""
+def test_example_files():
+    """Run domain-specific tests from test case files."""
     test_cases = (
         'test',
         'unicode_literals',
@@ -275,4 +275,4 @@ def test_pep257():
         for error in results:
             assert isinstance(error, Error)
         results = set([(e.definition.name, e.message) for e in results])
-        assert case_module.expectation.expected == results
+        assert case_module.expectation.expected == results, test_case
