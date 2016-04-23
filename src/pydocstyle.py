@@ -699,6 +699,8 @@ D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '%r, not %r')
+D404 = D4xx.create_error('D404', 'First word of the docstring should not '
+                                 'be `This`')
 
 
 class AttrDict(dict):
@@ -707,8 +709,10 @@ class AttrDict(dict):
 
 
 conventions = AttrDict({
-    'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203', 'D212',
-                                                          'D213'])
+    'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203',
+                                                          'D212',
+                                                          'D213',
+                                                          'D404'])
 })
 
 
@@ -1431,7 +1435,6 @@ class PEP257Checker(object):
         There's no blank line either before or after the docstring.
 
         """
-        # NOTE: This does not take into account functions with groups of code.
         if docstring:
             before, _, after = function.source.partition(docstring)
             blanks_before = list(map(is_blank, before.split('\n')[:-1]))
@@ -1679,6 +1682,19 @@ class PEP257Checker(object):
                     return
             if first_word != first_word.capitalize():
                 return D403(first_word.capitalize(), first_word)
+
+    @check_for(Definition)
+    def check_starts_with_this(self, function, docstring):
+        """D404: First word of the docstring should not be `This`.
+
+        Docstrings should use short, simple language. They should not begin
+        with "This class is [..]" or "This module contains [..]".
+
+        """
+        if docstring:
+            first_word = ast.literal_eval(docstring).split()[0]
+            if first_word.lower() == 'this':
+                return D404()
 
     # Somewhat hard to determine if return value is mentioned.
     # @check(Function)
