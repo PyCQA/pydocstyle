@@ -1324,7 +1324,7 @@ def setup_stream_handlers(conf):
     log.addHandler(stderr_handler)
 
 
-def run_pydocstyle(used_pep257=False):
+def run_pydocstyle(use_pep257=False):
     log.setLevel(logging.DEBUG)
     conf = ConfigurationParser()
     setup_stream_handlers(conf.get_default_run_configuration())
@@ -1339,7 +1339,7 @@ def run_pydocstyle(used_pep257=False):
     # Reset the logger according to the command line arguments
     setup_stream_handlers(run_conf)
 
-    if used_pep257:
+    if use_pep257:
         log.warning("Deprecation Warning:\n"
                     "pep257 has been renamed to pydocstyle and the use of the "
                     "pep257 executable is deprecated and will be removed in "
