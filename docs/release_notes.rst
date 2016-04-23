@@ -7,9 +7,16 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
 * Added the optional error codes D212 and D213, for checking whether
   the summary of a multi-line docstring starts at the first line,
   respectively at the second line (#174).
+
+* Added D404 - First word of the docstring should not be `This`. It is turned
+  off by default (#183).
+
+Bug Fixes
 
 * The error code D300 is now also being reported if a docstring has
   uppercase literals (``R`` or ``U``) as prefix (#176).

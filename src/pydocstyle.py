@@ -719,11 +719,13 @@ D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '%r, not %r')
-D404 = D4xx.create_error('D404', 'Section name should be properly capitalized',
+D404 = D4xx.create_error('D404', 'First word of the docstring should not '
+                                 'be `This`')
+D405 = D4xx.create_error('D405', 'Section name should be properly capitalized',
                          '%r, not %r')
-D405 = D4xx.create_error('D405', 'Section name should not end with a colon',
+D406 = D4xx.create_error('D406', 'Section name should not end with a colon',
                          '%r, not %r')
-D406 = D4xx.create_error('D406', 'Section underline should match the length '
+D407 = D4xx.create_error('D407', 'Section underline should match the length '
                                  'of the section\'s name', 'len(%r) == %r')
 
 
@@ -736,7 +738,7 @@ conventions = AttrDict({
     'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203', 'D212',
                                                           'D213', 'D214',
                                                           'D404', 'D405',
-                                                          'D406']),
+                                                          'D406', 'D407']),
     'numpy': set(ErrorRegistry.get_error_codes()) - set(['D203', 'D212',
                                                          'D213', 'D402'])
 })
@@ -1475,7 +1477,6 @@ class ConventionChecker(object):
         There's no blank line either before or after the docstring.
 
         """
-        # NOTE: This does not take into account functions with groups of code.
         if docstring:
             before, _, after = function.source.partition(docstring)
             blanks_before = list(map(is_blank, before.split('\n')[:-1]))
@@ -1730,6 +1731,19 @@ class ConventionChecker(object):
             if first_word != first_word.capitalize():
                 return D403(first_word.capitalize(), first_word)
 
+    @check_for(Definition)
+    def check_starts_with_this(self, function, docstring):
+        """D404: First word of the docstring should not be `This`.
+
+        Docstrings should use short, simple language. They should not begin
+        with "This class is [..]" or "This module contains [..]".
+
+        """
+        if docstring:
+            first_word = ast.literal_eval(docstring).split()[0]
+            if first_word.lower() == 'this':
+                return D404()
+
     # Somewhat hard to determine if return value is mentioned.
     # @check(Function)
     def SKIP_check_return_type(self, function, docstring):
@@ -1786,12 +1800,12 @@ class ConventionChecker(object):
                             yield D214(section)
 
                         if section not in line:
-                            yield D404(section, line.strip())
-                        elif line.strip().lower() == with_colon:
                             yield D405(section, line.strip())
+                        elif line.strip().lower() == with_colon:
+                            yield D406(section, line.strip())
 
                         if next_line.strip() != "-" * len(section):
-                            yield D406(section, len(section))
+                            yield D407(section, len(section))
                     else:
                         # The next line does not contain only dashes, so it's
                         # not likely to be a section header.
