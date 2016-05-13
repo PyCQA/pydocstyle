@@ -260,6 +260,7 @@ def test_token_stream():
     'capitalization',
     'comment_after_def_bug',
     'multi_line_summary_start',
+    'all_import',
 ])
 def test_pep257(test_case):
     """Run domain-specific tests from test.py file."""

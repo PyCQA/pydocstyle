@@ -486,6 +486,18 @@ class Parser(object):
                   self.current.value)
         return definition
 
+    def check_current(self, kind=None, value=None):
+        msg = """Error at line {self.line}:
+
+        In file: {self.filename}
+
+        Got kind {self.current.kind!r}
+        Got value {self.current.value}
+        """.format(self=self)
+        kind_valid = self.current.kind == kind if kind else True
+        value_valid = self.current.value == value if value else True
+        assert kind_valid and value_valid, msg
+
     def parse_from_import_statement(self):
         """Parse a 'from x import y' statement.
 
@@ -495,9 +507,12 @@ class Parser(object):
         log.debug('parsing from/import statement.')
         assert self.current.value == 'from', self.current.value
         self.stream.move()
-        if self.current.value != '__future__':
-            return
+        is_future_import = self.current.value == '__future__'
         self.stream.move()
+        while (self.current.kind in (tk.DOT, tk.NAME, tk.OP) and
+               self.current.value != 'import'):
+            self.stream.move()
+        self.check_current(value='import')
         assert self.current.value == 'import', self.current.value
         self.stream.move()
         if self.current.value == '(':
@@ -512,8 +527,9 @@ class Parser(object):
                 continue
             log.debug("parsing import, token is %r (%s)",
                       self.current.kind, self.current.value)
-            log.debug('found future import: %s', self.current.value)
-            self.future_imports[self.current.value] = True
+            if is_future_import:
+                log.debug('found future import: %s', self.current.value)
+                self.future_imports[self.current.value] = True
             self.consume(tk.NAME)
             log.debug("parsing import, token is %r (%s)",
                       self.current.kind, self.current.value)
