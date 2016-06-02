@@ -520,7 +520,7 @@ class Parser(object):
         is_future_import = self.current.value == '__future__'
         self.stream.move()
         while (self.current.kind in (tk.DOT, tk.NAME, tk.OP) and
-                       self.current.value != 'import'):
+               self.current.value != 'import'):
             self.stream.move()
         self.check_current(value='import')
         assert self.current.value == 'import', self.current.value
