@@ -154,7 +154,7 @@ def test_ignore_list():
             return foo
     ''')
     expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
-                                'D210', 'D403'))
+                                'D210', 'D403', 'D405', 'D406'))
     mock_open = mock.mock_open(read_data=function_to_check)
     from .. import pydocstyle
     with mock.patch.object(

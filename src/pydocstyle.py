@@ -701,6 +701,10 @@ D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '%r, not %r')
 D404 = D4xx.create_error('D404', 'First word of the docstring should not '
                                  'be `This`')
+D405 = D4xx.create_error('D405', 'Return value type should be mentioned.',
+                         '%r')
+D406 = D4xx.create_error('D406', 'Function arguments should be mentioned.',
+                         '%r')
 
 
 class AttrDict(dict):
@@ -1696,18 +1700,93 @@ class PEP257Checker(object):
             if first_word.lower() == 'this':
                 return D404()
 
-    # Somewhat hard to determine if return value is mentioned.
-    # @check(Function)
-    def SKIP_check_return_type(self, function, docstring):
-        """D40x: Return value type should be mentioned.
+    @check_for(Function)
+    def check_return_type(self, function, docstring):
+        """D405: Return value type should be mentioned.
 
         [T]he nature of the return value cannot be determined by
         introspection, so it should be mentioned.
 
         """
-        if docstring and function.returns_value:
-            if 'return' not in docstring.lower():
-                return Error()
+
+        class ReturnStatementTransformer(ast.NodeTransformer):
+
+            def __init__(self, *a, **kw):
+                self.value = None
+                self.parsed_one_function = False
+                super(ReturnStatementTransformer, self).__init__(*a, **kw)
+
+            def visit_Return(self, node):
+                # ignore empty "return"
+                if node.value is None:
+                    return
+                if isinstance(node.value, ast.Name):
+                    # ignore "return None"
+                    if node.value.id == 'None':
+                        return
+                    # document named return variables
+                    # return x
+                    #   D405: Return value type should be mentioned. ('x')
+                    self.value = node.value.id
+
+                # document all other return types
+                # return 5
+                #   D405: Return value type should be mentioned. ('Num')
+                # return (5, 6)
+                #   D405: Return value type should be mentioned. ('Tuple')
+                # return [5, 6]
+                #   D405: Return value type should be mentioned. ('List')
+                # return "t"
+                #   D405: Return value type should be mentioned. ('Str')
+                # return {"t": 5}
+                #   D405: Return value type should be mentioned. ('Dict')
+                # FIXME: this is using ast class names, could be nicer and
+                # translate into python names
+                self.value = node.value.__class__.__name__
+
+            def visit_FunctionDef(self, node):
+                # only parse the first FunctionDef
+                if self.parsed_one_function:
+                    return node
+                self.parsed_one_function = True
+                super(ReturnStatementTransformer, self).generic_visit(node)
+                return node
+
+            def visit_ClassDef(self, node):
+                # ignore all ClassDefs
+                pass
+
+        # ignore functions without docstrings
+        if not docstring:
+            return
+
+        # ignore functions that already mention return
+        # FIXME: this is only checking if "return" is anywhere in
+        # the docstring, not if the return is properly documented.
+        if 'return' in docstring.lower():
+            return
+
+        tree = ast.parse(function.source.strip())
+
+        t = ReturnStatementTransformer()
+        t.visit(tree)
+        if t.value is not None:
+            return D405(t.value)
+
+    @check_for(Function)
+    def check_args(self, function, docstring):
+        """D406: Function arguments should be mentioned."""
+        if docstring:
+            tree = ast.parse(function.source.strip())
+            fndef = tree.body[0]
+            args = set([arg.id for arg in fndef.args.args])
+            ignore_args = set(['cls', 'self', '*args', '**kwargs'])
+            args -= ignore_args
+            # FIXME: this is only checking if arg is anywhere in
+            # the docstring, not if the arg is properly documented.
+            undocumented_args = [a for a in args if a not in docstring]
+            if undocumented_args:
+                return D406(undocumented_args)
 
 
 def main(use_pep257=False):

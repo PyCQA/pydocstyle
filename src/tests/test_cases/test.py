@@ -320,17 +320,22 @@ def docstring_start_in_same_line(): """First Line.
     """
 
 
+@expect("D406: Function arguments should be mentioned. (['x'])")
 def function_with_lambda_arg(x=lambda y: y):
     """A valid docstring."""
 
 
+@expect("D406: Function arguments should be mentioned. (['z'])")
 @expect('D213: Multi-line docstring summary should start at the second line')
-def a_following_valid_function(x=None):
+def a_following_valid_function(z=None):
     """Check for a bug where the previous function caused an assertion.
 
     The assertion was caused in the next function, so this one is necessary.
 
     """
+
+expect('inner_function',
+       "D405: Return value type should be mentioned. ('Num')")
 
 
 def outer_function():
@@ -338,6 +343,30 @@ def outer_function():
     def inner_function():
         """Do inner something."""
         return 0
+
+
+@expect("D405: Return value type should be mentioned. ('Num')")
+def return_inside_if():
+    """Do something."""
+    a = False
+    if a:
+        return 1
+    return
+
+
+@expect("D406: Function arguments should be mentioned. (['z'])")
+def nested_class(z=None):
+    """A docstring."""
+    @expect('D211: No blank lines allowed before class docstring (found 1)')
+    class InternalClass(object):
+
+        """Class Docstring."""
+
+        @expect("D405: Return value type should be mentioned. ('Num')")
+        def internal_method(self=None):
+            """Internal Docstring."""
+            return 5
+
 
 expect(__file__ if __file__[-1] != 'c' else __file__[:-1],
        'D100: Missing docstring in public module')
