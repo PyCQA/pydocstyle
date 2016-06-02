@@ -507,16 +507,28 @@ class Parser(object):
 
         """
         log.debug('parsing from/import statement.')
+        is_future_import = self._parse_from_import_source()
+        self._parse_from_import_names(is_future_import)
+
+    def _parse_from_import_source(self):
+        """Parse the 'from x import' part in a 'from x import y' statement.
+
+        Return true iff `x` is __future__.
+        """
         assert self.current.value == 'from', self.current.value
         self.stream.move()
         is_future_import = self.current.value == '__future__'
         self.stream.move()
         while (self.current.kind in (tk.DOT, tk.NAME, tk.OP) and
-               self.current.value != 'import'):
+                       self.current.value != 'import'):
             self.stream.move()
         self.check_current(value='import')
         assert self.current.value == 'import', self.current.value
         self.stream.move()
+        return is_future_import
+
+    def _parse_from_import_names(self, is_future_import):
+        """Parse the 'y' part in a 'from x import y' statement."""
         if self.current.value == '(':
             self.consume(tk.OP)
             expected_end_kind = tk.OP
