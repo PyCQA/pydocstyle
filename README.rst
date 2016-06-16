@@ -50,7 +50,7 @@ Links
     :target: https://readthedocs.org/projects/pydocstyle/?badge=latest
     :alt: Documentation Status
 
-* `Read the full documentation here <http://pydocstyle.readthedocs.org>`_.
+* `Read the full documentation here <https://pydocstyle.readthedocs.io>`_.
 
 * `Fork pydocstyle on GitHub <http://github.com/PyCQA/pydocstyle>`_.
 
