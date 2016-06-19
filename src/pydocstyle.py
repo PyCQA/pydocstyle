@@ -1762,13 +1762,27 @@ class ConventionChecker(object):
         """Check the content of the docstring for numpy conventions."""
         pass
 
+    def check_numpy_parameters(self, section, content, definition, docstring):
+        print "LALALAL"
+        yield
+
+    def _check_numpy_section(self, section, content, definition, docstring):
+        """Check the content of the docstring for numpy conventions."""
+        method_name = "check_numpy_%s" % section
+        if hasattr(self, method_name):
+            gen_func = getattr(self, method_name)
+
+            for err in gen_func(section, content, definition, docstring):
+                yield err
+        else:
+            print "Now checking numpy section %s" % section
+            for l in content:
+                print "##", l
+
+
     @check_for(Definition)
     def check_numpy(self, definition, docstring):
-        """D403: First word of the first line should be properly capitalized.
-
-        The [first line of a] docstring is a phrase ending in a period.
-
-        """
+        """Parse the general structure of a numpy docstring and check it."""
         if not docstring:
             return
 
@@ -1779,6 +1793,10 @@ class ConventionChecker(object):
 
         lines_generator = ScrollableGenerator(lines[1:])  # Skipping first line
         indent = self._get_docstring_indent(definition, docstring)
+
+        current_section = None
+        curr_section_lines = []
+        start_collecting_lines = False
 
         for line in lines_generator:
             for section in self.ALL_NUMPY_SECTIONS:
@@ -1800,16 +1818,52 @@ class ConventionChecker(object):
                             yield D214(section)
 
                         if section not in line:
+                            # The capitalized section string is not in the line,
+                            # meaning that the word appears there but not
+                            # properly capitalized.
                             yield D405(section, line.strip())
                         elif line.strip().lower() == with_colon:
+                            # The section name should not end with a colon.
                             yield D406(section, line.strip())
 
                         if next_line.strip() != "-" * len(section):
+                            # The length of the underlining dashes does not
+                            # match the length of the section name.
                             yield D407(section, len(section))
+
+                        # At this point, we're done with the structured part of
+                        # the section and its underline.
+                        # We will not collect the content of each section and
+                        # let section handlers deal with it.
+
+                        if current_section is not None:
+                            for err in self._check_numpy_section(
+                                                        current_section,
+                                                        curr_section_lines,
+                                                        definition,
+                                                        docstring):
+                                yield err
+
+                        start_collecting_lines = True
+                        current_section = section.lower()
+                        curr_section_lines = []
                     else:
                         # The next line does not contain only dashes, so it's
                         # not likely to be a section header.
                         lines_generator.scroll_back()
+
+            if current_section is not None:
+                if start_collecting_lines:
+                    start_collecting_lines = False
+                else:
+                    curr_section_lines.append(line)
+
+        if current_section is not None:
+            for err in self._check_numpy_section(current_section,
+                                                 curr_section_lines,
+                                                 definition,
+                                                 docstring):
+                yield err
 
 
 class ScrollableGenerator(object):
@@ -1860,9 +1914,12 @@ def foo():
     Parameters
     ----------
 
-    This is a string that defines some things, such as the following
-    parameters
-    a, b, d.
+    This is a string that defines some things.
+
+    Returns
+    -------
+
+    Nothing.
     """
 
 if __name__ == '__main__':
