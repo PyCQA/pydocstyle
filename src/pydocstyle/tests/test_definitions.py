@@ -1,9 +1,9 @@
 import os
 import pytest
-from ..pydocstyle import (StringIO, TokenStream, Parser, Error, check,
-                          Module, Class, Method, Function, NestedFunction,
-                          ErrorRegistry, AllError)
-
+from ..violations import Error, ErrorRegistry
+from ..checker import check
+from ..parser import Parser, Module, Function, NestedFunction, Method, Class, \
+    AllError, TokenStream, StringIO
 
 _ = type('', (), dict(__repr__=lambda *a: '_', __eq__=lambda *a: True))()
 

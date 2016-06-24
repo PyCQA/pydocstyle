@@ -268,7 +268,7 @@ issuetracker_project = 'PyCQA/pydocstyle'
 
 
 def generate_error_code_table():
-    from pydocstyle import ErrorRegistry
+    from violations import ErrorRegistry
     with open(os.path.join('snippets', 'error_code_table.rst'), 'wt') as outf:
         outf.write(ErrorRegistry.to_rst())
 

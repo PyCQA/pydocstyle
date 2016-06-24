@@ -16,7 +16,8 @@ import tempfile
 import textwrap
 import subprocess
 
-from .. import pydocstyle
+from pydocstyle import checker, violations
+
 
 __all__ = ()
 
@@ -99,7 +100,7 @@ class SandboxEnv(object):
 
 @pytest.yield_fixture(scope="module")
 def install_package(request):
-    cwd = os.path.join(os.path.dirname(__file__), '..', '..')
+    cwd = os.path.join(os.path.dirname(__file__), '..', '..', '..')
     install_cmd = "python setup.py develop"
     uninstall_cmd = install_cmd + ' --uninstall'
     subprocess.check_call(shlex.split(install_cmd), cwd=cwd)
@@ -140,9 +141,9 @@ def parse_errors(err):
 def test_pep257_conformance():
     """Test that we conform to PEP 257."""
     relative = partial(os.path.join, os.path.dirname(__file__))
-    errors = list(pydocstyle.check([relative('..', 'pydocstyle.py'),
-                                    relative('test_integration.py')],
-                                   select=pydocstyle.conventions.pep257))
+    errors = list(checker.check([relative('..', 'pydocstyle.py'),
+                                 relative('test_integration.py')],
+                                select=violations.conventions.pep257))
     assert errors == [], errors
 
 
@@ -156,19 +157,19 @@ def test_ignore_list():
     expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
                                 'D210', 'D403'))
     mock_open = mock.mock_open(read_data=function_to_check)
-    from .. import pydocstyle
+    from .. import checker
     with mock.patch.object(
-            pydocstyle, 'tokenize_open', mock_open, create=True):
-        errors = tuple(pydocstyle.check(['filepath']))
+            checker, 'tokenize_open', mock_open, create=True):
+        errors = tuple(checker.check(['filepath']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes
 
     # We need to recreate the mock, otherwise the read file is empty
     mock_open = mock.mock_open(read_data=function_to_check)
     with mock.patch.object(
-            pydocstyle, 'tokenize_open', mock_open, create=True):
+            checker, 'tokenize_open', mock_open, create=True):
         ignored = set(('D100', 'D202', 'D213'))
-        errors = tuple(pydocstyle.check(['filepath'], ignore=ignored))
+        errors = tuple(checker.check(['filepath'], ignore=ignored))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes - ignored
 
@@ -356,7 +357,7 @@ def test_missing_docstring_in_package(env):
 
 def test_illegal_convention(env):
     out, err, code = env.invoke('--convention=illegal_conv')
-    assert code == 2
+    assert code == 2, err
     assert "Illegal convention 'illegal_conv'." in err
     assert 'Possible conventions: pep257' in err
 
