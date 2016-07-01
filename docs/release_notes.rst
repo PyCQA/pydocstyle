@@ -18,6 +18,8 @@ New Features
 
 Bug Fixes
 
+* Fixed an issue where file paths were printed in lower case (#179, #181).
+
 * The error code D300 is now also being reported if a docstring has
   uppercase literals (``R`` or ``U``) as prefix (#176).
 
