@@ -13,6 +13,7 @@ import sys
 import ast
 import copy
 import logging
+import textwrap
 import tokenize as tk
 from itertools import takewhile, dropwhile, chain
 from re import compile as re
@@ -487,13 +488,14 @@ class Parser(object):
         return definition
 
     def check_current(self, kind=None, value=None):
-        msg = """Error at line {self.line}:
+        msg = textwrap.dedent("""
+        Unexpected token at line {self.line}:
 
         In file: {self.filename}
 
         Got kind {self.current.kind!r}
         Got value {self.current.value}
-        """.format(self=self)
+        """.format(self=self))
         kind_valid = self.current.kind == kind if kind else True
         value_valid = self.current.value == value if value else True
         assert kind_valid and value_valid, msg
@@ -505,6 +507,14 @@ class Parser(object):
 
         """
         log.debug('parsing from/import statement.')
+        is_future_import = self._parse_from_import_source()
+        self._parse_from_import_names(is_future_import)
+
+    def _parse_from_import_source(self):
+        """Parse the 'from x import' part in a 'from x import y' statement.
+
+        Return true iff `x` is __future__.
+        """
         assert self.current.value == 'from', self.current.value
         self.stream.move()
         is_future_import = self.current.value == '__future__'
@@ -515,6 +525,10 @@ class Parser(object):
         self.check_current(value='import')
         assert self.current.value == 'import', self.current.value
         self.stream.move()
+        return is_future_import
+
+    def _parse_from_import_names(self, is_future_import):
+        """Parse the 'y' part in a 'from x import y' statement."""
         if self.current.value == '(':
             self.consume(tk.OP)
             expected_end_kind = tk.OP
