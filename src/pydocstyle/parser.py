@@ -5,7 +5,7 @@ import tokenize as tk
 from collections import defaultdict
 from itertools import chain, dropwhile
 from re import compile as re
-import astroid
+import redbaron
 
 try:
     from StringIO import StringIO
@@ -508,48 +508,93 @@ class Parser(object):
 
 
 class Parser(object):
-    def parse(self, filelike, filename):
-        # TODO: fix log
-        self.log = logging.getLogger()
-        module_node = astroid.parse(filelike.read(), path=filename)
-
-        module_children_handler = {
-            astroid.FunctionDef: self.handle_function,
+    def handle_node(self, node, *args, **kwargs):
+        node_handler = {
+            redbaron.nodes.DefNode: self.handle_function,
             #astroid.ClassDef: self.handle_class,
             #astroid.ImportFrom: self.handle_from_import,
         }
 
+        if node.__class__ in node_handler:
+            return node_handler[node.__class__](node, *args, **kwargs)
+        return None
+
+    def parse(self, filelike, filename):
+        # TODO: fix log
+        self.log = logging.getLogger()
+        self.source = filelike.readlines()
+        nodes = redbaron.RedBaron(''.join(self.source))
+
         module_children = []
-        for child in module_node.get_children():
-            handler = module_children_handler[child.__class__]
-            module_children.append(handler(module_node, child))
+        for node in nodes:
+            result = self.handle_node(node)
+            if result is not None:
+                module_children.append(result)
 
-        return Module(filename,
-                      module_node.source_code,
-                      module_node.fromlineno,
-                      module_node.tolineno,
-                      [],
-                      module_node.doc,
-                      module_children,
-                      None,
-                      None,
-                      None)
+        module = Module(filename,
+                        self.source,
+                        0,
+                        len(self.source),
+                        [],
+                        #module_node.doc,
+                        None,
+                        module_children,
+                        None,
+                        None,
+                        None)
 
-    def handle_function(self, parent, node):
-        source_lines = node.root().source_code.split('\n')[node.lineno:node.tolineno]
-        tokens = TokenStream(StringIO('\n'.join(
-            node.root().source_code.split('\n')[
-            node.lineno - 1:node.tolineno])))
+        for node in module.children:
+            node.parent = module
 
-        for token in tokens:
-            if token.value != 'def':
-                continue
+        return module
 
-        return Function(node.name,
-                        node.root().source_code[node.fromlineno:node.tolineno],
-                        node.fromlineno, node.tolineno, node.decorators or [],
-                        node.doc,
-                        [], parent)
+    def handle_function(self, node, nested=False, method=False):
+        if nested:
+            assert not method
+            cls = NestedFunction
+        else:
+            cls = Method if method else Function
+
+        docstring = None
+
+        skip_nodes = (
+            redbaron.nodes.EndlNode,
+            redbaron.nodes.CommentNode,
+        )
+        for child in node:
+            if not isinstance(child, skip_nodes):
+                break
+
+        if isinstance(child, redbaron.nodes.StringNode):
+            # docstring!
+            docstring = child.value
+
+        children = []
+        for child in node:
+            result = self.handle_node(child, nested=True)
+            if result is not None:
+                children.append(result)
+
+        start = node.absolute_bounding_box.top_left.line
+        bottom_right = node.absolute_bounding_box.bottom_right
+        if bottom_right.line == start:
+            end = start
+        else:
+            end = bottom_right.line - 1
+
+        function = cls(node.name,
+                       self.source,
+                       start,
+                       end,
+                       [decorator.name for decorator in node.decorators],
+                       docstring,
+                       children,
+                       None)
+
+        for child in function.children:
+            child.parent = function
+
+        return function
 
     # TODO: remove
     def __call__(self, *args, **kwargs):
