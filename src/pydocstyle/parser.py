@@ -536,9 +536,19 @@ class Parser(object):
                       None)
 
     def handle_function(self, parent, node):
+        source_lines = node.root().source_code.split('\n')[node.lineno:node.tolineno]
+        tokens = TokenStream(StringIO('\n'.join(
+            node.root().source_code.split('\n')[
+            node.lineno - 1:node.tolineno])))
+
+        for token in tokens:
+            if token.value != 'def':
+                continue
+
         return Function(node.name,
-                        parent.source_code[node.fromlineno:node.tolineno],
-                        node.fromlineno, node.tolineno, node.decorators or [], node.doc,
+                        node.root().source_code[node.fromlineno:node.tolineno],
+                        node.fromlineno, node.tolineno, node.decorators or [],
+                        node.doc,
                         [], parent)
 
     # TODO: remove
