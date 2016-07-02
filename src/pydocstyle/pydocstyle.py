@@ -12,5 +12,5 @@ import logging
 log = logging.getLogger(__name__)
 
 
-__version__ = '1.0.1-rc1'
+__version__ = '1.1.0-rc1'
 __all__ = ()

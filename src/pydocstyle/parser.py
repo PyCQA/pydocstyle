@@ -5,6 +5,7 @@ import tokenize as tk
 from collections import defaultdict
 from itertools import chain, dropwhile
 from re import compile as re
+import astroid
 
 try:
     from StringIO import StringIO
@@ -207,7 +208,7 @@ class Token(Value):
 
 
 class Parser(object):
-    def __call__(self, filelike, filename):
+    def parse(self, filelike, filename):
         # TODO: fix log
         self.log = logging.getLogger()
         self.source = filelike.readlines()
@@ -218,6 +219,10 @@ class Parser(object):
         self.future_imports = defaultdict(lambda: False)
         self._accumulated_decorators = []
         return self.parse_module()
+
+    # TODO: remove
+    def __call__(self, *args, **kwargs):
+        return self.parse(*args, **kwargs)
 
     current = property(lambda self: self.stream.current)
     line = property(lambda self: self.stream.line)
@@ -500,3 +505,42 @@ class Parser(object):
                 self.consume(tk.OP)
             self.log.debug("parsing import, token is %r (%s)",
                            self.current.kind, self.current.value)
+
+
+class Parser(object):
+    def parse(self, filelike, filename):
+        # TODO: fix log
+        self.log = logging.getLogger()
+        module_node = astroid.parse(filelike.read(), path=filename)
+
+        module_children_handler = {
+            astroid.FunctionDef: self.handle_function,
+            #astroid.ClassDef: self.handle_class,
+            #astroid.ImportFrom: self.handle_from_import,
+        }
+
+        module_children = []
+        for child in module_node.get_children():
+            handler = module_children_handler[child.__class__]
+            module_children.append(handler(module_node, child))
+
+        return Module(filename,
+                      module_node.source_code,
+                      module_node.fromlineno,
+                      module_node.tolineno,
+                      [],
+                      module_node.doc,
+                      module_children,
+                      None,
+                      None,
+                      None)
+
+    def handle_function(self, parent, node):
+        return Function(node.name,
+                        parent.source_code[node.fromlineno:node.tolineno],
+                        node.fromlineno, node.tolineno, node.decorators or [], node.doc,
+                        [], parent)
+
+    # TODO: remove
+    def __call__(self, *args, **kwargs):
+        return self.parse(*args, **kwargs)
