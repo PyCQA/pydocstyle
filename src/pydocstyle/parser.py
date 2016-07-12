@@ -511,6 +511,7 @@ class Parser(object):
     def handle_node(self, node, *args, **kwargs):
         node_handler = {
             redbaron.nodes.DefNode: self.handle_function,
+            redbaron.nodes.ClassNode: self.handle_class,
             #astroid.ClassDef: self.handle_class,
             #astroid.ImportFrom: self.handle_from_import,
         }
@@ -548,9 +549,8 @@ class Parser(object):
 
         return module
 
-    def handle_function(self, node, nested=False, method=False):
-        if nested:
-            assert not method
+    def handle_function(self, node, nested=False, method=False, *args, **kwargs):
+        if nested and not method:
             cls = NestedFunction
         else:
             cls = Method if method else Function
@@ -595,6 +595,50 @@ class Parser(object):
             child.parent = function
 
         return function
+
+    def handle_class(self, node, nested=False, *args, **kwargs):
+        cls = NestedClass if nested else Class
+
+        docstring = None
+
+        skip_nodes = (
+            redbaron.nodes.EndlNode,
+            redbaron.nodes.CommentNode,
+        )
+        for child in node:
+            if not isinstance(child, skip_nodes):
+                break
+
+        if isinstance(child, redbaron.nodes.StringNode):
+            # docstring!
+            docstring = child.value
+
+        children = []
+        for child in node:
+            result = self.handle_node(child, nested=True, method=True)
+            if result is not None:
+                children.append(result)
+
+        start = node.absolute_bounding_box.top_left.line
+        bottom_right = node.absolute_bounding_box.bottom_right
+        if bottom_right.line == start:
+            end = start
+        else:
+            end = bottom_right.line - 1
+
+        klass = cls(node.name,
+                    self.source,
+                    start,
+                    end,
+                    [decorator.name for decorator in node.decorators],
+                    docstring,
+                    children,
+                    None)
+
+        for child in klass.children:
+            child.parent = klass
+
+        return klass
 
     # TODO: remove
     def __call__(self, *args, **kwargs):

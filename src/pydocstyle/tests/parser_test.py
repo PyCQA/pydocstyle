@@ -265,5 +265,5 @@ def test_nested_class():
 def test_raise_from():
     """Make sure 'raise x from y' doesn't trip the parser."""
     parser = Parser()
-    code = CodeSnippet("raise ValueError from None")
+    code = CodeSnippet("raise ValueError() from None")
     parser.parse(code, 'file_path')
