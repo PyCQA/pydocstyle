@@ -1760,11 +1760,16 @@ class PEP257Checker(object):
         if not docstring:
             return
 
-        # ignore functions that already mention return
-        # FIXME: this is only checking if "return" is anywhere in
-        # the docstring, not if the return is properly documented.
-        if 'return' in docstring.lower():
-            return
+        return_styles = [
+            ':returns:',  # sphinx
+            'Returns:',  # napoleon
+            '@return:',  # twisted
+        ]
+
+        # ignore functions where any line starts with a valid return style
+        for line in docstring.split("\n"):
+            if line.strip().split()[:1] in return_styles:
+                return
 
         tree = ast.parse(function.source.strip())
 
