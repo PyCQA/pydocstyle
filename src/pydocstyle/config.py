@@ -1,3 +1,5 @@
+"""Configuration file parsing and utilities."""
+
 import copy
 import itertools
 import os
@@ -11,8 +13,8 @@ except ImportError:  # Python 2.x
     from configparser import RawConfigParser
 
 
-from pydocstyle import __version__, log
-from violations import ErrorRegistry, conventions
+from .utils import __version__, log
+from .violations import ErrorRegistry, conventions
 
 
 def check_initialized(method):

@@ -1,10 +1,19 @@
+"""Parser tests."""
+
 import six
 import textwrap
 from pydocstyle.parser import Parser
 
 
 class CodeSnippet(six.StringIO):
+    """A code snippet.
+
+    Automatically wraps snippet as a file-like object and handles line wraps.
+
+    """
+
     def __init__(self, code_string):
+        """Initialize the object."""
         six.StringIO.__init__(self, textwrap.dedent(code_string))
 
 

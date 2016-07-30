@@ -1,3 +1,5 @@
+"""Python code parser."""
+
 import logging
 import sys
 import textwrap
@@ -36,6 +38,8 @@ def humanize(string):
 
 
 class Value(object):
+    """A generic object with a list of preset fields."""
+
     def __init__(self, *args):
         vars(self).update(zip(self._fields, args))
 
@@ -52,6 +56,8 @@ class Value(object):
 
 
 class Definition(Value):
+    """A Python source code definition (could be class, function, etc)."""
+
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
                'children', 'parent')
 
@@ -85,6 +91,8 @@ class Definition(Value):
 
 
 class Module(Definition):
+    """A Python source code module."""
+
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
                'children', 'parent', '_all', 'future_imports')
     is_public = True
@@ -101,11 +109,14 @@ class Package(Module):
 
 
 class Function(Definition):
+    """A Python source code function."""
+
     _nest = staticmethod(lambda s: {'def': NestedFunction,
                                     'class': NestedClass}[s])
 
     @property
     def is_public(self):
+        """Return True iff this function should be considered public."""
         if self.all is not None:
             return self.name in self.all
         else:
@@ -113,18 +124,24 @@ class Function(Definition):
 
 
 class NestedFunction(Function):
+    """A Python source code nested function."""
+
     is_public = False
 
 
 class Method(Function):
+    """A Python source code method."""
+
     @property
     def is_magic(self):
+        """Return True iff this method is a magic method (e.g., `__str__`)."""
         return (self.name.startswith('__') and
                 self.name.endswith('__') and
                 self.name not in VARIADIC_MAGIC_METHODS)
 
     @property
     def is_public(self):
+        """Return True iff this method should be considered public."""
         # Check if we are a setter/deleter method, and mark as private if so.
         for decorator in self.decorators:
             # Given 'foo', match 'foo.bar' but not 'foobar' or 'sfoo'
@@ -137,14 +154,19 @@ class Method(Function):
 
 
 class Class(Definition):
+    """A Python source code class."""
+
     _nest = staticmethod(lambda s: {'def': Method, 'class': NestedClass}[s])
     is_public = Function.is_public
     is_class = True
 
 
 class NestedClass(Class):
+    """A Python source code nested class."""
+
     @property
     def is_public(self):
+        """Return True iff this class should be considered public."""
         return (not self.name.startswith('_') and
                 self.parent.is_class and
                 self.parent.is_public)
@@ -160,7 +182,10 @@ VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
 
 
 class AllError(Exception):
+    """Raised when there is a problem with __all__ when parsing."""
+
     def __init__(self, message):
+        """Initialize the error with a more specific message."""
         Exception.__init__(
             self, message + textwrap.dedent("""
                 That means pydocstyle cannot decide which definitions are
@@ -207,7 +232,10 @@ class Token(Value):
 
 
 class Parser(object):
+    """A Python source code parser."""
+
     def parse(self, filelike, filename):
+        """Parse the given file-like object and return its Module object."""
         # TODO: fix log
         self.log = logging.getLogger()
         self.source = filelike.readlines()
@@ -221,6 +249,7 @@ class Parser(object):
 
     # TODO: remove
     def __call__(self, *args, **kwargs):
+        """Call the parse method."""
         return self.parse(*args, **kwargs)
 
     current = property(lambda self: self.stream.current)
@@ -437,6 +466,7 @@ class Parser(object):
         return definition
 
     def check_current(self, kind=None, value=None):
+        """Verify the current token is of type `kind` and equals `value`."""
         msg = textwrap.dedent("""
         Unexpected token at line {self.line}:
 

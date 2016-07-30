@@ -12,6 +12,7 @@ import mock
 import shlex
 import shutil
 import pytest
+import pathlib
 import tempfile
 import textwrap
 import subprocess
@@ -140,10 +141,15 @@ def parse_errors(err):
 
 def test_pep257_conformance():
     """Test that we conform to PEP 257."""
-    relative = partial(os.path.join, os.path.dirname(__file__))
-    errors = list(checker.check([relative('..', 'pydocstyle.py'),
-                                 relative('test_integration.py')],
-                                select=violations.conventions.pep257))
+    base_dir = (pathlib.Path(__file__).parent / '..').resolve()
+    src_dirs = (base_dir, base_dir / 'tests')
+    src_files = []
+    for src_dir in src_dirs:
+        src_files.extend(str(path) for path in src_dir.glob('*.py'))
+
+    ignored = set(['D104', 'D105'])
+    select = violations.conventions.pep257 - ignored
+    errors = list(checker.check(src_files, select=select))
     assert errors == [], errors
 
 

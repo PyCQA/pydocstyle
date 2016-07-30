@@ -14,6 +14,9 @@ import textwrap
 from .. import pydocstyle, parser
 
 
+__all__ = ()
+
+
 class TestParser(object):
     """Check parsing of Python source code."""
 
@@ -152,7 +155,7 @@ class TestParser(object):
         assert '' == decorators[0].arguments
 
 
-class TestMethod:
+class TestMethod(object):
     """Unit test for Method class."""
 
     def makeMethod(self, name='someMethodName'):
@@ -174,14 +177,14 @@ class TestMethod:
                              'Docstring for method', children, cls, all)
 
     def test_is_public_normal(self):
-        """Methods are normally public, even if decorated."""
+        """Test that methods are normally public, even if decorated."""
         method = self.makeMethod('methodName')
         method.decorators = [parser.Decorator('some_decorator', [])]
 
         assert method.is_public
 
     def test_is_public_setter(self):
-        """Setter methods are considered private."""
+        """Test that setter methods are considered private."""
         method = self.makeMethod('methodName')
         method.decorators = [
             parser.Decorator('some_decorator', []),
@@ -191,7 +194,7 @@ class TestMethod:
         assert not method.is_public
 
     def test_is_public_deleter(self):
-        """Deleter methods are also considered private."""
+        """Test that deleter methods are also considered private."""
         method = self.makeMethod('methodName')
         method.decorators = [
             parser.Decorator('methodName.deleter', []),
@@ -201,7 +204,7 @@ class TestMethod:
         assert not method.is_public
 
     def test_is_public_trick(self):
-        """Common prefix does not necessarily indicate private."""
+        """Test that common prefix does not necessarily indicate private."""
         method = self.makeMethod("foo")
         method.decorators = [
             parser.Decorator('foobar', []),

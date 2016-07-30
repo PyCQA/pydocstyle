@@ -1,3 +1,5 @@
+"""Parsed source code checkers for docstring violations."""
+
 import ast
 import string
 import sys
@@ -5,12 +7,14 @@ import tokenize as tk
 from itertools import takewhile
 from re import compile as re
 
-import violations
-from config import IllegalConfiguration
+from . import violations
+from .config import IllegalConfiguration
 # TODO: handle
-from parser import *
-from pydocstyle import log
-from utils import is_blank
+from .parser import *
+from .utils import log, is_blank
+
+
+__all__ = ('check', )
 
 
 # If possible (python >= 3.2) use tokenize.open to open files, so PEP 263
@@ -386,7 +390,7 @@ def check(filenames, select=None, ignore=None):
 
     Example
     -------
-    >>> check([ppydocstyle.py.py], checked_codes=['D100'])
+    >>> check(['pydocstyle.py'], checked_codes=['D100'])
     <generator object check at 0x...>
 
     """

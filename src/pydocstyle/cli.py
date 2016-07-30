@@ -1,10 +1,14 @@
+"""Command line interface for pydocstyle."""
 import logging
 import sys
 
-from pydocstyle import log
-from violations import Error
-from config import ConfigurationParser, IllegalConfiguration
-from checker import check
+from .utils import log
+from .violations import Error
+from .config import ConfigurationParser, IllegalConfiguration
+from .checker import check
+
+
+__all__ = ('main', )
 
 
 class ReturnCode(object):
@@ -59,6 +63,12 @@ def run_pydocstyle(use_pep257=False):
 
 
 def main(use_pep257=False):
+    """Run pydocstyle as a script.
+
+    `use_pep257` is True if the script was invoked with the deprecated script
+    name `pep257`, in which case a deprecation warning will be printed.
+
+    """
     try:
         sys.exit(run_pydocstyle(use_pep257))
     except KeyboardInterrupt:

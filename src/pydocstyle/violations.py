@@ -1,6 +1,10 @@
+"""Docstring violation definition."""
 from itertools import dropwhile
 
-from utils import is_blank
+from .utils import is_blank
+
+
+__all__ = ('Error', 'ErrorRegistry')
 
 
 class Error(object):
@@ -16,11 +20,17 @@ class Error(object):
     source = False
 
     def __init__(self, *parameters):
+        """Initialize the object.
+
+        `parameters` are specific to the created error.
+
+        """
         self.parameters = parameters
         self.definition = None
         self.explanation = None
 
     def set_context(self, definition, explanation):
+        """Set the source code context for this error."""
         self.definition = definition
         self.explanation = explanation
 
@@ -29,6 +39,7 @@ class Error(object):
 
     @property
     def message(self):
+        """Return the error message to print."""
         ret = '%s: %s' % (self.code, self.short_desc)
         if self.context is not None:
             ret += ' (' + self.context % self.parameters + ')'
@@ -36,6 +47,7 @@ class Error(object):
 
     @property
     def lines(self):
+        """Return the source code lines for this error."""
         source = ''
         lines = self.definition._source[self.definition._slice]
         offset = self.definition.start
@@ -74,16 +86,27 @@ class Error(object):
 
 
 class ErrorRegistry(object):
+    """A registry of all error codes, divided to groups."""
+
     groups = []
 
     class ErrorGroup(object):
+        """A group of similarly themed errors."""
 
         def __init__(self, prefix, name):
+            """Initialize the object.
+
+            `Prefix` should be the common prefix for errors in this group,
+            e.g., "D1".
+            `name` is the name of the group (its subject).
+
+            """
             self.prefix = prefix
             self.name = name
             self.errors = []
 
         def create_error(self, error_code, error_desc, error_context=None):
+            """Create an error, register it to this group and return it."""
             # TODO: check prefix
 
             class _Error(Error):
@@ -96,18 +119,21 @@ class ErrorRegistry(object):
 
     @classmethod
     def create_group(cls, prefix, name):
+        """Create a new error group and return it."""
         group = cls.ErrorGroup(prefix, name)
         cls.groups.append(group)
         return group
 
     @classmethod
     def get_error_codes(cls):
+        """Yield all registered codes."""
         for group in cls.groups:
             for error in group.errors:
                 yield error.code
 
     @classmethod
     def to_rst(cls):
+        """Output the registry as reStructuredText, for documentation."""
         sep_line = '+' + 6 * '-' + '+' + '-' * 71 + '+\n'
         blank_line = '|' + 78 * ' ' + '|\n'
         table = ''
