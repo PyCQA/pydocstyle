@@ -16,7 +16,7 @@ import tempfile
 import textwrap
 import subprocess
 
-from pydocstyle import checker, violations
+from .. import checker, violations
 
 
 __all__ = ()
