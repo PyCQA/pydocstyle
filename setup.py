@@ -3,7 +3,9 @@ import os
 from setuptools import setup
 
 
-with open(os.path.join('src', 'pydocstyle', 'utils.py')) as f:
+this_dir = os.path.dirname(__file__)
+
+with open(os.path.join(this_dir, 'src', 'pydocstyle', 'utils.py')) as f:
     for line in f:
         if line.startswith('__version__'):
             version = eval(line.split('=')[-1])
@@ -27,8 +29,9 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     keywords='pydocstyle, PEP 257, pep257, PEP 8, pep8, docstrings',
-    package_dir={'pydocstyle': 'src/pydocstyle'},
-    #py_modules=['pydocstyle'],
+    packages=('pydocstyle',),
+    py_modules=('main',),
+    package_dir={'': 'src'},
     entry_points={
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',

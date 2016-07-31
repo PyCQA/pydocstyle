@@ -2,8 +2,6 @@
 
 Use tox or py.test to run the test suite.
 """
-import checker
-
 try:
     from StringIO import StringIO
 except ImportError:
@@ -11,7 +9,7 @@ except ImportError:
 
 import textwrap
 
-from .. import pydocstyle, parser
+from .. import parser, checker
 
 
 __all__ = ()

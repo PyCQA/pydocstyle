@@ -4,7 +4,6 @@
 
 from __future__ import with_statement
 from collections import namedtuple
-from functools import partial
 
 import sys
 import os
