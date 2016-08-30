@@ -16,6 +16,13 @@ New Features
 * Added D404 - First word of the docstring should not be "This". It is turned
   off by default (#183).
 
+* Added the ability to ignore specific function and method doctstrings with
+  comments:
+
+    1. "# noqa" or "# pydocstyle: noqa" skips all checks.
+
+    2. "# pydocstyle: D102,D203" can be used to skip specific checks.
+
 Bug Fixes
 
 * Fixed an issue where file paths were printed in lower case (#179, #181).

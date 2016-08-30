@@ -339,5 +339,28 @@ def outer_function():
         """Do inner something."""
         return 0
 
+
+@expect("D400: First line should end with a period (not 'g')")
+@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
+def docstring_bad():
+    """Runs something"""
+    pass
+
+
+def docstring_bad_ignore_all():  # noqa
+    """Runs something"""
+    pass
+
+
+def docstring_bad_ignore_all_2():  # pydocstyle: noqa
+    """Runs something"""
+    pass
+
+
+@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
+def docstring_bad_ignore_one():  # pydocstyle: D400
+    """Runs something"""
+    pass
+
 expect(__file__ if __file__[-1] != 'c' else __file__[:-1],
        'D100: Missing docstring in public module')

@@ -164,13 +164,14 @@ class TestMethod:
         """ % (name))
 
         module = pydocstyle.Module('module_name', source, 0, 1, [],
-                                   'Docstring for module', [], None, all)
+                                   'Docstring for module', [], None,
+                                   all, None, '')
 
         cls = pydocstyle.Class('ClassName', source, 0, 1, [],
-                               'Docstring for class', children, module, all)
+                               'Docstring for class', children, module, '')
 
         return pydocstyle.Method(name, source, 0, 1, [],
-                                 'Docstring for method', children, cls, all)
+                                 'Docstring for method', children, cls, '')
 
     def test_is_public_normal(self):
         """Methods are normally public, even if decorated."""

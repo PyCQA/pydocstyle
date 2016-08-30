@@ -17,3 +17,9 @@ Configuration Files
 ^^^^^^^^^^^^^^^^^^^
 
 .. include:: snippets/config.rst
+
+
+Per-file configuration
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. include:: snippets/per_file.rst
