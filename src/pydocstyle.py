@@ -472,12 +472,10 @@ class Parser(object):
         skips = ''
         if self.current.kind in (tk.NEWLINE, tk.COMMENT):
             if self.current.kind == tk.COMMENT:
-                if self.current.value.startswith('# noqa') or \
-                        'pydocstyle: noqa' in self.current.value:
+                if 'noqa: ' in self.current.value:
+                    skips = ''.join(self.current.value.split('noqa: ')[1:])
+                elif self.current.value.startswith('# noqa'):
                     skips = 'all'
-                elif 'pydocstyle: ' in self.current.value:
-                    skips = ''.join(self.current.value.split(
-                        'pydocstyle: ')[1:])
             self.leapfrog(tk.INDENT)
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()

@@ -19,9 +19,9 @@ New Features
 * Added the ability to ignore specific function and method doctstrings with
   comments:
 
-    1. "# noqa" or "# pydocstyle: noqa" skips all checks.
+    1. "# noqa" skips all checks.
 
-    2. "# pydocstyle: D102,D203" can be used to skip specific checks.
+    2. "# noqa: D102,D203" can be used to skip specific checks.
 
 Bug Fixes
 
