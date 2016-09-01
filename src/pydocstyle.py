@@ -96,9 +96,9 @@ class Value(object):
 
     def __init__(self, *args):
         if len(self._fields) != len(args):
-            raise ValueError('got %s arguments for %s fields for %s: %s'
-                             % (len(args), len(self._fields),
-                                self.__class__.__name__, self._fields))
+            raise ValueError('got {0} arguments for {1} fields for {2}: {3}'
+                             .format(len(args), len(self._fields),
+                                     self.__class__.__name__, self._fields))
         vars(self).update(zip(self._fields, args))
 
     def __hash__(self):
@@ -116,7 +116,7 @@ class Value(object):
 class Definition(Value):
 
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent', 'skips')
+               'children', 'parent', 'skipped_error_codes')
 
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])
@@ -145,15 +145,16 @@ class Definition(Value):
 
     def __str__(self):
         out = 'in %s %s `%s`' % (self._publicity, self._human, self.name)
-        if self.skips:
-            out += ' (skipping %s)' % self.skips
+        if self.skipped_error_codes:
+            out += ' (skipping {0})'.format(self.skipped_error_codes)
         return out
 
 
 class Module(Definition):
 
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent', '_all', 'future_imports', 'skips')
+               'children', 'parent', '_all', 'future_imports',
+               'skipped_error_codes')
     is_public = True
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
@@ -469,13 +470,8 @@ class Parser(object):
             self.leapfrog(tk.OP, value=":")
         else:
             self.consume(tk.OP)
-        skips = ''
         if self.current.kind in (tk.NEWLINE, tk.COMMENT):
-            if self.current.kind == tk.COMMENT:
-                if 'noqa: ' in self.current.value:
-                    skips = ''.join(self.current.value.split('noqa: ')[1:])
-                elif self.current.value.startswith('# noqa'):
-                    skips = 'all'
+            skipped_error_codes = self.parse_skip_comment()
             self.leapfrog(tk.INDENT)
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()
@@ -486,19 +482,32 @@ class Parser(object):
             log.debug("finished parsing nested definitions for '%s'", name)
             end = self.line - 1
         else:  # one-liner definition
+            skipped_error_codes = ''
             docstring = self.parse_docstring()
             decorators = []  # TODO
             children = []
             end = self.line
             self.leapfrog(tk.NEWLINE)
         definition = class_(name, self.source, start, end,
-                            decorators, docstring, children, None, skips)
+                            decorators, docstring, children, None,
+                            skipped_error_codes)
         for child in definition.children:
             child.parent = definition
         log.debug("finished parsing %s '%s'. Next token is %r (%s)",
                   class_.__name__, name, self.current.kind,
                   self.current.value)
         return definition
+
+    def parse_skip_comment(self):
+        """Parse a definition comment for noqa skips."""
+        skipped_error_codes = ''
+        if self.current.kind == tk.COMMENT:
+            if 'noqa: ' in self.current.value:
+                skipped_error_codes = ''.join(
+                     self.current.value.split('noqa: ')[1:])
+            elif self.current.value.startswith('# noqa'):
+                skipped_error_codes = 'all'
+        return skipped_error_codes
 
     def check_current(self, kind=None, value=None):
         msg = textwrap.dedent("""
@@ -1413,13 +1422,14 @@ class PEP257Checker(object):
             for check in self.checks:
                 terminate = False
                 if isinstance(definition, check._check_for):
-                    if definition.skips != 'all':
+                    if definition.skipped_error_codes != 'all':
                         error = check(None, definition, definition.docstring)
                     else:
                         error = None
                     errors = error if hasattr(error, '__iter__') else [error]
                     for error in errors:
-                        if error is not None:
+                        if error is not None and error.code not in \
+                                definition.skipped_error_codes:
                             partition = check.__doc__.partition('.\n')
                             message, _, explanation = partition
                             error.set_context(explanation=explanation,
@@ -1457,10 +1467,7 @@ class PEP257Checker(object):
                      Method: (lambda: D105() if is_magic(definition.name)
                               else D102()),
                      Function: D103, NestedFunction: D103, Package: D104}
-            code = codes[type(definition)]
-            if code.__name__ in definition.skips:
-                return
-            return code()
+            return codes[type(definition)]()
 
     @check_for(Definition)
     def check_one_liners(self, definition, docstring):
@@ -1470,8 +1477,6 @@ class PEP257Checker(object):
         This looks better for one-liners.
 
         """
-        if 'D200' in definition.skips:
-            return
         if docstring:
             lines = ast.literal_eval(docstring).split('\n')
             if len(lines) > 1:
@@ -1493,11 +1498,9 @@ class PEP257Checker(object):
             blanks_before_count = sum(takewhile(bool, reversed(blanks_before)))
             blanks_after_count = sum(takewhile(bool, blanks_after))
             if blanks_before_count != 0:
-                if 'D201' not in function.skips:
-                    yield D201(blanks_before_count)
+                yield D201(blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 0:
-                if 'D202' not in function.skips:
-                    yield D202(blanks_after_count)
+                yield D202(blanks_after_count)
 
     @check_for(Class)
     def check_blank_before_after_class(self, class_, docstring):
@@ -1525,12 +1528,11 @@ class PEP257Checker(object):
             blanks_after = list(map(is_blank, after.split('\n')[1:]))
             blanks_before_count = sum(takewhile(bool, reversed(blanks_before)))
             blanks_after_count = sum(takewhile(bool, blanks_after))
-            if 'D211' not in class_.skips and blanks_before_count != 0:
+            if blanks_before_count != 0:
                 yield D211(blanks_before_count)
-            if 'D203' not in class_.skips and blanks_before_count != 1:
+            if blanks_before_count != 1:
                 yield D203(blanks_before_count)
-            if 'D204' not in class_.skips and (not all(blanks_after) and
-                                               blanks_after_count != 1):
+            if not all(blanks_after) and blanks_after_count != 1:
                 yield D204(blanks_after_count)
 
     @check_for(Definition)
@@ -1545,8 +1547,6 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            if 'D205' in definition.skips:
-                return
             lines = ast.literal_eval(docstring).strip().split('\n')
             if len(lines) > 1:
                 post_summary_blanks = list(map(is_blank, lines[1:]))
@@ -1569,16 +1569,13 @@ class PEP257Checker(object):
             if len(lines) > 1:
                 lines = lines[1:]  # First line does not need indent.
                 indents = [leading_space(l) for l in lines if not is_blank(l)]
-                if 'D206' not in definition.skips:
-                    if set(' \t') == set(''.join(indents) + indent):
-                        yield D206()
-                if 'D208' not in definition.skips:
-                    if (len(indents) > 1 and min(indents[:-1]) > indent or
-                            indents[-1] > indent):
-                        yield D208()
-                if 'D207' not in definition.skips:
-                    if min(indents) < indent:
-                        yield D207()
+                if set(' \t') == set(''.join(indents) + indent):
+                    yield D206()
+                if (len(indents) > 1 and min(indents[:-1]) > indent or
+                        indents[-1] > indent):
+                    yield D208()
+                if min(indents) < indent:
+                    yield D207()
 
     @check_for(Definition)
     def check_newline_after_last_paragraph(self, definition, docstring):
@@ -1588,7 +1585,7 @@ class PEP257Checker(object):
         quotes on a line by themselves.
 
         """
-        if docstring and 'D209' not in definition.skips:
+        if docstring:
             lines = [l for l in ast.literal_eval(docstring).split('\n')
                      if not is_blank(l)]
             if len(lines) > 1:
@@ -1598,7 +1595,7 @@ class PEP257Checker(object):
     @check_for(Definition)
     def check_surrounding_whitespaces(self, definition, docstring):
         """D210: No whitespaces allowed surrounding docstring text."""
-        if docstring and 'D210' not in definition.skips:
+        if docstring:
             lines = ast.literal_eval(docstring).split('\n')
             if lines[0].startswith(' ') or \
                     len(lines) == 1 and lines[0].endswith(' '):
@@ -1624,11 +1621,9 @@ class PEP257Checker(object):
             if len(lines) > 1:
                 first = docstring.split("\n")[0].strip().lower()
                 if first in start_triple:
-                    if 'D212' not in definition.skips:
-                        return D212()
+                    return D212()
                 else:
-                    if 'D213' not in definition.skips:
-                        return D213()
+                    return D213()
 
     @check_for(Definition)
     def check_triple_double_quotes(self, definition, docstring):
@@ -1643,7 +1638,7 @@ class PEP257Checker(object):
               """ quotes in its body.
 
         '''
-        if docstring and 'D300' not in definition.skips:
+        if docstring:
             opening = docstring[:5].lower()
             if '"""' in ast.literal_eval(docstring) and opening.startswith(
                     ("'''", "r'''", "u'''", "ur'''")):
@@ -1665,8 +1660,8 @@ class PEP257Checker(object):
         '''
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and 'D301' not in definition.skips and \
-                '\\' in docstring and not docstring.startswith(('r', 'ur')):
+        if docstring and '\\' in docstring and not docstring.startswith(
+                ('r', 'ur')):
             return D301()
 
     @check_for(Definition)
@@ -1681,8 +1676,7 @@ class PEP257Checker(object):
 
         # Just check that docstring is unicode, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and sys.version_info[0] <= 2 and \
-                'D302' not in definition.skips:
+        if docstring and sys.version_info[0] <= 2:
             if not is_ascii(docstring) and not docstring.startswith(
                     ('u', 'ur')):
                 return D302()
@@ -1694,7 +1688,7 @@ class PEP257Checker(object):
         The [first line of a] docstring is a phrase ending in a period.
 
         """
-        if docstring and 'D400' not in definition.skips:
+        if docstring:
             summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
             if not summary_line.endswith('.'):
                 return D400(summary_line[-1])
@@ -1708,7 +1702,7 @@ class PEP257Checker(object):
         "Returns the pathname ...".
 
         """
-        if docstring and 'D401' not in function.skips:
+        if docstring:
             stripped = ast.literal_eval(docstring).strip()
             if stripped:
                 first_word = stripped.split()[0]
@@ -1723,7 +1717,7 @@ class PEP257Checker(object):
         function/method parameters (which can be obtained by introspection).
 
         """
-        if docstring and 'D402' not in function.skips:
+        if docstring:
             first_line = ast.literal_eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
                 return D402()
@@ -1735,7 +1729,7 @@ class PEP257Checker(object):
         The [first line of a] docstring is a phrase ending in a period.
 
         """
-        if docstring and 'D403' not in function.skips:
+        if docstring:
             first_word = ast.literal_eval(docstring).split()[0]
             if first_word == first_word.upper():
                 return
@@ -1753,7 +1747,7 @@ class PEP257Checker(object):
         with "This class is [..]" or "This module contains [..]".
 
         """
-        if docstring and 'D404' not in function.skips:
+        if docstring:
             first_word = ast.literal_eval(docstring).split()[0]
             if first_word.lower() == 'this':
                 return D404()

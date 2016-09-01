@@ -16,8 +16,8 @@ New Features
 * Added D404 - First word of the docstring should not be "This". It is turned
   off by default (#183).
 
-* Added the ability to ignore specific function and method doctstrings with
-  comments:
+* Added the ability to ignore specific function and method docstrings with
+  inline comments:
 
     1. "# noqa" skips all checks.
 

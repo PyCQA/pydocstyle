@@ -1,5 +1,5 @@
-``pydocstyle`` inline commenting to skip specific checks on specific
-functions or methods. The supported comments that can be added are:
+``pydocstyle`` supports inline commenting to skip specific checks on
+specific functions or methods. The supported comments that can be added are:
 
 1. ``"# noqa"`` skips all checks.
 
