@@ -144,7 +144,8 @@ class Definition(Value):
         return ''.join(reversed(list(filtered_src)))
 
     def __str__(self):
-        out = 'in %s %s `%s`' % (self._publicity, self._human, self.name)
+        out = 'in {0} {1} `{2}`'.format(self._publicity, self._human,
+                                        self.name)
         if self.skipped_error_codes:
             out += ' (skipping {0})'.format(self.skipped_error_codes)
         return out
@@ -395,17 +396,17 @@ class Parser(object):
         if self.current.value not in '([':
             raise AllError('Could not evaluate contents of __all__. ')
         if self.current.value == '[':
-            msg = ("%s WARNING: __all__ is defined as a list, this means "
-                   "pydocstyle cannot reliably detect contents of the __all__ "
-                   "variable, because it can be mutated. Change __all__ to be "
-                   "an (immutable) tuple, to remove this warning. Note, "
-                   "pydocstyle uses __all__ to detect which definitions are "
-                   "public, to warn if public definitions are missing "
-                   "docstrings. If __all__ is a (mutable) list, pydocstyle "
-                   "cannot reliably assume its contents. pydocstyle will "
-                   "proceed assuming __all__ is not mutated.\n"
-                   % self.filename)
-            sys.stderr.write(msg)
+            sys.stderr.write(
+                "{0} WARNING: __all__ is defined as a list, this means "
+                "pydocstyle cannot reliably detect contents of the __all__ "
+                "variable, because it can be mutated. Change __all__ to be "
+                "an (immutable) tuple, to remove this warning. Note, "
+                "pydocstyle uses __all__ to detect which definitions are "
+                "public, to warn if public definitions are missing "
+                "docstrings. If __all__ is a (mutable) list, pydocstyle "
+                "cannot reliably assume its contents. pydocstyle will "
+                "proceed assuming __all__ is not mutated.\n"
+                .format(self.filename))
         self.consume(tk.OP)
 
         self.all = []
@@ -417,8 +418,8 @@ class Parser(object):
                   self.current.value == ','):
                 all_content += self.current.value
             else:
-                raise AllError('Unexpected token kind in  __all__: %r. ' %
-                               self.current.kind)
+                raise AllError('Unexpected token kind in  __all__: {0!r}. '
+                               .format(self.current.kind))
             self.stream.move()
         self.consume(tk.OP)
         all_content += ")"
@@ -426,8 +427,8 @@ class Parser(object):
             self.all = eval(all_content, {})
         except BaseException as e:
             raise AllError('Could not evaluate contents of __all__.'
-                           '\bThe value was %s. The exception was:\n%s'
-                           % (all_content, e))
+                           '\bThe value was {0}. The exception was:\n{1}'
+                           .format(all_content, e))
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""
@@ -605,9 +606,9 @@ class Error(object):
 
     @property
     def message(self):
-        ret = '%s: %s' % (self.code, self.short_desc)
+        ret = '{0}: {1}'.format(self.code, self.short_desc)
         if self.context is not None:
-            ret += ' (' + self.context % self.parameters + ')'
+            ret += ' (' + self.context.format(*self.parameters) + ')'
         return ret
 
     @property
@@ -623,7 +624,8 @@ class Error(object):
         numbers_width = len(str(numbers_width))
         numbers_width = 6
         for n, line in enumerate(lines_stripped):
-            source += '%*d: %s' % (numbers_width, n + offset, line)
+            source += '{{0}}{0}: {{1}}'.format(numbers_width).format(
+                n + offset, line)
             if n > 5:
                 source += '        ...\n'
                 break
@@ -632,16 +634,16 @@ class Error(object):
     def __str__(self):
         self.explanation = '\n'.join(l for l in self.explanation.split('\n')
                                      if not is_blank(l))
-        template = '%(filename)s:%(line)s %(definition)s:\n        %(message)s'
+        template = '{filename}:{line} {definition}:\n        {message}'
         if self.source and self.explain:
-            template += '\n\n%(explanation)s\n\n%(lines)s\n'
+            template += '\n\n{explanation}\n\n{lines}\n'
         elif self.source and not self.explain:
-            template += '\n\n%(lines)s\n'
+            template += '\n\n{lines}\n'
         elif self.explain and not self.source:
-            template += '\n\n%(explanation)s\n\n'
-        return template % dict((name, getattr(self, name)) for name in
+            template += '\n\n{explanation}\n\n'
+        return template.format(**dict((name, getattr(self, name)) for name in
                                ['filename', 'line', 'definition', 'message',
-                                'explanation', 'lines'])
+                                'explanation', 'lines']))
 
     __repr__ = __str__
 
@@ -690,7 +692,7 @@ class ErrorRegistry(object):
         for group in cls.groups:
             table += sep_line
             table += blank_line
-            table += '|' + ('**%s**' % group.name).center(78) + '|\n'
+            table += '|' + '**{0}**'.format(group.name).center(78) + '|\n'
             table += blank_line
             for error in group.errors:
                 table += sep_line
@@ -710,17 +712,17 @@ D105 = D1xx.create_error('D105', 'Missing docstring in magic method')
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '
-                                 'with quotes', 'found %s')
+                                 'with quotes', 'found {0}')
 D201 = D2xx.create_error('D201', 'No blank lines allowed before function '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D202 = D2xx.create_error('D202', 'No blank lines allowed after function '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D203 = D2xx.create_error('D203', '1 blank line required before class '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D204 = D2xx.create_error('D204', '1 blank line required after class '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D205 = D2xx.create_error('D205', '1 blank line required between summary line '
-                                 'and description', 'found %s')
+                                 'and description', 'found {0}')
 D206 = D2xx.create_error('D206', 'Docstring should be indented with spaces, '
                                  'not tabs')
 D207 = D2xx.create_error('D207', 'Docstring is under-indented')
@@ -730,7 +732,7 @@ D209 = D2xx.create_error('D209', 'Multi-line docstring closing quotes should '
 D210 = D2xx.create_error('D210', 'No whitespaces allowed surrounding '
                                  'docstring text')
 D211 = D2xx.create_error('D211', 'No blank lines allowed before class '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D212 = D2xx.create_error('D212', 'Multi-line docstring summary should start '
                                  'at the first line')
 D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
@@ -738,19 +740,19 @@ D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
-                         'found %s-quotes')
+                         'found {0}-quotes')
 D301 = D3xx.create_error('D301', 'Use r""" if any backslashes in a docstring')
 D302 = D3xx.create_error('D302', 'Use u""" for Unicode docstrings')
 
 D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
 D400 = D4xx.create_error('D400', 'First line should end with a period',
-                         'not %r')
+                         'not {0!r}')
 D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
-                         '%r, not %r')
+                         '{0!r}, not {1!r}')
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 D403 = D4xx.create_error('D403', 'First word of the first line should be '
-                                 'properly capitalized', '%r, not %r')
+                                 'properly capitalized', '{0!r}, not {1!r}')
 D404 = D4xx.create_error('D404', 'First word of the docstring should not '
                                  'be `This`')
 
@@ -1387,7 +1389,7 @@ def run_pydocstyle(use_pep257=False):
     code = ReturnCode.no_violations_found
     count = 0
     for error in errors:
-        sys.stderr.write('%s\n' % error)
+        sys.stderr.write('{0}\n'.format(error))
         code = ReturnCode.violations_found
         count += 1
     if run_conf.count:
