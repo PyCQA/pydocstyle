@@ -22,4 +22,4 @@ Configuration Files
 In-file configuration
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. include:: snippets/per_file.rst
+.. include:: snippets/in_file.rst
