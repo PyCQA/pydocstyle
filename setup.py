@@ -30,7 +30,6 @@ setup(
     ],
     keywords='pydocstyle, PEP 257, pep257, PEP 8, pep8, docstrings',
     packages=('pydocstyle',),
-    py_modules=('main',),
     package_dir={'': 'src'},
     entry_points={
         'console_scripts': [
