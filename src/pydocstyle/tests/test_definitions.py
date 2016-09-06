@@ -140,41 +140,41 @@ def test_parser():
     module = parse(StringIO(source), 'file.py')
     assert len(list(module)) == 8
     assert Module('file.py', _, 1, len(source.split('\n')),
-                  _, '"""Module."""', _, _, dunder_all, {}) == \
+                  _, '"""Module."""', _, _, dunder_all, {}, '') == \
         module
 
     function, class_ = module.children
     assert Function('function', _, _, _, _, '"Function."', _,
-                    module) == function
-    assert Class('class_', _, _, _, _, '"""Class."""', _, module) == class_
+                    module, '') == function
+    assert Class('class_', _, _, _, _, '"""Class."""', _, module, '') == class_
 
     nested_1, nested_2 = function.children
     assert NestedFunction('nested_1', _, _, _, _,
-                          '"""Nested."""', _, function) == nested_1
+                          '"""Nested."""', _, function, '') == nested_1
     assert NestedFunction('nested_2', _, _, _, _, None, _,
-                          function) == nested_2
+                          function, '') == nested_2
     assert nested_1.is_public is False
 
     method_1, method_2 = class_.children
     assert method_1.parent == method_2.parent == class_
     assert Method('method_1', _, _, _, _, '"""Method."""', _,
-                  class_) == method_1
-    assert Method('method_2', _, _, _, _, None, _, class_) == method_2
+                  class_, '') == method_1
+    assert Method('method_2', _, _, _, _, None, _, class_, '') == method_2
 
     nested_3, = method_2.children
     assert NestedFunction('nested_3', _, _, _, _,
-                          '"""Nested."""', _, method_2) == nested_3
+                          '"""Nested."""', _, method_2, '') == nested_3
     assert nested_3.module == module
     assert nested_3.all == dunder_all
 
     module = parse(StringIO(source_alt), 'file_alt.py')
     assert Module('file_alt.py', _, 1, len(source_alt.split('\n')),
-                  _, None, _, _, dunder_all, {}) == module
+                  _, None, _, _, dunder_all, {}, '') == module
 
     module = parse(StringIO(source_alt_nl_at_bracket), 'file_alt_nl.py')
     assert Module('file_alt_nl.py', _, 1,
                   len(source_alt_nl_at_bracket.split('\n')), _, None, _, _,
-                  dunder_all, {}) == module
+                  dunder_all, {}, '') == module
 
     with pytest.raises(AllError):
         parse(StringIO(source_complex_all), 'file_complex_all.py')
@@ -193,7 +193,7 @@ def test_import_parser():
 
         assert Module('file_ucl{0}.py'.format(i), _, 1,
                       _, _, None, _, _,
-                      _, {'unicode_literals': True}) == module
+                      _, {'unicode_literals': True}, '') == module
         assert module.future_imports['unicode_literals']
 
     for i, source_mfi in enumerate((
@@ -208,8 +208,8 @@ def test_import_parser():
         module = parse(StringIO(source_mfi), 'file_mfi{0}.py'.format(i))
         assert Module('file_mfi{0}.py'.format(i), _, 1,
                       _, _, None, _, _,
-                      _, {'unicode_literals': True, 'nested_scopes': True}) \
-            == module
+                      _, {'unicode_literals': True, 'nested_scopes': True},
+                      '') == module
         assert module.future_imports['unicode_literals']
 
     # These are invalid syntax, so there is no need to verify the result
@@ -227,7 +227,7 @@ def test_import_parser():
 
         assert Module('file_invalid{0}.py'.format(i), _, 1,
                       _, _, None, _, _,
-                      _, _) == module
+                      _, _, '') == module
 
 
 def _test_module():

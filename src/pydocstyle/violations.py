@@ -39,10 +39,10 @@ class Error(object):
 
     @property
     def message(self):
-        """Return the error message to print."""
-        ret = '%s: %s' % (self.code, self.short_desc)
+        """Return the message to print to the user."""
+        ret = '{0}: {1}'.format(self.code, self.short_desc)
         if self.context is not None:
-            ret += ' (' + self.context % self.parameters + ')'
+            ret += ' (' + self.context.format(*self.parameters) + ')'
         return ret
 
     @property
@@ -59,6 +59,8 @@ class Error(object):
         numbers_width = len(str(numbers_width))
         numbers_width = 6
         for n, line in enumerate(lines_stripped):
+            source += '{{0}}{0}: {{1}}'.format(numbers_width).format(
+                n + offset, line)
             source += '%*d: %s' % (numbers_width, n + offset, line)
             if n > 5:
                 source += '        ...\n'
@@ -68,18 +70,19 @@ class Error(object):
     def __str__(self):
         self.explanation = '\n'.join(l for l in self.explanation.split('\n')
                                      if not is_blank(l))
-        template = '%(filename)s:%(line)s %(definition)s:\n        %(message)s'
+        template = '{filename}:{line} {definition}:\n        {message}'
         if self.source and self.explain:
-            template += '\n\n%(explanation)s\n\n%(lines)s\n'
+            template += '\n\n{explanation}\n\n{lines}\n'
         elif self.source and not self.explain:
-            template += '\n\n%(lines)s\n'
+            template += '\n\n{lines}\n'
         elif self.explain and not self.source:
-            template += '\n\n%(explanation)s\n\n'
-        return template % dict((name, getattr(self, name)) for name in
+            template += '\n\n{explanation}\n\n'
+        return template.format(**dict((name, getattr(self, name)) for name in
                                ['filename', 'line', 'definition', 'message',
-                                'explanation', 'lines'])
+                                'explanation', 'lines']))
 
-    __repr__ = __str__
+    def __repr__(self):
+        return str(self)
 
     def __lt__(self, other):
         return (self.filename, self.line) < (other.filename, other.line)
@@ -140,7 +143,7 @@ class ErrorRegistry(object):
         for group in cls.groups:
             table += sep_line
             table += blank_line
-            table += '|' + ('**%s**' % group.name).center(78) + '|\n'
+            table += '|' + '**{0}**'.format(group.name).center(78) + '|\n'
             table += blank_line
             for error in group.errors:
                 table += sep_line
@@ -157,19 +160,20 @@ D102 = D1xx.create_error('D102', 'Missing docstring in public method')
 D103 = D1xx.create_error('D103', 'Missing docstring in public function')
 D104 = D1xx.create_error('D104', 'Missing docstring in public package')
 D105 = D1xx.create_error('D105', 'Missing docstring in magic method')
+
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '
-                                 'with quotes', 'found %s')
+                                 'with quotes', 'found {0}')
 D201 = D2xx.create_error('D201', 'No blank lines allowed before function '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D202 = D2xx.create_error('D202', 'No blank lines allowed after function '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D203 = D2xx.create_error('D203', '1 blank line required before class '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D204 = D2xx.create_error('D204', '1 blank line required after class '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D205 = D2xx.create_error('D205', '1 blank line required between summary line '
-                                 'and description', 'found %s')
+                                 'and description', 'found {0}')
 D206 = D2xx.create_error('D206', 'Docstring should be indented with spaces, '
                                  'not tabs')
 D207 = D2xx.create_error('D207', 'Docstring is under-indented')
@@ -179,25 +183,27 @@ D209 = D2xx.create_error('D209', 'Multi-line docstring closing quotes should '
 D210 = D2xx.create_error('D210', 'No whitespaces allowed surrounding '
                                  'docstring text')
 D211 = D2xx.create_error('D211', 'No blank lines allowed before class '
-                                 'docstring', 'found %s')
+                                 'docstring', 'found {0}')
 D212 = D2xx.create_error('D212', 'Multi-line docstring summary should start '
                                  'at the first line')
 D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
                                  'at the second line')
+
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
-                         'found %s-quotes')
+                         'found {0}-quotes')
 D301 = D3xx.create_error('D301', 'Use r""" if any backslashes in a docstring')
 D302 = D3xx.create_error('D302', 'Use u""" for Unicode docstrings')
+
 D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
 D400 = D4xx.create_error('D400', 'First line should end with a period',
-                         'not %r')
+                         'not {0!r}')
 D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
-                         '%r, not %r')
+                         '{0!r}, not {1!r}')
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 D403 = D4xx.create_error('D403', 'First word of the first line should be '
-                                 'properly capitalized', '%r, not %r')
+                                 'properly capitalized', '{0!r}, not {1!r}')
 D404 = D4xx.create_error('D404', 'First word of the docstring should not '
                                  'be `This`')
 

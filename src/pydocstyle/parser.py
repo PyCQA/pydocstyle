@@ -41,6 +41,10 @@ class Value(object):
     """A generic object with a list of preset fields."""
 
     def __init__(self, *args):
+        if len(self._fields) != len(args):
+            raise ValueError('got {0} arguments for {1} fields for {2}: {3}'
+                             .format(len(args), len(self._fields),
+                                     self.__class__.__name__, self._fields))
         vars(self).update(zip(self._fields, args))
 
     def __hash__(self):
@@ -59,7 +63,7 @@ class Definition(Value):
     """A Python source code definition (could be class, function, etc)."""
 
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent')
+               'children', 'parent', 'skipped_error_codes')
 
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])
@@ -87,14 +91,19 @@ class Definition(Value):
         return ''.join(reversed(list(filtered_src)))
 
     def __str__(self):
-        return 'in %s %s `%s`' % (self._publicity, self._human, self.name)
+        out = 'in {0} {1} `{2}`'.format(self._publicity, self._human,
+                                        self.name)
+        if self.skipped_error_codes:
+            out += ' (skipping {0})'.format(self.skipped_error_codes)
+        return out
 
 
 class Module(Definition):
     """A Python source code module."""
 
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent', '_all', 'future_imports')
+               'children', 'parent', '_all', 'future_imports',
+               'skipped_error_codes')
     is_public = True
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
@@ -364,17 +373,17 @@ class Parser(object):
         if self.current.value not in '([':
             raise AllError('Could not evaluate contents of __all__. ')
         if self.current.value == '[':
-            msg = ("%s WARNING: __all__ is defined as a list, this means "
-                   "pydocstyle cannot reliably detect contents of the __all__ "
-                   "variable, because it can be mutated. Change __all__ to be "
-                   "an (immutable) tuple, to remove this warning. Note, "
-                   "pydocstyle uses __all__ to detect which definitions are "
-                   "public, to warn if public definitions are missing "
-                   "docstrings. If __all__ is a (mutable) list, pydocstyle "
-                   "cannot reliably assume its contents. pydocstyle will "
-                   "proceed assuming __all__ is not mutated.\n"
-                   % self.filename)
-            sys.stderr.write(msg)
+            sys.stderr.write(
+                "{0} WARNING: __all__ is defined as a list, this means "
+                "pydocstyle cannot reliably detect contents of the __all__ "
+                "variable, because it can be mutated. Change __all__ to be "
+                "an (immutable) tuple, to remove this warning. Note, "
+                "pydocstyle uses __all__ to detect which definitions are "
+                "public, to warn if public definitions are missing "
+                "docstrings. If __all__ is a (mutable) list, pydocstyle "
+                "cannot reliably assume its contents. pydocstyle will "
+                "proceed assuming __all__ is not mutated.\n"
+                .format(self.filename))
         self.consume(tk.OP)
 
         self.all = []
@@ -386,8 +395,8 @@ class Parser(object):
                     self.current.value == ','):
                 all_content += self.current.value
             else:
-                raise AllError('Unexpected token kind in  __all__: %r. ' %
-                               self.current.kind)
+                raise AllError('Unexpected token kind in  __all__: {0!r}. '
+                               .format(self.current.kind))
             self.stream.move()
         self.consume(tk.OP)
         all_content += ")"
@@ -395,8 +404,8 @@ class Parser(object):
             self.all = eval(all_content, {})
         except BaseException as e:
             raise AllError('Could not evaluate contents of __all__.'
-                           '\bThe value was %s. The exception was:\n%s'
-                           % (all_content, e))
+                           '\bThe value was {0}. The exception was:\n{1}'
+                           .format(all_content, e))
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""
@@ -410,7 +419,7 @@ class Parser(object):
         if self.filename.endswith('__init__.py'):
             cls = Package
         module = cls(self.filename, self.source, start, end,
-                     [], docstring, children, None, self.all)
+                     [], docstring, children, None, self.all, None, '')
         for child in module.children:
             child.parent = module
         module.future_imports = self.future_imports
@@ -440,6 +449,7 @@ class Parser(object):
         else:
             self.consume(tk.OP)
         if self.current.kind in (tk.NEWLINE, tk.COMMENT):
+            skipped_error_codes = self.parse_skip_comment()
             self.leapfrog(tk.INDENT)
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()
@@ -451,19 +461,32 @@ class Parser(object):
                            name)
             end = self.line - 1
         else:  # one-liner definition
+            skipped_error_codes = ''
             docstring = self.parse_docstring()
             decorators = []  # TODO
             children = []
             end = self.line
             self.leapfrog(tk.NEWLINE)
         definition = class_(name, self.source, start, end,
-                            decorators, docstring, children, None)
+                            decorators, docstring, children, None,
+                            skipped_error_codes)
         for child in definition.children:
             child.parent = definition
         self.log.debug("finished parsing %s '%s'. Next token is %r (%s)",
                        class_.__name__, name, self.current.kind,
                        self.current.value)
         return definition
+
+    def parse_skip_comment(self):
+        """Parse a definition comment for noqa skips."""
+        skipped_error_codes = ''
+        if self.current.kind == tk.COMMENT:
+            if 'noqa: ' in self.current.value:
+                skipped_error_codes = ''.join(
+                     self.current.value.split('noqa: ')[1:])
+            elif self.current.value.startswith('# noqa'):
+                skipped_error_codes = 'all'
+        return skipped_error_codes
 
     def check_current(self, kind=None, value=None):
         """Verify the current token is of type `kind` and equals `value`."""

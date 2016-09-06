@@ -49,10 +49,14 @@ class PEP257Checker(object):
             for check in self.checks:
                 terminate = False
                 if isinstance(definition, check._check_for):
-                    error = check(None, definition, definition.docstring)
+                    if definition.skipped_error_codes != 'all':
+                        error = check(None, definition, definition.docstring)
+                    else:
+                        error = None
                     errors = error if hasattr(error, '__iter__') else [error]
                     for error in errors:
-                        if error is not None:
+                        if error is not None and error.code not in \
+                                definition.skipped_error_codes:
                             partition = check.__doc__.partition('.\n')
                             message, _, explanation = partition
                             error.set_context(explanation=explanation,
