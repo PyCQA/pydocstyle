@@ -388,13 +388,31 @@ parse = Parser()
 
 
 def check(filenames, select=None, ignore=None):
-    """Generate PEP 257 errors that exist in `filenames` iterable.
+    """Generate docstring errors that exist in `filenames` iterable.
 
-    Only returns errors with error-codes defined in `checked_codes` iterable.
+    By default, the PEP-257 convention is checked. To specifically define the
+    set of error codes to check for, supply either `select` or `ignore` (but
+    not both). In either case, the parameter should be a collection of error
+    code strings, e.g., {'D100', 'D404'}.
 
-    Example
-    -------
-    >>> check(['pydocstyle.py'], checked_codes=['D100'])
+    When supplying `select`, only specified error codes will be reported.
+    When supplying `ignore`, all error codes which were not specified will be
+    reported.
+
+    Note that ignored error code refer to the entire set of possible
+    error codes, which is larger than just the PEP-257 convention. To your
+    convenience, you may use `pydocstyle.violations.conventions.pep257` as
+    a base set to add or remove errors from.
+
+    Examples
+    ---------
+    >>> check(['pydocstyle.py'])
+    <generator object check at 0x...>
+
+    >>> check(['pydocstyle.py'], select=['D100'])
+    <generator object check at 0x...>
+
+    >>> check(['pydocstyle.py'], ignore=conventions.pep257 - {'D100'})
     <generator object check at 0x...>
 
     """
