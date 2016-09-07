@@ -5,8 +5,8 @@
 from __future__ import with_statement
 from collections import namedtuple
 
-import sys
 import os
+import sys
 import mock
 import shlex
 import shutil
@@ -177,6 +177,27 @@ def test_ignore_list():
         errors = tuple(checker.check(['filepath'], ignore=ignored))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes - ignored
+
+
+def test_run_as_named_module():
+    """Test that pydocstyle can be run as a "named module".
+
+    This means that the following should run pydocstyle:
+
+        python -m pydocstyle
+
+    """
+    # Running a package with "-m" is not supported in Python 2.6
+    if sys.version_info[0:2] == (2, 6):
+        return
+    # Add --match='' so that no files are actually checked (to make sure that
+    # the return code is 0 and to reduce execution time).
+    cmd = shlex.split("python -m pydocstyle --match=''")
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    assert p.returncode == 0, out.decode('utf-8') + err.decode('utf-8')
 
 
 def test_config_file(env):
