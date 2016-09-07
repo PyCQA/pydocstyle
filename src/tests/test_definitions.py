@@ -2,10 +2,10 @@
 
 import os
 import pytest
-from ..violations import Error, ErrorRegistry
-from ..checker import check
-from ..parser import Parser, Module, Function, NestedFunction, Method, Class, \
-    AllError, TokenStream, StringIO
+from pydocstyle.violations import Error, ErrorRegistry
+from pydocstyle.checker import check
+from pydocstyle.parser import (Parser, Module, Function, NestedFunction,
+                               Method, Class, AllError, TokenStream, StringIO)
 
 __all__ = ()
 _ = type('', (), dict(__repr__=lambda *a: '_', __eq__=lambda *a: True))()

@@ -2,7 +2,7 @@
 
 import six
 import textwrap
-from ..parser import Parser
+from pydocstyle.parser import Parser
 
 
 class CodeSnippet(six.StringIO):

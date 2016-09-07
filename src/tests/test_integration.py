@@ -16,7 +16,7 @@ import tempfile
 import textwrap
 import subprocess
 
-from .. import checker, violations
+from pydocstyle import checker, violations
 
 
 __all__ = ()
@@ -100,7 +100,7 @@ class SandboxEnv(object):
 
 @pytest.yield_fixture(scope="module")
 def install_package(request):
-    cwd = os.path.join(os.path.dirname(__file__), '..', '..', '..')
+    cwd = os.path.join(os.path.dirname(__file__), '..', '..')
     install_cmd = "python setup.py develop"
     uninstall_cmd = install_cmd + ' --uninstall'
     subprocess.check_call(shlex.split(install_cmd), cwd=cwd)
@@ -162,7 +162,7 @@ def test_ignore_list():
     expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
                                 'D210', 'D403'))
     mock_open = mock.mock_open(read_data=function_to_check)
-    from .. import checker
+    from pydocstyle import checker
     with mock.patch.object(
             checker, 'tokenize_open', mock_open, create=True):
         errors = tuple(checker.check(['filepath']))

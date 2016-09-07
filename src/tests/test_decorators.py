@@ -9,7 +9,7 @@ except ImportError:
 
 import textwrap
 
-from .. import parser, checker
+from pydocstyle import parser, checker
 
 
 __all__ = ()
