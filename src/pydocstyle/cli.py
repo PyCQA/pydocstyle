@@ -51,15 +51,17 @@ def run_pydocstyle(use_pep257=False):
         # An illegal configuration file was found during file generation.
         return ReturnCode.invalid_options
 
-    code = ReturnCode.no_violations_found
     count = 0
     for error in errors:
         sys.stderr.write('%s\n' % error)
-        code = ReturnCode.violations_found
         count += 1
+    if count == 0:
+        exit_code = ReturnCode.no_violations_found
+    else:
+        exit_code = ReturnCode.violations_found
     if run_conf.count:
         print(count)
-    return code
+    return exit_code
 
 
 def main(use_pep257=False):
