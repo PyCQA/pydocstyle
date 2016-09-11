@@ -4,19 +4,20 @@
 
 from __future__ import with_statement
 from collections import namedtuple
-from functools import partial
 
-import sys
 import os
+import sys
 import mock
 import shlex
 import shutil
 import pytest
+import pathlib
 import tempfile
 import textwrap
 import subprocess
 
-from .. import pydocstyle
+from pydocstyle import checker, violations
+
 
 __all__ = ()
 
@@ -139,10 +140,15 @@ def parse_errors(err):
 
 def test_pep257_conformance():
     """Test that we conform to PEP 257."""
-    relative = partial(os.path.join, os.path.dirname(__file__))
-    errors = list(pydocstyle.check([relative('..', 'pydocstyle.py'),
-                                    relative('test_integration.py')],
-                                   select=pydocstyle.conventions.pep257))
+    base_dir = (pathlib.Path(__file__).parent / '..').resolve()
+    src_dirs = (base_dir, base_dir / 'tests')
+    src_files = []
+    for src_dir in src_dirs:
+        src_files.extend(str(path) for path in src_dir.glob('*.py'))
+
+    ignored = set(['D104', 'D105'])
+    select = violations.conventions.pep257 - ignored
+    errors = list(checker.check(src_files, select=select))
     assert errors == [], errors
 
 
@@ -156,21 +162,42 @@ def test_ignore_list():
     expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
                                 'D210', 'D403'))
     mock_open = mock.mock_open(read_data=function_to_check)
-    from .. import pydocstyle
+    from pydocstyle import checker
     with mock.patch.object(
-            pydocstyle, 'tokenize_open', mock_open, create=True):
-        errors = tuple(pydocstyle.check(['filepath']))
+            checker, 'tokenize_open', mock_open, create=True):
+        errors = tuple(checker.check(['filepath']))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes
 
     # We need to recreate the mock, otherwise the read file is empty
     mock_open = mock.mock_open(read_data=function_to_check)
     with mock.patch.object(
-            pydocstyle, 'tokenize_open', mock_open, create=True):
+            checker, 'tokenize_open', mock_open, create=True):
         ignored = set(('D100', 'D202', 'D213'))
-        errors = tuple(pydocstyle.check(['filepath'], ignore=ignored))
+        errors = tuple(checker.check(['filepath'], ignore=ignored))
         error_codes = set(error.code for error in errors)
         assert error_codes == expected_error_codes - ignored
+
+
+def test_run_as_named_module():
+    """Test that pydocstyle can be run as a "named module".
+
+    This means that the following should run pydocstyle:
+
+        python -m pydocstyle
+
+    """
+    # Running a package with "-m" is not supported in Python 2.6
+    if sys.version_info[0:2] == (2, 6):
+        return
+    # Add --match='' so that no files are actually checked (to make sure that
+    # the return code is 0 and to reduce execution time).
+    cmd = shlex.split("python -m pydocstyle --match=''")
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    assert p.returncode == 0, out.decode('utf-8') + err.decode('utf-8')
 
 
 def test_config_file(env):
@@ -356,7 +383,7 @@ def test_missing_docstring_in_package(env):
 
 def test_illegal_convention(env):
     out, err, code = env.invoke('--convention=illegal_conv')
-    assert code == 2
+    assert code == 2, err
     assert "Illegal convention 'illegal_conv'." in err
     assert 'Possible conventions: pep257' in err
 

@@ -7,6 +7,12 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Major Updates
+
+* ``pydocstyle`` is no longer a single file. This might make it difficult for
+  some users to just add it to their project, but the project has reached
+  certain complexity where splitting it into modules was necessary (#200).
+
 New Features
 
 * Added the optional error codes D212 and D213, for checking whether
@@ -32,6 +38,9 @@ Bug Fixes
 
 * Fixed a bug where an ``__all__`` error was reported when ``__all__`` was
   imported from another module with a different name (#182, #187).
+
+* Fixed a bug where ``raise X from Y`` syntax caused ``pydocstyle`` to crash
+  (#196, #200).
 
 1.0.0 - January 30th, 2016
 --------------------------

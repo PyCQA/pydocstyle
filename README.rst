@@ -10,11 +10,6 @@ docstring conventions.
 `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ out of the box, but it
 should not be considered a reference implementation.
 
-The framework for checking docstring style is flexible, and
-custom checks can be easily added, for example to cover
-NumPy `docstring conventions
-<https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
-
 **pydocstyle** supports Python 2.6, 2.7, 3.3, 3.4, 3.5, pypy and pypy3.
 
 Quick Start
@@ -27,16 +22,19 @@ Install
 
     pip install pydocstyle
 
+
 Run
-^^^
+^^^^
 
 .. code::
 
     $ pydocstyle test.py
     test.py:18 in private nested class `meta`:
             D101: Docstring missing
-    test.py:22 in public method `method`:
-            D102: Docstring missing
+    test.py:27 in public function `get_user`:
+        D300: Use """triple double quotes""" (found '''-quotes)
+    test:75 in public function `init_database`:
+        D201: No blank lines allowed before function docstring (found 1)
     ...
 
 
@@ -50,7 +48,7 @@ Links
     :target: https://readthedocs.org/projects/pydocstyle/?badge=latest
     :alt: Documentation Status
 
-* `Read the full documentation here <https://pydocstyle.readthedocs.io>`_.
+* `Read the full documentation here <https://pydocstyle.org>`_.
 
 * `Fork pydocstyle on GitHub <http://github.com/PyCQA/pydocstyle>`_.
 
