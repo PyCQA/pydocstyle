@@ -48,7 +48,7 @@ Links
     :target: https://readthedocs.org/projects/pydocstyle/?badge=latest
     :alt: Documentation Status
 
-* `Read the full documentation here <https://pydocstyle.org>`_.
+* `Read the full documentation here <http://pydocstyle.org>`_.
 
 * `Fork pydocstyle on GitHub <http://github.com/PyCQA/pydocstyle>`_.
 
