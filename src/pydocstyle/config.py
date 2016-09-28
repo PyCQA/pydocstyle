@@ -195,7 +195,20 @@ class ConfigurationParser(object):
         if path in self._cache:
             return self._cache[path]
 
-        config_file = self._get_config_file_in_folder(path)
+        if self._options.config_location is None:
+            # No specific config file specified on the command line.
+            # Search the directory for generic filenames.
+            config_file = self._get_config_file_in_folder(path)
+        else:
+            # Look for the config file from the command line option.
+            cli_config_dir = os.path.dirname(self._options.config_location)
+            if os.path.abspath(cli_config_dir) == os.getcwd():
+                # We're in the specified config file's directory.
+                # Take that one instead of searching for a generic name.
+                config_file = self._options.config_location
+            else:
+                # Search anyway since we're not in the right directory.
+                config_file = self._get_config_file_in_folder(path)
 
         if config_file is None:
             parent_dir, tail = os.path.split(path)
@@ -483,6 +496,8 @@ class ConfigurationParser(object):
                help='print status information')
         option('--count', action='store_true', default=False,
                help='print total number of errors to stdout')
+        option('--config', metavar='<path>', dest='config_location',
+               help='use a config file in another location')
 
         # Error check options
         option('--select', metavar='<codes>', default=None,
