@@ -4,6 +4,15 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+1.1.1 - October 4th, 2016
+-------------------------
+
+Bug Fixes
+
+* Fixed an issue where the `flake8-docstrings` failed when accessing some
+  public API from `pydocstyle`.
+
+
 1.1.0 - September 29th, 2016
 ----------------------------
 
