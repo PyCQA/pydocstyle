@@ -233,6 +233,12 @@ def test_config_file(env):
     assert 'D100' not in err
     assert 'D103' not in err
 
+    env.write_config(ignore='D10')
+    _, err, code = env.invoke()
+    assert code == 0
+    assert 'D100' not in err
+    assert 'D103' not in err
+
 
 def test_verbose(env):
     """Test that passing --verbose prints more information."""
@@ -279,14 +285,17 @@ def test_select_config(env):
     """Test choosing error codes with `select` in the config file."""
     with env.open('example.py', 'wt') as example:
         example.write(textwrap.dedent("""\
-            def foo():
-                pass
+            class Foo(object):
+                "Doc string"
+                def foo():
+                    pass
         """))
 
-    env.write_config(select="D100")
+    env.write_config(select="D100,D3")
     _, err, code = env.invoke()
     assert code == 1
     assert 'D100' in err
+    assert 'D300' in err
     assert 'D103' not in err
 
 
@@ -295,15 +304,17 @@ def test_add_select_cli(env):
     with env.open('example.py', 'wt') as example:
         example.write(textwrap.dedent("""\
             class Foo(object):
+                "Doc string"
                 def foo():
                     pass
         """))
 
     env.write_config(select="D100")
-    _, err, code = env.invoke(args="--add-select=D101")
+    _, err, code = env.invoke(args="--add-select=D204,D3")
     assert code == 1
     assert 'D100' in err
-    assert 'D101' in err
+    assert 'D204' in err
+    assert 'D300' in err
     assert 'D103' not in err
 
 
@@ -322,6 +333,23 @@ def test_add_ignore_cli(env):
     assert 'D100' in err
     assert 'D101' not in err
     assert 'D103' not in err
+
+
+def test_wildcard_add_ignore_cli(env):
+    """Test choosing error codes with --add-ignore in the CLI."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            class Foo(object):
+                "Doc string"
+                def foo():
+                    pass
+        """))
+
+    env.write_config(select="D203,D300")
+    _, err, code = env.invoke(args="--add-ignore=D30")
+    assert code == 1
+    assert 'D203' in err
+    assert 'D300' not in err
 
 
 def test_conflicting_select_ignore_config(env):

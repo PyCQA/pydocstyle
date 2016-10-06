@@ -369,27 +369,45 @@ class ConfigurationParser(object):
             if config.read(full_path) and cls._get_section_name(config):
                 return full_path
 
-    @staticmethod
-    def _get_exclusive_error_codes(options):
+    @classmethod
+    def _get_exclusive_error_codes(cls, options):
         """Extract the error codes from the selected exclusive option."""
         codes = set(ErrorRegistry.get_error_codes())
         checked_codes = None
 
         if options.ignore is not None:
-            checked_codes = codes - options.ignore
+            ignored = cls._expand_error_codes(options.ignore)
+            checked_codes = codes - ignored
         elif options.select is not None:
-            checked_codes = options.select
+            checked_codes = cls._expand_error_codes(options.select)
         elif options.convention is not None:
             checked_codes = getattr(conventions, options.convention)
 
         # To not override the conventions nor the options - copy them.
         return copy.deepcopy(checked_codes)
 
-    @staticmethod
-    def _set_add_options(checked_codes, options):
+    @classmethod
+    def _set_add_options(cls, checked_codes, options):
         """Set `checked_codes` by the `add_ignore` or `add_select` options."""
-        checked_codes |= options.add_select
-        checked_codes -= options.add_ignore
+        checked_codes |= cls._expand_error_codes(options.add_select)
+        checked_codes -= cls._expand_error_codes(options.add_ignore)
+        print(checked_codes)
+
+    @staticmethod
+    def _expand_error_codes(code_parts):
+        """Returns expanded set of error codes to ignore."""
+        codes = set(ErrorRegistry.get_error_codes())
+        epanded_codes = set()
+
+        for part in code_parts:
+            if len(part) < 4:
+                for code in codes:
+                    if code.startswith(part):
+                        epanded_codes.add(code)
+            else:
+                epanded_codes.add(part)
+
+        return epanded_codes
 
     @classmethod
     def _get_checked_errors(cls, options):
