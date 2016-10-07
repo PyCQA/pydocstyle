@@ -55,7 +55,7 @@ def run_pydocstyle(use_pep257=False):
 
     count = 0
     for error in errors:
-        sys.stderr.write('%s\n' % error)
+        sys.stdout.write('%s\n' % error)
         count += 1
     if count == 0:
         exit_code = ReturnCode.no_violations_found
