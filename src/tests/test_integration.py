@@ -216,22 +216,22 @@ def test_config_file(env):
         """))
 
     env.write_config(ignore='D100')
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
     assert code == 1
-    assert 'D100' not in err
-    assert 'D103' in err
+    assert 'D100' not in out
+    assert 'D103' in out
 
     env.write_config(ignore='')
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
     assert code == 1
-    assert 'D100' in err
-    assert 'D103' in err
+    assert 'D100' in out
+    assert 'D103' in out
 
     env.write_config(ignore='D100,D103')
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
     assert code == 0
-    assert 'D100' not in err
-    assert 'D103' not in err
+    assert 'D100' not in out
+    assert 'D103' not in out
 
 
 def test_verbose(env):
@@ -269,10 +269,10 @@ def test_select_cli(env):
                 pass
         """))
 
-    _, err, code = env.invoke(args="--select=D100")
+    out, err, code = env.invoke(args="--select=D100")
     assert code == 1
-    assert 'D100' in err
-    assert 'D103' not in err
+    assert 'D100' in out
+    assert 'D103' not in out
 
 
 def test_select_config(env):
@@ -284,10 +284,10 @@ def test_select_config(env):
         """))
 
     env.write_config(select="D100")
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
     assert code == 1
-    assert 'D100' in err
-    assert 'D103' not in err
+    assert 'D100' in out
+    assert 'D103' not in out
 
 
 def test_add_select_cli(env):
@@ -300,11 +300,11 @@ def test_add_select_cli(env):
         """))
 
     env.write_config(select="D100")
-    _, err, code = env.invoke(args="--add-select=D101")
+    out, err, code = env.invoke(args="--add-select=D101")
     assert code == 1
-    assert 'D100' in err
-    assert 'D101' in err
-    assert 'D103' not in err
+    assert 'D100' in out
+    assert 'D101' in out
+    assert 'D103' not in out
 
 
 def test_add_ignore_cli(env):
@@ -317,11 +317,11 @@ def test_add_ignore_cli(env):
         """))
 
     env.write_config(select="D100,D101")
-    _, err, code = env.invoke(args="--add-ignore=D101")
+    out, err, code = env.invoke(args="--add-ignore=D101")
     assert code == 1
-    assert 'D100' in err
-    assert 'D101' not in err
-    assert 'D103' not in err
+    assert 'D100' in out
+    assert 'D101' not in out
+    assert 'D103' not in out
 
 
 def test_conflicting_select_ignore_config(env):
@@ -368,8 +368,8 @@ def test_unicode_raw(env):
     env.write_config(ignore='D100', verbose=True)
     out, err, code = env.invoke()
     assert code == 0
-    assert 'D301' not in err
-    assert 'D302' not in err
+    assert 'D301' not in out
+    assert 'D302' not in out
 
 
 def test_missing_docstring_in_package(env):
@@ -377,12 +377,12 @@ def test_missing_docstring_in_package(env):
         pass  # an empty package file
     out, err, code = env.invoke()
     assert code == 1
-    assert 'D100' not in err  # shouldn't be treated as a module
-    assert 'D104' in err  # missing docstring in package
+    assert 'D100' not in out  # shouldn't be treated as a module
+    assert 'D104' in out  # missing docstring in package
 
 
 def test_illegal_convention(env):
-    out, err, code = env.invoke('--convention=illegal_conv')
+    _, err, code = env.invoke('--convention=illegal_conv')
     assert code == 2, err
     assert "Illegal convention 'illegal_conv'." in err
     assert 'Possible conventions: pep257' in err
@@ -422,11 +422,11 @@ def test_empty_select_with_added_error(env):
         """))
 
     env.write_config(select="")
-    _, err, code = env.invoke(args="--add-select=D100")
+    out, err, code = env.invoke(args="--add-select=D100")
     assert code == 1
-    assert 'D100' in err
-    assert 'D101' not in err
-    assert 'D103' not in err
+    assert 'D100' in out
+    assert 'D101' not in out
+    assert 'D103' not in out
 
 
 def test_pep257_convention(env):
@@ -442,13 +442,13 @@ def test_pep257_convention(env):
         '''))
 
     env.write_config(convention="pep257")
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
     assert code == 1
-    assert 'D100' in err
-    assert 'D211' in err
-    assert 'D203' not in err
-    assert 'D212' not in err
-    assert 'D213' not in err
+    assert 'D100' in out
+    assert 'D211' in out
+    assert 'D203' not in out
+    assert 'D212' not in out
+    assert 'D213' not in out
 
 
 def test_config_file_inheritance(env):
@@ -483,11 +483,11 @@ def test_config_file_inheritance(env):
                 pass
         """))
 
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
 
     assert code == 1
-    assert 'D100' in err
-    assert 'D103' in err
+    assert 'D100' in out
+    assert 'D103' in out
 
 
 def test_config_file_cumulative_add_ignores(env):
@@ -522,9 +522,9 @@ def test_config_file_cumulative_add_ignores(env):
     with env.open(os.path.join('A', 'a.py'), 'wt') as test:
         test.write(test_content)
 
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
 
-    err = parse_errors(err)
+    err = parse_errors(out)
 
     assert code == 1
     assert 'base.py' in err, err
@@ -565,9 +565,9 @@ def test_config_file_cumulative_add_select(env):
     with env.open(os.path.join('A', 'a.py'), 'wt') as test:
         test.write(test_content)
 
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
 
-    err = parse_errors(err)
+    err = parse_errors(out)
 
     assert code == 1
     assert 'base.py' in err, err
@@ -605,12 +605,12 @@ def test_config_file_convention_overrides_select(env):
     with env.open(os.path.join('A', 'a.py'), 'wt') as test:
         test.write(test_content)
 
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
 
     assert code == 1
-    assert 'D100' in err, err
-    assert 'base.py' not in err, err
-    assert 'a.py' in err, err
+    assert 'D100' in out, out
+    assert 'base.py' not in out, out
+    assert 'a.py' in out, out
 
 
 def test_cli_overrides_config_file(env):
@@ -642,13 +642,13 @@ def test_cli_overrides_config_file(env):
                 pass
         """))
 
-    _, err, code = env.invoke(args="--convention=pep257")
+    out, err, code = env.invoke(args="--convention=pep257")
 
     assert code == 1
-    assert 'D100' in err, err
-    assert 'D103' not in err, err
-    assert 'base.py' in err, err
-    assert 'a.py' not in err, err
+    assert 'D100' in out, out
+    assert 'D103' not in out, out
+    assert 'base.py' in out, out
+    assert 'a.py' not in out, out
 
 
 def test_cli_match_overrides_config_file(env):
@@ -681,13 +681,13 @@ def test_cli_match_overrides_config_file(env):
     with env.open(os.path.join('A', 'a.py'), 'wt') as test:
         test.write("")
 
-    _, err, code = env.invoke(args="--match=a.py --match-dir=A")
+    out, err, code = env.invoke(args="--match=a.py --match-dir=A")
 
     assert code == 1
-    assert 'D100' in err, err
-    assert 'D103' not in err, err
-    assert 'base.py' not in err, err
-    assert 'a.py' in err, err
+    assert 'D100' in out, out
+    assert 'D103' not in out, out
+    assert 'base.py' not in out, out
+    assert 'a.py' in out, out
 
 
 def test_config_file_convention_overrides_ignore(env):
@@ -722,13 +722,13 @@ def test_config_file_convention_overrides_ignore(env):
     with env.open(os.path.join('A', 'a.py'), 'wt') as test:
         test.write(test_content)
 
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
 
     assert code == 1
-    assert 'D100' in err, err
-    assert 'D103' in err, err
-    assert 'base.py' not in err, err
-    assert 'a.py' in err, err
+    assert 'D100' in out, out
+    assert 'D103' in out, out
+    assert 'base.py' not in out, out
+    assert 'a.py' in out, out
 
 
 def test_config_file_ignore_overrides_select(env):
@@ -764,9 +764,9 @@ def test_config_file_ignore_overrides_select(env):
     with env.open(os.path.join('A', 'a.py'), 'wt') as test:
         test.write(test_content)
 
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
 
-    err = parse_errors(err)
+    err = parse_errors(out)
 
     assert code == 1
     assert 'base.py' in err, err
@@ -820,9 +820,9 @@ def test_config_file_nearest_to_checked_file(env):
     with env.open(os.path.join('B', 'b.py'), 'wt') as test:
         test.write(test_content)
 
-    _, err, code = env.invoke()
+    out, err, code = env.invoke()
 
-    err = parse_errors(err)
+    err = parse_errors(out)
 
     assert code == 1
     assert 'base.py' in err, err
