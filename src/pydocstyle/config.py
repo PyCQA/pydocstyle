@@ -378,15 +378,10 @@ class ConfigurationParser(object):
         if options.ignore is not None:
             checked_codes = set()
             for code in codes:
-                if not any([code.startswith(ignore_code)
-                            for ignore_code in options.ignore]):
+                if not code.startswith(tuple(options.ignore)):
                     checked_codes.add(code)
         elif options.select is not None:
-            checked_codes = set()
-            for code in codes:
-                if any([code.startswith(select_code)
-                        for select_code in options.select]):
-                    checked_codes.add(code)
+            checked_codes = options.select
         elif options.convention is not None:
             checked_codes = getattr(conventions, options.convention)
 

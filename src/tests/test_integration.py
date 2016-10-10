@@ -275,20 +275,6 @@ def test_select_cli(env):
     assert 'D103' not in err
 
 
-def test_select_cli_wildcard(env):
-    """Test choosing error codes with `--select` wildcard in the CLI."""
-    with env.open('example.py', 'wt') as example:
-        example.write(textwrap.dedent("""\
-                def foo():
-                    pass
-            """))
-
-    out, err, code = env.invoke(args="--select=D10")
-    assert code == 1
-    assert 'D100' in out
-    assert 'D103' in out
-
-
 def test_ignore_cli_wildcard(env):
     """Test ignoring error codes with `--ignore` wildcard in the CLI."""
     with env.open('example.py', 'wt') as example:
