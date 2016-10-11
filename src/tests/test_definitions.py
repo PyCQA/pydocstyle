@@ -126,6 +126,14 @@ source_future_import_invalid8 = """
 from __future__ import (, )
 """
 
+source_invalid_syntax = """
+while True:
+\ttry:
+    pass
+"""
+
+source_token_error = '['
+
 source_complex_all = '''
 import foo
 import bar
@@ -222,6 +230,8 @@ def test_import_parser():
             source_future_import_invalid6,
             source_future_import_invalid7,
             source_future_import_invalid8,
+            source_token_error,
+            source_invalid_syntax,
             ), 1):
         module = parse(StringIO(source_ucli), 'file_invalid{}.py'.format(i))
 
