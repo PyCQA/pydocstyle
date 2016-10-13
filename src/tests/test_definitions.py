@@ -223,7 +223,7 @@ def test_import_parser():
             source_future_import_invalid7,
             source_future_import_invalid8,
             ), 1):
-        module = parse(StringIO(source_ucl), 'file_invalid{}.py'.format(i))
+        module = parse(StringIO(source_ucli), 'file_invalid{}.py'.format(i))
 
         assert Module('file_invalid{}.py'.format(i), _, 1,
                       _, _, None, _, _,
