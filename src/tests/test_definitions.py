@@ -273,8 +273,11 @@ def test_pep257(test_case):
                              locals=locals(),
                              fromlist=['expectation'],
                              level=1)
-    results = list(check([os.path.join(os.path.dirname(__file__),
-                                       'test_cases', test_case + '.py')],
+    test_case_dir = os.path.normcase(os.path.dirname(__file__))
+    test_case_file = os.path.join(test_case_dir,
+                                  'test_cases',
+                                  test_case + '.py')
+    results = list(check([test_case_file],
                          select=set(ErrorRegistry.get_error_codes())))
     for error in results:
         assert isinstance(error, Error)
