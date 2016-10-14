@@ -189,9 +189,9 @@ def test_import_parser():
             source_unicode_literals5,
             source_unicode_literals6,
             ), 1):
-        module = parse(StringIO(source_ucl), 'file_ucl{0}.py'.format(i))
+        module = parse(StringIO(source_ucl), 'file_ucl{}.py'.format(i))
 
-        assert Module('file_ucl{0}.py'.format(i), _, 1,
+        assert Module('file_ucl{}.py'.format(i), _, 1,
                       _, _, None, _, _,
                       _, {'unicode_literals': True}, '') == module
         assert module.future_imports['unicode_literals']
@@ -205,8 +205,8 @@ def test_import_parser():
             source_multiple_future_imports6,
             source_multiple_future_imports7,
             ), 1):
-        module = parse(StringIO(source_mfi), 'file_mfi{0}.py'.format(i))
-        assert Module('file_mfi{0}.py'.format(i), _, 1,
+        module = parse(StringIO(source_mfi), 'file_mfi{}.py'.format(i))
+        assert Module('file_mfi{}.py'.format(i), _, 1,
                       _, _, None, _, _,
                       _, {'unicode_literals': True, 'nested_scopes': True},
                       '') == module
@@ -223,9 +223,9 @@ def test_import_parser():
             source_future_import_invalid7,
             source_future_import_invalid8,
             ), 1):
-        module = parse(StringIO(source_ucl), 'file_invalid{0}.py'.format(i))
+        module = parse(StringIO(source_ucl), 'file_invalid{}.py'.format(i))
 
-        assert Module('file_invalid{0}.py'.format(i), _, 1,
+        assert Module('file_invalid{}.py'.format(i), _, 1,
                       _, _, None, _, _,
                       _, _, '') == module
 
@@ -268,7 +268,7 @@ def test_token_stream():
 ])
 def test_pep257(test_case):
     """Run domain-specific tests from test.py file."""
-    case_module = __import__('test_cases.{0}'.format(test_case),
+    case_module = __import__('test_cases.{}'.format(test_case),
                              globals=globals(),
                              locals=locals(),
                              fromlist=['expectation'],

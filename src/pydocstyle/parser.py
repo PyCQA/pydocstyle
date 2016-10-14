@@ -42,7 +42,7 @@ class Value(object):
 
     def __init__(self, *args):
         if len(self._fields) != len(args):
-            raise ValueError('got {0} arguments for {1} fields for {2}: {3}'
+            raise ValueError('got {} arguments for {} fields for {}: {}'
                              .format(len(args), len(self._fields),
                                      self.__class__.__name__, self._fields))
         vars(self).update(zip(self._fields, args))
@@ -54,9 +54,9 @@ class Value(object):
         return other and vars(self) == vars(other)
 
     def __repr__(self):
-        kwargs = ', '.join('{0}={1!r}'.format(field, getattr(self, field))
+        kwargs = ', '.join('{}={!r}'.format(field, getattr(self, field))
                            for field in self._fields)
-        return '{0}({1})'.format(self.__class__.__name__, kwargs)
+        return '{}({})'.format(self.__class__.__name__, kwargs)
 
 
 class Definition(Value):
@@ -91,10 +91,9 @@ class Definition(Value):
         return ''.join(reversed(list(filtered_src)))
 
     def __str__(self):
-        out = 'in {0} {1} `{2}`'.format(self._publicity, self._human,
-                                        self.name)
+        out = 'in {} {} `{}`'.format(self._publicity, self._human, self.name)
         if self.skipped_error_codes:
-            out += ' (skipping {0})'.format(self.skipped_error_codes)
+            out += ' (skipping {})'.format(self.skipped_error_codes)
         return out
 
 
@@ -154,7 +153,7 @@ class Method(Function):
         # Check if we are a setter/deleter method, and mark as private if so.
         for decorator in self.decorators:
             # Given 'foo', match 'foo.bar' but not 'foobar' or 'sfoo'
-            if re(r"^{0}\.".format(self.name)).match(decorator.name):
+            if re(r"^{}\.".format(self.name)).match(decorator.name):
                 return False
         name_is_public = (not self.name.startswith('_') or
                           self.name in VARIADIC_MAGIC_METHODS or
@@ -229,7 +228,7 @@ class TokenStream(object):
 
 class TokenKind(int):
     def __repr__(self):
-        return "tk.{0}".format(tk.tok_name[self])
+        return "tk.{}".format(tk.tok_name[self])
 
 
 class Token(Value):
@@ -374,7 +373,7 @@ class Parser(object):
             raise AllError('Could not evaluate contents of __all__. ')
         if self.current.value == '[':
             sys.stderr.write(
-                "{0} WARNING: __all__ is defined as a list, this means "
+                "{} WARNING: __all__ is defined as a list, this means "
                 "pydocstyle cannot reliably detect contents of the __all__ "
                 "variable, because it can be mutated. Change __all__ to be "
                 "an (immutable) tuple, to remove this warning. Note, "
@@ -395,7 +394,7 @@ class Parser(object):
                     self.current.value == ','):
                 all_content += self.current.value
             else:
-                raise AllError('Unexpected token kind in  __all__: {0!r}. '
+                raise AllError('Unexpected token kind in  __all__: {!r}. '
                                .format(self.current.kind))
             self.stream.move()
         self.consume(tk.OP)
@@ -404,7 +403,7 @@ class Parser(object):
             self.all = eval(all_content, {})
         except BaseException as e:
             raise AllError('Could not evaluate contents of __all__.'
-                           '\bThe value was {0}. The exception was:\n{1}'
+                           '\bThe value was {}. The exception was:\n{}'
                            .format(all_content, e))
 
     def parse_module(self):
