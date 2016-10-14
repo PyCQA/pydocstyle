@@ -40,7 +40,7 @@ class Error(object):
     @property
     def message(self):
         """Return the message to print to the user."""
-        ret = '{0}: {1}'.format(self.code, self.short_desc)
+        ret = '{}: {}'.format(self.code, self.short_desc)
         if self.context is not None:
             ret += ' (' + self.context.format(*self.parameters) + ')'
         return ret
@@ -59,7 +59,7 @@ class Error(object):
         numbers_width = len(str(numbers_width))
         numbers_width = 6
         for n, line in enumerate(lines_stripped):
-            source += '{{0}}{0}: {{1}}'.format(numbers_width).format(
+            source += '{{}}{}: {{}}'.format(numbers_width).format(
                 n + offset, line)
             source += '%*d: %s' % (numbers_width, n + offset, line)
             if n > 5:
@@ -143,7 +143,7 @@ class ErrorRegistry(object):
         for group in cls.groups:
             table += sep_line
             table += blank_line
-            table += '|' + '**{0}**'.format(group.name).center(78) + '|\n'
+            table += '|' + '**{}**'.format(group.name).center(78) + '|\n'
             table += blank_line
             for error in group.errors:
                 table += sep_line
@@ -212,10 +212,8 @@ class AttrDict(dict):
     def __getattr__(self, item):
         return self[item]
 
+all_errors = set(ErrorRegistry.get_error_codes())
 
 conventions = AttrDict({
-    'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203',
-                                                          'D212',
-                                                          'D213',
-                                                          'D404'])
+    'pep257': all_errors - {'D203', 'D212', 'D213', 'D404'}
 })

@@ -50,9 +50,9 @@ class SandboxEnv(object):
             self.makedirs(base)
 
         with open(os.path.join(base, 'tox.ini'), 'wt') as conf:
-            conf.write("[{0}]\n".format(self.script_name))
+            conf.write("[{}]\n".format(self.script_name))
             for k, v in kwargs.items():
-                conf.write("{0} = {1}\n".format(k.replace('_', '-'), v))
+                conf.write("{} = {}\n".format(k.replace('_', '-'), v))
 
     def open(self, path, *args, **kwargs):
         """Open a file in the environment.
@@ -76,7 +76,7 @@ class SandboxEnv(object):
         run_target = self.tempdir if target is None else \
             os.path.join(self.tempdir, target)
 
-        cmd = shlex.split("{0} {1} {2}"
+        cmd = shlex.split("{} {} {}"
                           .format(self.script_name, run_target, args),
                           posix=False)
         p = subprocess.Popen(cmd,
@@ -146,7 +146,7 @@ def test_pep257_conformance():
     for src_dir in src_dirs:
         src_files.extend(str(path) for path in src_dir.glob('*.py'))
 
-    ignored = set(['D104', 'D105'])
+    ignored = {'D104', 'D105'}
     select = violations.conventions.pep257 - ignored
     errors = list(checker.check(src_files, select=select))
     assert errors == [], errors
@@ -159,23 +159,23 @@ def test_ignore_list():
             no blank line after one-liner is bad. Also this - """
             return foo
     ''')
-    expected_error_codes = set(('D100', 'D400', 'D401', 'D205', 'D209',
-                                'D210', 'D403'))
+    expected_error_codes = {'D100', 'D400', 'D401', 'D205', 'D209', 'D210',
+                            'D403'}
     mock_open = mock.mock_open(read_data=function_to_check)
     from pydocstyle import checker
     with mock.patch.object(
             checker, 'tokenize_open', mock_open, create=True):
         errors = tuple(checker.check(['filepath']))
-        error_codes = set(error.code for error in errors)
+        error_codes = {error.code for error in errors}
         assert error_codes == expected_error_codes
 
     # We need to recreate the mock, otherwise the read file is empty
     mock_open = mock.mock_open(read_data=function_to_check)
     with mock.patch.object(
             checker, 'tokenize_open', mock_open, create=True):
-        ignored = set(('D100', 'D202', 'D213'))
+        ignored = {'D100', 'D202', 'D213'}
         errors = tuple(checker.check(['filepath'], ignore=ignored))
-        error_codes = set(error.code for error in errors)
+        error_codes = {error.code for error in errors}
         assert error_codes == expected_error_codes - ignored
 
 
@@ -572,8 +572,8 @@ def test_config_file_cumulative_add_select(env):
     assert code == 1
     assert 'base.py' in err, err
     assert 'a.py' in err, err
-    assert err['base.py'] == set(['D100']), err
-    assert err['a.py'] == set(['D100', 'D103']), err
+    assert err['base.py'] == {'D100'}, err
+    assert err['a.py'] == {'D100', 'D103'}, err
 
 
 def test_config_file_convention_overrides_select(env):
@@ -771,8 +771,8 @@ def test_config_file_ignore_overrides_select(env):
     assert code == 1
     assert 'base.py' in err, err
     assert 'a.py' in err, err
-    assert err['base.py'] == set(['D100']), err
-    assert err['a.py'] == set(['D100', 'D101']), err
+    assert err['base.py'] == {'D100'}, err
+    assert err['a.py'] == {'D100', 'D101'}, err
 
 
 def test_config_file_nearest_to_checked_file(env):
@@ -828,9 +828,9 @@ def test_config_file_nearest_to_checked_file(env):
     assert 'base.py' in err, err
     assert 'a.py' in err, err
     assert 'b.py' in err, err
-    assert err['base.py'] == set(['D101', 'D102']), err
-    assert err['a.py'] == set(['D101', 'D102']), err
-    assert err['b.py'] == set(['D102']), err
+    assert err['base.py'] == {'D101', 'D102'}, err
+    assert err['a.py'] == {'D101', 'D102'}, err
+    assert err['b.py'] == {'D102'}, err
 
 
 def test_config_file_nearest_match_re(env):

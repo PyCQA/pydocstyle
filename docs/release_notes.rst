@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Major Updates
+
+* Support for Python 2.6 has been dropped (#206, #217).
+
 1.1.1 - October 4th, 2016
 -------------------------
 

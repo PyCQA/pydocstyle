@@ -260,7 +260,7 @@ class ConfigurationParser(object):
                     continue
 
                 if opt.replace('_', '-') not in self.CONFIG_FILE_OPTIONS:
-                    log.warning("Unknown option '{0}' ignored".format(opt))
+                    log.warning("Unknown option '{}' ignored".format(opt))
                     continue
 
                 normalized_opt = opt.replace('-', '_')
@@ -279,7 +279,7 @@ class ConfigurationParser(object):
 
         if options is not None:
             if not self._validate_options(options):
-                raise IllegalConfiguration('in file: {0}'.format(path))
+                raise IllegalConfiguration('in file: {}'.format(path))
 
         return options, should_inherit
 
@@ -413,12 +413,12 @@ class ConfigurationParser(object):
         for opt1, opt2 in \
                 itertools.permutations(cls.BASE_ERROR_SELECTION_OPTIONS, 2):
             if getattr(options, opt1) and getattr(options, opt2):
-                log.error('Cannot pass both {0} and {1}. They are '
+                log.error('Cannot pass both {} and {}. They are '
                           'mutually exclusive.'.format(opt1, opt2))
                 return False
 
         if options.convention and options.convention not in conventions:
-            log.error("Illegal convention '{0}'. Possible conventions: {1}"
+            log.error("Illegal convention '{}'. Possible conventions: {}"
                       .format(options.convention,
                               ', '.join(conventions.keys())))
             return False
@@ -442,7 +442,7 @@ class ConfigurationParser(object):
             Removes any occurrences of '' in the set.
 
             """
-            return set(value_str.split(',')) - set([''])
+            return set(value_str.split(',')) - {''}
 
         for opt in optional_set_options:
             value = getattr(options, opt)
@@ -497,7 +497,7 @@ class ConfigurationParser(object):
                     'for example: --ignore=D101,D202')
         option('--convention', metavar='<name>', default=None,
                help='choose the basic list of checked errors by specifying an '
-                    'existing convention. Possible conventions: {0}'
+                    'existing convention. Possible conventions: {}'
                     .format(', '.join(conventions)))
         option('--add-select', metavar='<codes>', default=None,
                help='amend the list of errors to check for by specifying '
@@ -509,12 +509,12 @@ class ConfigurationParser(object):
         # Match clauses
         option('--match', metavar='<pattern>', default=None,
                help=("check only files that exactly match <pattern> regular "
-                     "expression; default is --match='{0}' which matches "
+                     "expression; default is --match='{}' which matches "
                      "files that don't start with 'test_' but end with "
                      "'.py'").format(cls.DEFAULT_MATCH_RE))
         option('--match-dir', metavar='<pattern>', default=None,
                help=("search only dirs that exactly match <pattern> regular "
-                     "expression; default is --match-dir='{0}', which "
+                     "expression; default is --match-dir='{}', which "
                      "matches all dirs that don't start with "
                      "a dot").format(cls.DEFAULT_MATCH_DIR_RE))
 
