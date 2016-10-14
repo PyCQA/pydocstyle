@@ -1,6 +1,7 @@
 """Old parser tests."""
 
 import os
+import re
 import pytest
 from pydocstyle.violations import Error, ErrorRegistry
 from pydocstyle.checker import check
@@ -278,7 +279,8 @@ def test_pep257(test_case):
                                   'test_cases',
                                   test_case + '.py')
     results = list(check([test_case_file],
-                         select=set(ErrorRegistry.get_error_codes())))
+                         select=set(ErrorRegistry.get_error_codes()),
+                         ignore_decorators=re.compile('wraps')))
     for error in results:
         assert isinstance(error, Error)
     results = set([(e.definition.name, e.message) for e in results])
