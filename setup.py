@@ -34,7 +34,6 @@ setup(
     entry_points={
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',
-            'pep257 = pydocstyle.cli:main_pep257',
         ],
     },
 )
