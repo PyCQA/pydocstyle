@@ -209,13 +209,21 @@ class TokenStream(object):
         self._generator = tk.generate_tokens(filelike.readline)
         self.current = Token(*next(self._generator, None))
         self.line = self.current.start[0]
+        self.log = logging.getLogger()
 
     def move(self):
         previous = self.current
-        current = next(self._generator, None)
+        current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
         return previous
+
+    def _next_from_generator(self):
+        try:
+            return next(self._generator, None)
+        except (SyntaxError, tk.TokenError):
+            self.log.warning('error generating tokens', exc_info=True)
+            return None
 
     def __iter__(self):
         while True:
