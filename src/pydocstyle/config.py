@@ -64,11 +64,13 @@ class ConfigurationParser(object):
     """
 
     CONFIG_FILE_OPTIONS = ('convention', 'select', 'ignore', 'add-select',
-                           'add-ignore', 'match', 'match-dir')
+                           'add-ignore', 'match', 'match-dir',
+                           'ignore-decorators')
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
     DEFAULT_MATCH_RE = '(?!test_).*\.py'
     DEFAULT_MATCH_DIR_RE = '[^\.].*'
+    DEFAULT_IGNORE_DECORATORS_RE = ''
     DEFAULT_CONVENTION = conventions.pep257
 
     PROJECT_CONFIG_FILES = (
@@ -112,7 +114,7 @@ class ConfigurationParser(object):
 
         self._run_conf = self._create_run_config(self._options)
 
-        config = self._create_check_config(self._options, use_dafaults=False)
+        config = self._create_check_config(self._options, use_defaults=False)
         self._override_by_cli = config
 
     @check_initialized
@@ -139,11 +141,20 @@ class ConfigurationParser(object):
             match_dir_func = re(config.match_dir + '$').match
             return match_func, match_dir_func
 
+        def _get_ignore_decorators(config):
+            """Return the `ignore_decorators` as None or regex."""
+            if config.ignore_decorators:  # not None and not ''
+                ignore_decorators = re(config.ignore_decorators)
+            else:
+                ignore_decorators = None
+            return ignore_decorators
+
         for name in self._arguments:
             if os.path.isdir(name):
                 for root, dirs, filenames in os.walk(name):
                     config = self._get_config(root)
                     match, match_dir = _get_matches(config)
+                    ignore_decorators = _get_ignore_decorators(config)
 
                     # Skip any dirs that do not match match_dir
                     dirs[:] = [dir for dir in dirs if match_dir(dir)]
@@ -151,19 +162,21 @@ class ConfigurationParser(object):
                     for filename in filenames:
                         if match(filename):
                             full_path = os.path.join(root, filename)
-                            yield full_path, list(config.checked_codes)
+                            yield (full_path, list(config.checked_codes),
+                                   ignore_decorators)
             else:
                 config = self._get_config(name)
                 match, _ = _get_matches(config)
+                ignore_decorators = _get_ignore_decorators(config)
                 if match(name):
-                    yield name, list(config.checked_codes)
+                    yield (name, list(config.checked_codes), ignore_decorators)
 
     # --------------------------- Private Methods -----------------------------
 
     def _get_config(self, node):
         """Get and cache the run configuration for `node`.
 
-        If no configuration exists (not local and not for the parend node),
+        If no configuration exists (not local and not for the parent node),
         returns and caches a default configuration.
 
         The algorithm:
@@ -298,14 +311,11 @@ class ConfigurationParser(object):
 
         self._set_add_options(error_codes, child_options)
 
-        match = child_options.match \
-            if child_options.match is not None else parent_config.match
-        match_dir = child_options.match_dir \
-            if child_options.match_dir is not None else parent_config.match_dir
-
-        return CheckConfiguration(checked_codes=error_codes,
-                                  match=match,
-                                  match_dir=match_dir)
+        kwargs = dict(checked_codes=error_codes)
+        for key in ('match', 'match_dir', 'ignore_decorators'):
+            kwargs[key] = \
+                getattr(child_options, key) or getattr(parent_config, key)
+        return CheckConfiguration(**kwargs)
 
     def _parse_args(self, args=None, values=None):
         """Parse the options using `self._parser` and reformat the options."""
@@ -320,29 +330,25 @@ class ConfigurationParser(object):
         return RunConfiguration(**values)
 
     @classmethod
-    def _create_check_config(cls, options, use_dafaults=True):
+    def _create_check_config(cls, options, use_defaults=True):
         """Create a `CheckConfiguration` object from `options`.
 
-        If `use_dafaults`, any of the match options that are `None` will
+        If `use_defaults`, any of the match options that are `None` will
         be replaced with their default value and the default convention will be
         set for the checked codes.
 
         """
-        match = cls.DEFAULT_MATCH_RE \
-            if options.match is None and use_dafaults \
-            else options.match
-
-        match_dir = cls.DEFAULT_MATCH_DIR_RE \
-            if options.match_dir is None and use_dafaults \
-            else options.match_dir
-
         checked_codes = None
 
-        if cls._has_exclusive_option(options) or use_dafaults:
+        if cls._has_exclusive_option(options) or use_defaults:
             checked_codes = cls._get_checked_errors(options)
 
-        return CheckConfiguration(checked_codes=checked_codes,
-                                  match=match, match_dir=match_dir)
+        kwargs = dict(checked_codes=checked_codes)
+        for key in ('match', 'match_dir', 'ignore_decorators'):
+            kwargs[key] = getattr(cls, 'DEFAULT_{0}_RE'.format(key.upper())) \
+                if getattr(options, key) is None and use_defaults \
+                else getattr(options, key)
+        return CheckConfiguration(**kwargs)
 
     @classmethod
     def _get_section_name(cls, parser):
@@ -518,12 +524,20 @@ class ConfigurationParser(object):
                      "matches all dirs that don't start with "
                      "a dot").format(cls.DEFAULT_MATCH_DIR_RE))
 
+        # Decorators
+        option('--ignore-decorators', metavar='<decorators>', default=None,
+               help=("ignore any functions or methods that are decorated "
+                     "by a function with a name fitting the <decorators> "
+                     "regular expression; default is --ignore-decorators='{0}'"
+                     " which does not ignore any decorated functions."
+                     .format(cls.DEFAULT_IGNORE_DECORATORS_RE)))
         return parser
 
 
 # Check configuration - used by the ConfigurationParser class.
 CheckConfiguration = namedtuple('CheckConfiguration',
-                                ('checked_codes', 'match', 'match_dir'))
+                                ('checked_codes', 'match', 'match_dir',
+                                 'ignore_decorators'))
 
 
 class IllegalConfiguration(Exception):

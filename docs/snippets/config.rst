@@ -32,6 +32,7 @@ Available options are:
 * ``add_ignore``
 * ``match``
 * ``match_dir``
+* ``ignore_decorators``
 
 See the :ref:`cli_usage` section for more information.
 

@@ -45,8 +45,10 @@ def run_pydocstyle(use_pep257=False):
 
     errors = []
     try:
-        for filename, checked_codes in conf.get_files_to_check():
-            errors.extend(check((filename,), select=checked_codes))
+        for filename, checked_codes, ignore_decorators in \
+                conf.get_files_to_check():
+            errors.extend(check((filename,), select=checked_codes,
+                                ignore_decorators=ignore_decorators))
     except IllegalConfiguration:
         # An illegal configuration file was found during file generation.
         return ReturnCode.invalid_options
