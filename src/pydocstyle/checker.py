@@ -9,7 +9,6 @@ from re import compile as re
 
 from . import violations
 from .config import IllegalConfiguration
-# TODO: handle
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO)
 from .utils import log, is_blank
@@ -50,10 +49,11 @@ class PEP257Checker(object):
             for this_check in self.checks:
                 terminate = False
                 if isinstance(definition, this_check._check_for):
-                    if definition.skipped_error_codes != 'all' and \
-                            not any(ignore_decorators is not None and
-                                    len(ignore_decorators.findall(dec.name))
-                                    for dec in definition.decorators):
+                    skipping_all = (definition.skipped_error_codes == 'all')
+                    decorator_skip = ignore_decorators is not None and any(
+                        len(ignore_decorators.findall(dec.name)) > 0
+                        for dec in definition.decorators)
+                    if not skipping_all and not decorator_skip:
                         error = this_check(None, definition,
                                            definition.docstring)
                     else:
