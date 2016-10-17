@@ -382,7 +382,10 @@ class ConfigurationParser(object):
         checked_codes = None
 
         if options.ignore is not None:
-            checked_codes = codes - options.ignore
+            checked_codes = set()
+            for code in codes:
+                if not code.startswith(tuple(options.ignore)):
+                    checked_codes.add(code)
         elif options.select is not None:
             checked_codes = options.select
         elif options.convention is not None:
