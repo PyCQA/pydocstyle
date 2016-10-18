@@ -391,7 +391,6 @@ class ConfigurationParser(object):
         """Set `checked_codes` by the `add_ignore` or `add_select` options."""
         checked_codes |= cls._expand_error_codes(options.add_select)
         checked_codes -= cls._expand_error_codes(options.add_ignore)
-        print(checked_codes)
 
     @staticmethod
     def _expand_error_codes(code_parts):
