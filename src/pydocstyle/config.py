@@ -397,17 +397,17 @@ class ConfigurationParser(object):
     def _expand_error_codes(code_parts):
         """Returns expanded set of error codes to ignore."""
         codes = set(ErrorRegistry.get_error_codes())
-        epanded_codes = set()
+        expanded_codes = set()
 
         for part in code_parts:
             if len(part) < 4:
                 for code in codes:
                     if code.startswith(part):
-                        epanded_codes.add(code)
+                        expanded_codes.add(code)
             else:
-                epanded_codes.add(part)
+                expanded_codes.add(part)
 
-        return epanded_codes
+        return expanded_codes
 
     @classmethod
     def _get_checked_errors(cls, options):
