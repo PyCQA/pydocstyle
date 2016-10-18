@@ -398,13 +398,16 @@ class ConfigurationParser(object):
         codes = set(ErrorRegistry.get_error_codes())
         expanded_codes = set()
 
-        for part in code_parts:
-            if len(part) < 4:
-                for code in codes:
-                    if code.startswith(part):
-                        expanded_codes.add(code)
-            else:
-                expanded_codes.add(part)
+        try:
+            for part in code_parts:
+                if len(part) < 4:
+                    for code in codes:
+                        if code.startswith(part):
+                            expanded_codes.add(code)
+                else:
+                    expanded_codes.add(part)
+        except TypeError as e:
+            raise IllegalConfiguration(e)
 
         return expanded_codes
 
