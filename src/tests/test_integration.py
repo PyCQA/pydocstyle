@@ -259,6 +259,9 @@ def test_count(env):
     out, err, code = env.invoke(args='--count')
     assert code == 1
     assert '2' in out
+    # The error count should be in the last line of the output.
+    # -2 since there is a newline at the end of the output.
+    assert '2' == out.split('\n')[-2].strip()
 
 
 def test_select_cli(env):
