@@ -39,15 +39,17 @@ def run_pydocstyle():
 
     errors = []
     try:
-        for filename, checked_codes in conf.get_files_to_check():
-            errors.extend(check((filename,), select=checked_codes))
+        for filename, checked_codes, ignore_decorators in \
+                conf.get_files_to_check():
+            errors.extend(check((filename,), select=checked_codes,
+                                ignore_decorators=ignore_decorators))
     except IllegalConfiguration:
         # An illegal configuration file was found during file generation.
         return ReturnCode.invalid_options
 
     count = 0
     for error in errors:
-        sys.stderr.write('%s\n' % error)
+        sys.stdout.write('%s\n' % error)
         count += 1
     if count == 0:
         exit_code = ReturnCode.no_violations_found

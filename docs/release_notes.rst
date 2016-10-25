@@ -10,6 +10,11 @@ Current Development Version
 Major Updates
 
 * Support for Python 2.6 has been dropped (#206, #217).
+* Decorator-based skipping via ``--ignore-decorators`` has been added (#204).
+
+Bug Fixes
+
+* Made parser more robust to bad source files (#168, #214)
 
 1.1.1 - October 4th, 2016
 -------------------------

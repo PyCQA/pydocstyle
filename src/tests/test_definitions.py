@@ -1,6 +1,7 @@
 """Old parser tests."""
 
 import os
+import re
 import pytest
 from pydocstyle.violations import Error, ErrorRegistry
 from pydocstyle.checker import check
@@ -126,6 +127,14 @@ source_future_import_invalid8 = """
 from __future__ import (, )
 """
 
+source_invalid_syntax = """
+while True:
+\ttry:
+    pass
+"""
+
+source_token_error = '['
+
 source_complex_all = '''
 import foo
 import bar
@@ -222,8 +231,10 @@ def test_import_parser():
             source_future_import_invalid6,
             source_future_import_invalid7,
             source_future_import_invalid8,
+            source_token_error,
+            source_invalid_syntax,
             ), 1):
-        module = parse(StringIO(source_ucl), 'file_invalid{}.py'.format(i))
+        module = parse(StringIO(source_ucli), 'file_invalid{}.py'.format(i))
 
         assert Module('file_invalid{}.py'.format(i), _, 1,
                       _, _, None, _, _,
@@ -278,7 +289,8 @@ def test_pep257(test_case):
                                   'test_cases',
                                   test_case + '.py')
     results = list(check([test_case_file],
-                         select=set(ErrorRegistry.get_error_codes())))
+                         select=set(ErrorRegistry.get_error_codes()),
+                         ignore_decorators=re.compile('wraps')))
     for error in results:
         assert isinstance(error, Error)
     results = set([(e.definition.name, e.message) for e in results])

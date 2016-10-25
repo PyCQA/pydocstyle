@@ -36,6 +36,11 @@ Usage
                             search only dirs that exactly match <pattern> regular
                             expression; default is --match-dir='[^\.].*', which
                             matches all dirs that don't start with a dot
+      --ignore-decorators=<decorators>
+                            ignore any functions or methods that are decorated by
+                            a function with a name fitting the <decorators>
+                            regular expression; default is --ignore-decorators=''
+                            which does not ignore any decorated functions.
 
 
 Return Code

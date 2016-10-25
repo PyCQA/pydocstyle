@@ -209,13 +209,21 @@ class TokenStream(object):
         self._generator = tk.generate_tokens(filelike.readline)
         self.current = Token(*next(self._generator, None))
         self.line = self.current.start[0]
+        self.log = logging.getLogger()
 
     def move(self):
         previous = self.current
-        current = next(self._generator, None)
+        current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
         return previous
+
+    def _next_from_generator(self):
+        try:
+            return next(self._generator, None)
+        except (SyntaxError, tk.TokenError):
+            self.log.warning('error generating tokens', exc_info=True)
+            return None
 
     def __iter__(self):
         while True:
@@ -372,8 +380,8 @@ class Parser(object):
         if self.current.value not in '([':
             raise AllError('Could not evaluate contents of __all__. ')
         if self.current.value == '[':
-            sys.stderr.write(
-                "{} WARNING: __all__ is defined as a list, this means "
+            sys.stdout.write(
+                "{0} WARNING: __all__ is defined as a list, this means "
                 "pydocstyle cannot reliably detect contents of the __all__ "
                 "variable, because it can be mutated. Change __all__ to be "
                 "an (immutable) tuple, to remove this warning. Note, "
