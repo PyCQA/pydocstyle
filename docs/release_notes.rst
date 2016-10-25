@@ -10,6 +10,11 @@ Current Development Version
 Major Updates
 
 * Support for Python 2.6 has been dropped (#206, #217).
+* Support for the ``pep257`` console script has been dropped. Only the
+  ``pydocstyle`` console script should be used (#216, #218).
+
+New Features
+
 * Decorator-based skipping via ``--ignore-decorators`` has been added (#204).
 
 Bug Fixes
@@ -21,8 +26,8 @@ Bug Fixes
 
 Bug Fixes
 
-* Fixed an issue where the `flake8-docstrings` failed when accessing some
-  public API from `pydocstyle`.
+* Fixed an issue where the ``flake8-docstrings`` failed when accessing some
+  public API from ``pydocstyle``.
 
 
 1.1.0 - September 29th, 2016
