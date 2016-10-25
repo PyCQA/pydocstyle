@@ -380,8 +380,8 @@ class Parser(object):
         if self.current.value not in '([':
             raise AllError('Could not evaluate contents of __all__. ')
         if self.current.value == '[':
-            sys.stderr.write(
-                "{} WARNING: __all__ is defined as a list, this means "
+            sys.stdout.write(
+                "{0} WARNING: __all__ is defined as a list, this means "
                 "pydocstyle cannot reliably detect contents of the __all__ "
                 "variable, because it can be mutated. Change __all__ to be "
                 "an (immutable) tuple, to remove this warning. Note, "
