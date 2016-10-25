@@ -108,9 +108,9 @@ def install_package(request):
     subprocess.check_call(shlex.split(uninstall_cmd), cwd=cwd)
 
 
-@pytest.yield_fixture(scope="function", params=('pydocstyle', 'pep257'))
+@pytest.yield_fixture(scope="function")
 def env(request):
-    with SandboxEnv(request.param) as test_env:
+    with SandboxEnv() as test_env:
         yield test_env
 
 
@@ -882,10 +882,3 @@ def test_config_file_nearest_match_re(env):
     _, _, code = env.invoke()
 
     assert code == 0
-
-
-def test_pep257_entry_point():
-    with SandboxEnv('pep257') as env:
-        _, err, code = env.invoke()
-        assert code == 0
-        assert 'Deprecation Warning' in err, err
