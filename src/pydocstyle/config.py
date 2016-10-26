@@ -394,7 +394,7 @@ class ConfigurationParser(object):
 
     @staticmethod
     def _expand_error_codes(code_parts):
-        """Returns expanded set of error codes to ignore."""
+        """Return an expanded set of error codes to ignore."""
         codes = set(ErrorRegistry.get_error_codes())
         expanded_codes = set()
 
