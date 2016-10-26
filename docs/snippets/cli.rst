@@ -42,6 +42,14 @@ Usage
                             regular expression; default is --ignore-decorators=''
                             which does not ignore any decorated functions.
 
+.. note::
+
+    When using any of the ``--select``, ``--ignore``, ``--add-select``, or
+    ``--add-ignore`` command line flags, it is possible to pass a prefix for an
+    error code. It will be expanded so that any code begining with that prefix
+    will match. For example, running the command ``pydocstyle --ignore=D4``
+    will ignore all docstring content issues as their error codes begining with
+    "D4" (i.e. D400, D401, D402, D403, and D404).
 
 Return Code
 ^^^^^^^^^^^
