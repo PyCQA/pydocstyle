@@ -352,6 +352,24 @@ def test_wildcard_add_ignore_cli(env):
     assert 'D300' not in err
 
 
+def test_bad_wildcard_add_ignore_cli(env):
+    """Test adding a non-existent error codes with --add-ignore."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            class Foo(object):
+                "Doc string"
+                def foo():
+                    pass
+        """))
+
+    env.write_config(select="D203,D300")
+    _, err, code = env.invoke(args="--add-ignore=D3004")
+    assert code == 1
+    assert 'D203' in err
+    assert 'D300' in err
+    assert 'D3034' not in err
+
+
 def test_conflicting_select_ignore_config(env):
     """Test that select and ignore are mutually exclusive."""
     env.write_config(select="D100", ignore="D101")
