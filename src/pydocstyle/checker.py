@@ -9,8 +9,8 @@ from re import compile as re
 
 from . import violations
 from .config import IllegalConfiguration
-# TODO: handle
-from .parser import *
+from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
+                     Method, Function, NestedFunction, Parser, StringIO)
 from .utils import log, is_blank
 
 
@@ -43,26 +43,31 @@ class PEP257Checker(object):
 
     """
 
-    def check_source(self, source, filename):
+    def check_source(self, source, filename, ignore_decorators):
         module = parse(StringIO(source), filename)
         for definition in module:
-            for check in self.checks:
+            for this_check in self.checks:
                 terminate = False
-                if isinstance(definition, check._check_for):
-                    if definition.skipped_error_codes != 'all':
-                        error = check(None, definition, definition.docstring)
+                if isinstance(definition, this_check._check_for):
+                    skipping_all = (definition.skipped_error_codes == 'all')
+                    decorator_skip = ignore_decorators is not None and any(
+                        len(ignore_decorators.findall(dec.name)) > 0
+                        for dec in definition.decorators)
+                    if not skipping_all and not decorator_skip:
+                        error = this_check(None, definition,
+                                           definition.docstring)
                     else:
                         error = None
                     errors = error if hasattr(error, '__iter__') else [error]
                     for error in errors:
                         if error is not None and error.code not in \
                                 definition.skipped_error_codes:
-                            partition = check.__doc__.partition('.\n')
+                            partition = this_check.__doc__.partition('.\n')
                             message, _, explanation = partition
                             error.set_context(explanation=explanation,
                                               definition=definition)
                             yield error
-                            if check._terminal:
+                            if this_check._terminal:
                                 terminate = True
                                 break
                 if terminate:
@@ -70,9 +75,9 @@ class PEP257Checker(object):
 
     @property
     def checks(self):
-        all = [check for check in vars(type(self)).values()
-               if hasattr(check, '_check_for')]
-        return sorted(all, key=lambda check: not check._terminal)
+        all = [this_check for this_check in vars(type(self)).values()
+               if hasattr(this_check, '_check_for')]
+        return sorted(all, key=lambda this_check: not this_check._terminal)
 
     @check_for(Definition, terminal=True)
     def check_docstring_missing(self, definition, docstring):
@@ -387,7 +392,7 @@ class PEP257Checker(object):
 parse = Parser()
 
 
-def check(filenames, select=None, ignore=None):
+def check(filenames, select=None, ignore=None, ignore_decorators=None):
     """Generate docstring errors that exist in `filenames` iterable.
 
     By default, the PEP-257 convention is checked. To specifically define the
@@ -432,7 +437,8 @@ def check(filenames, select=None, ignore=None):
         try:
             with tokenize_open(filename) as file:
                 source = file.read()
-            for error in PEP257Checker().check_source(source, filename):
+            for error in PEP257Checker().check_source(source, filename,
+                                                      ignore_decorators):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error

@@ -1,6 +1,7 @@
 """Old parser tests."""
 
 import os
+import re
 import pytest
 from pydocstyle.violations import Error, ErrorRegistry
 from pydocstyle.checker import check
@@ -126,6 +127,14 @@ source_future_import_invalid8 = """
 from __future__ import (, )
 """
 
+source_invalid_syntax = """
+while True:
+\ttry:
+    pass
+"""
+
+source_token_error = '['
+
 source_complex_all = '''
 import foo
 import bar
@@ -189,9 +198,9 @@ def test_import_parser():
             source_unicode_literals5,
             source_unicode_literals6,
             ), 1):
-        module = parse(StringIO(source_ucl), 'file_ucl{0}.py'.format(i))
+        module = parse(StringIO(source_ucl), 'file_ucl{}.py'.format(i))
 
-        assert Module('file_ucl{0}.py'.format(i), _, 1,
+        assert Module('file_ucl{}.py'.format(i), _, 1,
                       _, _, None, _, _,
                       _, {'unicode_literals': True}, '') == module
         assert module.future_imports['unicode_literals']
@@ -205,8 +214,8 @@ def test_import_parser():
             source_multiple_future_imports6,
             source_multiple_future_imports7,
             ), 1):
-        module = parse(StringIO(source_mfi), 'file_mfi{0}.py'.format(i))
-        assert Module('file_mfi{0}.py'.format(i), _, 1,
+        module = parse(StringIO(source_mfi), 'file_mfi{}.py'.format(i))
+        assert Module('file_mfi{}.py'.format(i), _, 1,
                       _, _, None, _, _,
                       _, {'unicode_literals': True, 'nested_scopes': True},
                       '') == module
@@ -222,10 +231,12 @@ def test_import_parser():
             source_future_import_invalid6,
             source_future_import_invalid7,
             source_future_import_invalid8,
+            source_token_error,
+            source_invalid_syntax,
             ), 1):
-        module = parse(StringIO(source_ucl), 'file_invalid{0}.py'.format(i))
+        module = parse(StringIO(source_ucli), 'file_invalid{}.py'.format(i))
 
-        assert Module('file_invalid{0}.py'.format(i), _, 1,
+        assert Module('file_invalid{}.py'.format(i), _, 1,
                       _, _, None, _, _,
                       _, _, '') == module
 
@@ -268,14 +279,18 @@ def test_token_stream():
 ])
 def test_pep257(test_case):
     """Run domain-specific tests from test.py file."""
-    case_module = __import__('test_cases.{0}'.format(test_case),
+    case_module = __import__('test_cases.{}'.format(test_case),
                              globals=globals(),
                              locals=locals(),
                              fromlist=['expectation'],
                              level=1)
-    results = list(check([os.path.join(os.path.dirname(__file__),
-                                       'test_cases', test_case + '.py')],
-                         select=set(ErrorRegistry.get_error_codes())))
+    test_case_dir = os.path.normcase(os.path.dirname(__file__))
+    test_case_file = os.path.join(test_case_dir,
+                                  'test_cases',
+                                  test_case + '.py')
+    results = list(check([test_case_file],
+                         select=set(ErrorRegistry.get_error_codes()),
+                         ignore_decorators=re.compile('wraps')))
     for error in results:
         assert isinstance(error, Error)
     results = set([(e.definition.name, e.message) for e in results])
