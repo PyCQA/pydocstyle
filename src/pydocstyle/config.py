@@ -514,13 +514,13 @@ class ConfigurationParser(object):
         option('--select', metavar='<codes>', default=None,
                help='choose the basic list of checked errors by '
                     'specifying which errors to check for (with a list of '
-                    'comma-separated error codes). '
-                    'for example: --select=D101,D202')
+                    'comma-separated error codes or prefixes). '
+                    'for example: --select=D101,D2')
         option('--ignore', metavar='<codes>', default=None,
                help='choose the basic list of checked errors by '
                     'specifying which errors to ignore (with a list of '
-                    'comma-separated error codes). '
-                    'for example: --ignore=D101,D202')
+                    'comma-separated error codes or prefixes). '
+                    'for example: --ignore=D101,D2')
         option('--convention', metavar='<name>', default=None,
                help='choose the basic list of checked errors by specifying an '
                     'existing convention. Possible conventions: {}'

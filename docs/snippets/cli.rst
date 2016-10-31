@@ -17,11 +17,12 @@ Usage
       --count               print total number of errors to stdout
       --select=<codes>      choose the basic list of checked errors by specifying
                             which errors to check for (with a list of comma-
-                            separated error codes). for example:
-                            --select=D101,D202
+                            separated error codes or prefixes). for example:
+                            --select=D101,D2
       --ignore=<codes>      choose the basic list of checked errors by specifying
                             which errors to ignore (with a list of comma-separated
-                            error codes). for example: --ignore=D101,D202
+                            error codes or prefixes). for example:
+                            --ignore=D101,D2
       --convention=<name>   choose the basic list of checked errors by specifying
                             an existing convention. Possible conventions: pep257
       --add-select=<codes>  amend the list of errors to check for by specifying
