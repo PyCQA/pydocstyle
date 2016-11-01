@@ -16,6 +16,7 @@ Major Updates
 New Features
 
 * Decorator-based skipping via ``--ignore-decorators`` has been added (#204).
+* Support for using pycodestyle style wildcards has been added (#72, #209).
 
 Bug Fixes
 
