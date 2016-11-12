@@ -32,6 +32,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',  # create links to other Python documentation
     'sphinxcontrib.issuetracker',  # autolinks issue numbers (like #78)
 ]
 
@@ -261,6 +262,11 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# Add sphinx.ext.intersphinx mappings
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+}
 
 # sphinxcontrib.issuetracker settings
 issuetracker = 'github'

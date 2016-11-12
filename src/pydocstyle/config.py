@@ -13,6 +13,7 @@ except ImportError:  # Python 2.x
     from configparser import RawConfigParser
 
 
+from .exceptions import IllegalConfiguration
 from .utils import __version__, log
 from .violations import ErrorRegistry, conventions
 
@@ -503,6 +504,9 @@ class ConfigurationParser(object):
                help='show explanation of each error')
         option('-s', '--source', action='store_true', default=False,
                help='show source for each error')
+        option('--format', metavar='<format>', default=None,
+               help='override default error format (ignores --explain and '
+                    '--source)')
         option('-d', '--debug', action='store_true', default=False,
                help='print debug information')
         option('-v', '--verbose', action='store_true', default=False,
@@ -560,13 +564,7 @@ CheckConfiguration = namedtuple('CheckConfiguration',
                                  'ignore_decorators'))
 
 
-class IllegalConfiguration(Exception):
-    """An exception for illegal configurations."""
-
-    pass
-
-
 # General configurations for pydocstyle run.
 RunConfiguration = namedtuple('RunConfiguration',
-                              ('explain', 'source', 'debug',
+                              ('explain', 'source', 'format', 'debug',
                                'verbose', 'count'))

@@ -3,6 +3,8 @@
 Usage
 ^^^^^
 
+.. highlight:: none
+
 .. code::
 
     Usage: pydocstyle [options] [<file|dir>...]
@@ -19,6 +21,8 @@ Usage
                             which errors to check for (with a list of comma-
                             separated error codes or prefixes). for example:
                             --select=D101,D2
+      --format=<format>     override default error format (ignores --explain and
+                            --source)
       --ignore=<codes>      choose the basic list of checked errors by specifying
                             which errors to ignore (with a list of comma-separated
                             error codes or prefixes). for example:
@@ -51,6 +55,71 @@ Usage
     will match. For example, running the command ``pydocstyle --ignore=D4``
     will ignore all docstring content issues as their error codes begining with
     "D4" (i.e. D400, D401, D402, D403, and D404).
+
+
+Error format
+^^^^^^^^^^^^
+
+The ``--format`` option allows to override the default error format, which
+controls how each error found is printed to the standard output. The error
+format uses the standard Python :ref:`format string syntax <formatstrings>` and
+can include the following placeholders:
+
+``code``
+    the error code, e.g. D101, D304, etc.
+``definition``
+    the type and name of the code section where the error occured
+``explanation``
+    an explanation of the rule the error violated
+``filename``
+    the path of the file in which the error occured
+``line``
+    the line number at which the error occured
+``lines``
+    the source code which exhibits the error
+``message``
+    the ``short_desc`` prefixed by ``code`` and a colon and followed by
+    additional error context, e.g. "D401: First line should be in imperative
+    mood ('Return', not 'Returns')"
+``short_desc``
+    the error message corresponding to the error code, e.g., for D103,
+    "Missing docstring in public function"
+
+The default error format, if neither the ``--explain`` nor the ``--source``
+options are given, is ``'{filename}:{line} {definition}:\n        {message}'``.
+
+
+Example usage
+#############
+
+Consider the following usage:
+
+.. code:: console
+
+    $ pydocstyle --format='{filename}#L{line:03}: {short_desc} ({code})' src/example.py
+
+This would output output each error formatted like the following example:
+
+.. code::
+
+    src/example.py#L001: Missing docstring in public module (D100)
+
+If you want to use a format string, which includes line-breaks or other
+non-printable characters, you might have to do some shell trickery to pass it
+correctly:
+
+.. code:: console
+
+    $ FMT=$(echo -e '\nFile:\t{filename}:{line}\nWhere:\t{definition}\nWhat:\t{message}')
+    $ pydocstyle --format="$FMT" src/example.py
+
+    File:	src/example.py:16
+    Where:	in public function `main`
+    What:	D103: Missing docstring in public function
+
+
+.. highlight:: python
+
 
 Return Code
 ^^^^^^^^^^^

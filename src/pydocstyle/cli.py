@@ -2,10 +2,11 @@
 import logging
 import sys
 
+from .checker import check
+from .config import ConfigurationParser
+from .exceptions import IllegalConfiguration, InvalidErrorFormat
 from .utils import log
 from .violations import Error
-from .config import ConfigurationParser, IllegalConfiguration
-from .checker import check
 
 
 __all__ = ('main', )
@@ -36,6 +37,7 @@ def run_pydocstyle():
 
     Error.explain = run_conf.explain
     Error.source = run_conf.source
+    Error.format = run_conf.format
 
     errors = []
     try:
@@ -49,7 +51,11 @@ def run_pydocstyle():
 
     count = 0
     for error in errors:
-        sys.stdout.write('%s\n' % error)
+        try:
+            sys.stdout.write('%s\n' % error)
+        except InvalidErrorFormat as exc:
+            sys.stdout.write('%s\n' % exc)
+            return ReturnCode.invalid_options
         count += 1
     if count == 0:
         exit_code = ReturnCode.no_violations_found
