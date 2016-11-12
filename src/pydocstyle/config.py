@@ -37,7 +37,9 @@ class ConfigurationParser(object):
     ------------------
     Responsible for deciding things that are related to the user interface,
     e.g. verbosity, debug options, etc.
-    All run configurations default to `False` and are decided only by CLI.
+
+    All run configurations default to `False` resp. `None` and are decided only
+    by CLI.
 
     Check Configurations:
     --------------------

@@ -85,8 +85,9 @@ can include the following placeholders:
     the error message corresponding to the error code, e.g., for D103,
     "Missing docstring in public function"
 
-The default error format, if neither the ``--explain`` nor the ``--source``
-options are given, is ``'{filename}:{line} {definition}:\n        {message}'``.
+The default error format, if neither the ``--format`` nor the ``--explain`` or
+``--source`` options are given, is ``'{filename}:{line} {definition}:\n
+{message}'``.
 
 
 Example usage
