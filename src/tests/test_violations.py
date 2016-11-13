@@ -6,6 +6,8 @@ Use tox or py.test to run the test-suite.
 
 from __future__ import with_statement
 
+import sys
+
 import pytest
 from mock import MagicMock
 
@@ -13,6 +15,9 @@ from pydocstyle import violations
 from pydocstyle.exceptions import InvalidErrorFormat
 
 
+SKIP_PYPY = pytest.mark.skipif(
+    getattr(sys, 'subversion', ['CPython'])[0] == 'PyPy',
+    reason="PyPy exception messages differ")
 MockModule = MagicMock(
     start=1,
     end=999,
@@ -103,7 +108,7 @@ def test_error_format(error, explanation, format, output):
 @pytest.mark.parametrize('format,msg', [
     ('{foo}', "'foo'"),
     ('{message.foo}', "'str' object has no attribute 'foo'"),
-    ('{line:s}', "Unknown format code 's' for object of type 'int'"),
+    SKIP_PYPY(('{line:s}', "Unknown format code 's' for object of type 'int'"))
 ])
 def test_error_format_key_error(format, msg):
     """Test that errors in Error.format are turned into InvalidErrorFormat."""
