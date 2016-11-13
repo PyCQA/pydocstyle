@@ -54,7 +54,7 @@ def run_pydocstyle():
         try:
             sys.stdout.write('%s\n' % error)
         except InvalidErrorFormat as exc:
-            sys.stdout.write('%s\n' % exc)
+            sys.stderr.write('%s\n' % exc)
             return ReturnCode.invalid_options
         count += 1
     if count == 0:
