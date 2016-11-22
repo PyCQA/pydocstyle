@@ -465,10 +465,10 @@ class ConfigurationParser(object):
         def _get_set(value_str):
             """Split `value_str` by the delimiter `,` and return a set.
 
-            Removes any occurrences of '' in the set.
+            Removes empty values ('') and strips whitespace.
 
             """
-            return set(value_str.split(',')) - {''}
+            return set([x.strip() for x in value_str.split(',')]) - {''}
 
         for opt in optional_set_options:
             value = getattr(options, opt)
