@@ -515,12 +515,14 @@ class ConfigurationParser:
         def _get_set(value_str):
             """Split `value_str` by the delimiter `,` and return a set.
 
-            Removes any occurrences of '' in the set.
-            Also expand error code prefixes, to avoid doing this for every
+            Removes empty values ('') and strips whitespace.
+            Also expands error code prefixes, to avoid doing this for every
             file.
 
             """
-            return cls._expand_error_codes(set(value_str.split(',')) - {''})
+            return cls._expand_error_codes(
+                set([x.strip() for x in value_str.split(",")]) - {""}
+            )
 
         for opt in optional_set_options:
             value = getattr(options, opt)
