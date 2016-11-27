@@ -16,3 +16,9 @@ check only error codes that are part of the `PEP257
 
 All of the above error codes are checked for by default except for D203,
 D212, D213 and D404.
+
+
+Publicity
+---------
+
+.. include:: snippets/publicity.rst
