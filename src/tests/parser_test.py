@@ -276,3 +276,18 @@ def test_raise_from():
     parser = Parser()
     code = CodeSnippet("raise ValueError() from None")
     parser.parse(code, 'file_path')
+
+
+def test_module_publicity():
+    """Test that a module that has a single leading underscore is private."""
+    parser = Parser()
+    code = CodeSnippet("")
+
+    module = parser.parse(code, "filepath")
+    assert module.is_public
+
+    module = parser.parse(code, "_filepath")
+    assert not module.is_public
+
+    module = parser.parse(code, "__filepath")
+    assert module.is_public

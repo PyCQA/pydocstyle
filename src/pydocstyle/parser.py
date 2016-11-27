@@ -103,10 +103,13 @@ class Module(Definition):
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
                'children', 'parent', '_all', 'future_imports',
                'skipped_error_codes')
-    is_public = True
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
     all = property(lambda self: self._all)
+
+    @property
+    def is_public(self):
+        return not self.name.startswith('_') or self.name.startswith('__')
 
     def __str__(self):
         return 'at module level'
