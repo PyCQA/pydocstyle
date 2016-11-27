@@ -17,11 +17,12 @@ Usage
       --count               print total number of errors to stdout
       --select=<codes>      choose the basic list of checked errors by specifying
                             which errors to check for (with a list of comma-
-                            separated error codes). for example:
-                            --select=D101,D202
+                            separated error codes or prefixes). for example:
+                            --select=D101,D2
       --ignore=<codes>      choose the basic list of checked errors by specifying
                             which errors to ignore (with a list of comma-separated
-                            error codes). for example: --ignore=D101,D202
+                            error codes or prefixes). for example:
+                            --ignore=D101,D2
       --convention=<name>   choose the basic list of checked errors by specifying
                             an existing convention. Possible conventions: pep257
       --add-select=<codes>  amend the list of errors to check for by specifying
@@ -42,6 +43,14 @@ Usage
                             regular expression; default is --ignore-decorators=''
                             which does not ignore any decorated functions.
 
+.. note::
+
+    When using any of the ``--select``, ``--ignore``, ``--add-select``, or
+    ``--add-ignore`` command line flags, it is possible to pass a prefix for an
+    error code. It will be expanded so that any code begining with that prefix
+    will match. For example, running the command ``pydocstyle --ignore=D4``
+    will ignore all docstring content issues as their error codes begining with
+    "D4" (i.e. D400, D401, D402, D403, and D404).
 
 Return Code
 ^^^^^^^^^^^
