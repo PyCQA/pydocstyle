@@ -10,6 +10,8 @@ Current Development Version
 Major Updates
 
 * Support for Python 2.6 has been dropped (#206, #217).
+* Support for PyPy3 2.6 has been temporarily dropped, until it will be
+  equivalent to CPython 3.3+ (#223).
 * Support for the ``pep257`` console script has been dropped. Only the
   ``pydocstyle`` console script should be used (#216, #218).
 
