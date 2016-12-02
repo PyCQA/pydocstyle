@@ -23,6 +23,9 @@ New Features
 Bug Fixes
 
 * Made parser more robust to bad source files (#168, #214)
+* Modules are now considered private if their name starts with a single
+  underscore. This is a bugfix where "public module" (D100) was reported
+  regardless of module name (#199, #222).
 
 1.1.1 - October 4th, 2016
 -------------------------
