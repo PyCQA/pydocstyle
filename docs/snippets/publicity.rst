@@ -4,7 +4,7 @@ determined and what its effects are.
 
 
 How publicity is determined
-===========================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Publicity for all constructs is determined as follows: a construct is
 considered *public* if -
@@ -27,7 +27,7 @@ name does not begin with a single underscore.
 
 
 How publicity affects error reports
-===================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The immediate effect of a construct being determined as private is that no
 D1xx errors will be reported for it (or its children, as the previous section
