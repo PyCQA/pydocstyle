@@ -283,9 +283,10 @@ class PEP257Checker(object):
             else:
                 regex = re(r'[uU]?[rR]?"""[^"].*')
 
-            illegal_matcher = re(r"""[uU]?[rR]?("+|'+).*""")
             if not regex.match(docstring):
-                return violations.D300(illegal_matcher.match(docstring).group(1))
+                illegal_matcher = re(r"""[uU]?[rR]?("+|'+).*""")
+                illegal_quotes = illegal_matcher.match(docstring).group(1)
+                return violations.D300(illegal_quotes)
 
     @check_for(Definition)
     def check_backslashes(self, definition, docstring):
