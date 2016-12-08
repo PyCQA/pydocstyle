@@ -18,4 +18,3 @@ def extra_opening():
 @expect('D300: Use """triple double quotes""" (found """""-quotes)')
 def two_extra_opening():
     """""Two extra quotes on the left."""
-
