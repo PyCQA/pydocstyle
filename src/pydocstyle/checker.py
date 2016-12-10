@@ -275,16 +275,18 @@ class PEP257Checker(object):
 
         '''
         if docstring:
-            opening = docstring[:5].lower()
-            if '"""' in ast.literal_eval(docstring) and opening.startswith(
-                    ("'''", "r'''", "u'''", "ur'''")):
+            if '"""' in ast.literal_eval(docstring):
                 # Allow ''' quotes if docstring contains """, because
                 # otherwise """ quotes could not be expressed inside
                 # docstring. Not in PEP 257.
-                return
-            if not opening.startswith(('"""', 'r"""', 'u"""', 'ur"""')):
-                quotes = "'''" if "'''" in opening else "'"
-                return violations.D300(quotes)
+                regex = re(r"[uU]?[rR]?'''[^'].*")
+            else:
+                regex = re(r'[uU]?[rR]?"""[^"].*')
+
+            if not regex.match(docstring):
+                illegal_matcher = re(r"""[uU]?[rR]?("+|'+).*""")
+                illegal_quotes = illegal_matcher.match(docstring).group(1)
+                return violations.D300(illegal_quotes)
 
     @check_for(Definition)
     def check_backslashes(self, definition, docstring):
