@@ -7,6 +7,7 @@ import tokenize as tk
 from collections import defaultdict
 from itertools import chain, dropwhile
 from re import compile as re
+import jedi
 
 try:
     from StringIO import StringIO
@@ -40,12 +41,25 @@ def humanize(string):
 class Value(object):
     """A generic object with a list of preset fields."""
 
-    def __init__(self, *args):
-        if len(self._fields) != len(args):
-            raise ValueError('got {} arguments for {} fields for {}: {}'
-                             .format(len(args), len(self._fields),
-                                     self.__class__.__name__, self._fields))
-        vars(self).update(zip(self._fields, args))
+    def __init__(self, *args, **kwargs):
+        if all((args, kwargs)) or not any((args, kwargs)):
+            raise ValueError("Must provide either args or kwargs.")
+        elif args:
+            if len(self._fields) != len(args):
+                raise ValueError('got {} arguments for {} fields for {}: {}'
+                                 .format(len(args),
+                                         len(self._fields),
+                                         self.__class__.__name__,
+                                         self._fields))
+            vars(self).update(zip(self._fields, args))
+        else:
+            if len(self._fields) != len(kwargs):
+                raise ValueError('got {} arguments for {} fields for {}: {}'
+                                 .format(len(kwargs),
+                                         len(self._fields),
+                                         self.__class__.__name__,
+                                         self._fields))
+            vars(self).update(kwargs)
 
     def __hash__(self):
         return hash(repr(self))
@@ -62,7 +76,7 @@ class Value(object):
 class Definition(Value):
     """A Python source code definition (could be class, function, etc)."""
 
-    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+    _fields = ('name', 'start', 'end', 'decorators', 'docstring',
                'children', 'parent', 'skipped_error_codes')
 
     _human = property(lambda self: humanize(type(self).__name__))
@@ -80,9 +94,16 @@ class Definition(Value):
         return {True: 'public', False: 'private'}[self.is_public]
 
     @property
+    def source_lines(self):
+        if '_source' in self._fields:
+            return self._source
+        else:
+            return self.parent.source_lines
+
+    @property
     def source(self):
         """Return the source code for the definition."""
-        full_src = self._source[self._slice]
+        full_src = self.source_lines[self._slice]
 
         def is_empty_or_comment(line):
             return line.strip() == '' or line.strip().startswith('#')
@@ -186,7 +207,7 @@ class NestedClass(Class):
 class Decorator(Value):
     """A decorator for function, method or class."""
 
-    _fields = 'name arguments'.split()
+    _fields = 'name'.split()
 
 
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
@@ -253,320 +274,137 @@ class Token(Value):
 class Parser(object):
     """A Python source code parser."""
 
+    def __call__(self, *args, **kwargs):
+        return self.parse(*args, **kwargs)
+
     def parse(self, filelike, filename):
         """Parse the given file-like object and return its Module object."""
         # TODO: fix log
         self.log = logging.getLogger()
         self.source = filelike.readlines()
-        src = ''.join(self.source)
-        self.stream = TokenStream(StringIO(src))
-        self.filename = filename
-        self.all = None
-        self.future_imports = defaultdict(lambda: False)
-        self._accumulated_decorators = []
-        return self.parse_module()
+        grammar = jedi.parser.load_grammar()
 
-    # TODO: remove
-    def __call__(self, *args, **kwargs):
-        """Call the parse method."""
-        return self.parse(*args, **kwargs)
+        jedi_parser = jedi.parser.Parser(grammar=grammar,
+                                         source=''.join(self.source))
+        module_node = jedi_parser.module
 
-    current = property(lambda self: self.stream.current)
-    line = property(lambda self: self.stream.line)
+        module_children = self.get_children(module_node)
 
-    def consume(self, kind):
-        """Consume one token and verify it is of the expected kind."""
-        next_token = self.stream.move()
-        assert next_token.kind == kind
+        module = Module(name=filename,
+                        _source=self.source,
+                        start=0,
+                        end=len(self.source),
+                        decorators=[],
+                        docstring="",
+                        children=module_children,
+                        parent=None,
+                        _all=None,
+                        future_imports={},
+                        skipped_error_codes=[])
 
-    def leapfrog(self, kind, value=None):
-        """Skip tokens in the stream until a certain token kind is reached.
-
-        If `value` is specified, tokens whose values are different will also
-        be skipped.
-        """
-        while self.current is not None:
-            if (self.current.kind == kind and
-                    (value is None or self.current.value == value)):
-                self.consume(kind)
-                return
-            self.stream.move()
-
-    def parse_docstring(self):
-        """Parse a single docstring and return its value."""
-        self.log.debug("parsing docstring, token is %r (%s)",
-                       self.current.kind, self.current.value)
-        while self.current.kind in (tk.COMMENT, tk.NEWLINE, tk.NL):
-            self.stream.move()
-            self.log.debug("parsing docstring, token is %r (%s)",
-                           self.current.kind, self.current.value)
-        if self.current.kind == tk.STRING:
-            docstring = self.current.value
-            self.stream.move()
-            return docstring
-        return None
-
-    def parse_decorators(self):
-        """Called after first @ is found.
-
-        Parse decorators into self._accumulated_decorators.
-        Continue to do so until encountering the 'def' or 'class' start token.
-        """
-        name = []
-        arguments = []
-        at_arguments = False
-
-        while self.current is not None:
-            if (self.current.kind == tk.NAME and
-                    self.current.value in ['def', 'class']):
-                # Done with decorators - found function or class proper
-                break
-            elif self.current.kind == tk.OP and self.current.value == '@':
-                # New decorator found. Store the decorator accumulated so far:
-                self._accumulated_decorators.append(
-                    Decorator(''.join(name), ''.join(arguments)))
-                # Now reset to begin accumulating the new decorator:
-                name = []
-                arguments = []
-                at_arguments = False
-            elif self.current.kind == tk.OP and self.current.value == '(':
-                at_arguments = True
-            elif self.current.kind == tk.OP and self.current.value == ')':
-                # Ignore close parenthesis
-                pass
-            elif self.current.kind == tk.NEWLINE or self.current.kind == tk.NL:
-                # Ignore newlines
-                pass
-            else:
-                # Keep accumulating current decorator's name or argument.
-                if not at_arguments:
-                    name.append(self.current.value)
-                else:
-                    arguments.append(self.current.value)
-            self.stream.move()
-
-        # Add decorator accumulated so far
-        self._accumulated_decorators.append(
-            Decorator(''.join(name), ''.join(arguments)))
-
-    def parse_definitions(self, class_, all=False):
-        """Parse multiple definitions and yield them."""
-        while self.current is not None:
-            self.log.debug("parsing definition list, current token is %r (%s)",
-                           self.current.kind, self.current.value)
-            if all and self.current.value == '__all__':
-                self.parse_all()
-            elif self.current.kind == tk.OP and self.current.value == '@':
-                self.consume(tk.OP)
-                self.parse_decorators()
-            elif self.current.value in ['def', 'class']:
-                yield self.parse_definition(class_._nest(self.current.value))
-            elif self.current.kind == tk.INDENT:
-                self.consume(tk.INDENT)
-                for definition in self.parse_definitions(class_):
-                    yield definition
-            elif self.current.kind == tk.DEDENT:
-                self.consume(tk.DEDENT)
-                return
-            elif self.current.value == 'from':
-                self.parse_from_import_statement()
-            else:
-                self.stream.move()
-
-    def parse_all(self):
-        """Parse the __all__ definition in a module."""
-        assert self.current.value == '__all__'
-        self.consume(tk.NAME)
-        if self.current.value != '=':
-            raise AllError('Could not evaluate contents of __all__. ')
-        self.consume(tk.OP)
-        if self.current.value not in '([':
-            raise AllError('Could not evaluate contents of __all__. ')
-        if self.current.value == '[':
-            sys.stdout.write(
-                "{0} WARNING: __all__ is defined as a list, this means "
-                "pydocstyle cannot reliably detect contents of the __all__ "
-                "variable, because it can be mutated. Change __all__ to be "
-                "an (immutable) tuple, to remove this warning. Note, "
-                "pydocstyle uses __all__ to detect which definitions are "
-                "public, to warn if public definitions are missing "
-                "docstrings. If __all__ is a (mutable) list, pydocstyle "
-                "cannot reliably assume its contents. pydocstyle will "
-                "proceed assuming __all__ is not mutated.\n"
-                .format(self.filename))
-        self.consume(tk.OP)
-
-        self.all = []
-        all_content = "("
-        while self.current.kind != tk.OP or self.current.value not in ")]":
-            if self.current.kind in (tk.NL, tk.COMMENT):
-                pass
-            elif (self.current.kind == tk.STRING or
-                    self.current.value == ','):
-                all_content += self.current.value
-            else:
-                raise AllError('Unexpected token kind in  __all__: {!r}. '
-                               .format(self.current.kind))
-            self.stream.move()
-        self.consume(tk.OP)
-        all_content += ")"
-        try:
-            self.all = eval(all_content, {})
-        except BaseException as e:
-            raise AllError('Could not evaluate contents of __all__.'
-                           '\bThe value was {}. The exception was:\n{}'
-                           .format(all_content, e))
-
-    def parse_module(self):
-        """Parse a module (and its children) and return a Module object."""
-        self.log.debug("parsing module.")
-        start = self.line
-        docstring = self.parse_docstring()
-        children = list(self.parse_definitions(Module, all=True))
-        assert self.current is None, self.current
-        end = self.line
-        cls = Module
-        if self.filename.endswith('__init__.py'):
-            cls = Package
-        module = cls(self.filename, self.source, start, end,
-                     [], docstring, children, None, self.all, None, '')
-        for child in module.children:
+        for child in module_children:
             child.parent = module
-        module.future_imports = self.future_imports
-        self.log.debug("finished parsing module.")
+
         return module
 
-    def parse_definition(self, class_):
-        """Parse a definition and return its value in a `class_` object."""
-        start = self.line
-        self.consume(tk.NAME)
-        name = self.current.value
-        self.log.debug("parsing %s '%s'", class_.__name__, name)
-        self.stream.move()
-        if self.current.kind == tk.OP and self.current.value == '(':
-            parenthesis_level = 0
-            while True:
-                if self.current.kind == tk.OP:
-                    if self.current.value == '(':
-                        parenthesis_level += 1
-                    elif self.current.value == ')':
-                        parenthesis_level -= 1
-                        if parenthesis_level == 0:
-                            break
-                self.stream.move()
-        if self.current.kind != tk.OP or self.current.value != ':':
-            self.leapfrog(tk.OP, value=":")
+    def get_docstring(self, node):
+        docstring = None
+
+        docstring_node = node.children[node.children.index(':') + 1]
+        # Normally a suite
+        if jedi.parser.tree.is_node(docstring_node, 'suite'):
+            # NEWLINE INDENT stmt
+            docstring_node = docstring_node.children[2]
+
+        if jedi.parser.tree.is_node(docstring_node, 'simple_stmt'):
+            docstring_node = docstring_node.children[0]
+
+        if docstring_node.type == 'string':
+            docstring = docstring_node.get_code().strip()
+
+        return docstring
+
+    def handle_function(self, node, nested=False, method=False,
+                        *args, **kwargs):
+        if nested and not method:
+            cls = NestedFunction
         else:
-            self.consume(tk.OP)
-        if self.current.kind in (tk.NEWLINE, tk.COMMENT):
-            skipped_error_codes = self.parse_skip_comment()
-            self.leapfrog(tk.INDENT)
-            assert self.current.kind != tk.INDENT
-            docstring = self.parse_docstring()
-            decorators = self._accumulated_decorators
-            self._accumulated_decorators = []
-            self.log.debug("parsing nested definitions.")
-            children = list(self.parse_definitions(class_))
-            self.log.debug("finished parsing nested definitions for '%s'",
-                           name)
-            end = self.line - 1
-        else:  # one-liner definition
-            skipped_error_codes = ''
-            docstring = self.parse_docstring()
-            decorators = []  # TODO
-            children = []
-            end = self.line
-            self.leapfrog(tk.NEWLINE)
-        definition = class_(name, self.source, start, end,
-                            decorators, docstring, children, None,
-                            skipped_error_codes)
-        for child in definition.children:
-            child.parent = definition
-        self.log.debug("finished parsing %s '%s'. Next token is %r (%s)",
-                       class_.__name__, name, self.current.kind,
-                       self.current.value)
-        return definition
+            cls = Method if method else Function
 
-    def parse_skip_comment(self):
-        """Parse a definition comment for noqa skips."""
-        skipped_error_codes = ''
-        if self.current.kind == tk.COMMENT:
-            if 'noqa: ' in self.current.value:
-                skipped_error_codes = ''.join(
-                     self.current.value.split('noqa: ')[1:])
-            elif self.current.value.startswith('# noqa'):
-                skipped_error_codes = 'all'
-        return skipped_error_codes
+        docstring = self.get_docstring(node)
+        children = self.get_children(node, nested=True)
 
-    def check_current(self, kind=None, value=None):
-        """Verify the current token is of type `kind` and equals `value`."""
-        msg = textwrap.dedent("""
-        Unexpected token at line {self.line}:
+        start = node.start_pos[0]
+        end = node.end_pos[0]
+        if start != end:
+            end -= 1
 
-        In file: {self.filename}
+        function = cls(name=str(node.name),
+                       start=start,
+                       end=end,
+                       decorators=self.get_decorators(node),
+                       docstring=docstring,
+                       children=children,
+                       parent=None,
+                       skipped_error_codes=None)
 
-        Got kind {self.current.kind!r}
-        Got value {self.current.value}
-        """.format(self=self))
-        kind_valid = self.current.kind == kind if kind else True
-        value_valid = self.current.value == value if value else True
-        assert kind_valid and value_valid, msg
+        for child in function.children:
+            child.parent = function
 
-    def parse_from_import_statement(self):
-        """Parse a 'from x import y' statement.
+        return [function]
 
-        The purpose is to find __future__ statements.
+    def handle_class(self, node, nested=False, *args, **kwargs):
+        cls = NestedClass if nested else Class
 
-        """
-        self.log.debug('parsing from/import statement.')
-        is_future_import = self._parse_from_import_source()
-        self._parse_from_import_names(is_future_import)
+        docstring = self.get_docstring(node)
+        children = self.get_children(node, nested=True, method=True)
 
-    def _parse_from_import_source(self):
-        """Parse the 'from x import' part in a 'from x import y' statement.
+        start = node.start_pos[0]
+        end = node.end_pos[0]
+        if start != end:
+            end -= 1
 
-        Return true iff `x` is __future__.
-        """
-        assert self.current.value == 'from', self.current.value
-        self.stream.move()
-        is_future_import = self.current.value == '__future__'
-        self.stream.move()
-        while (self.current is not None and
-               self.current.kind in (tk.DOT, tk.NAME, tk.OP) and
-               self.current.value != 'import'):
-            self.stream.move()
-        if self.current is None or self.current.value != 'import':
-            return False
-        self.check_current(value='import')
-        assert self.current.value == 'import', self.current.value
-        self.stream.move()
-        return is_future_import
+        klass = cls(name=str(node.name),
+                    start=start,
+                    end=end,
+                    decorators=self.get_decorators(node),
+                    docstring=docstring,
+                    children=children,
+                    parent=None,
+                    skipped_error_codes=None)
 
-    def _parse_from_import_names(self, is_future_import):
-        """Parse the 'y' part in a 'from x import y' statement."""
-        if self.current.value == '(':
-            self.consume(tk.OP)
-            expected_end_kinds = (tk.OP, )
+        for child in klass.children:
+            child.parent = klass
+
+        return [klass]
+
+    def get_children(self, node, *args, **kwargs):
+        children = []
+        for child in node.children:
+            result = self.handle_node(child, *args, **kwargs)
+            if result is not None:
+                children.extend(result)
+        return children
+
+    def get_decorators(self, node):
+        return [Decorator(name=d.children[1].get_code())
+                for d in node.get_decorators()]
+
+    def handle_unknown_type(self, node, *args, **kwargs):
+        try:
+            node.children
+        except AttributeError:
+            pass
         else:
-            expected_end_kinds = (tk.NEWLINE, tk.ENDMARKER)
-        while self.current.kind not in expected_end_kinds and not (
-                    self.current.kind == tk.OP and self.current.value == ';'):
-            if self.current.kind != tk.NAME:
-                self.stream.move()
-                continue
-            self.log.debug("parsing import, token is %r (%s)",
-                           self.current.kind, self.current.value)
-            if is_future_import:
-                self.log.debug('found future import: %s', self.current.value)
-                self.future_imports[self.current.value] = True
-            self.consume(tk.NAME)
-            self.log.debug("parsing import, token is %r (%s)",
-                           self.current.kind, self.current.value)
-            if self.current.kind == tk.NAME and self.current.value == 'as':
-                self.consume(tk.NAME)  # as
-                if self.current.kind == tk.NAME:
-                    self.consume(tk.NAME)  # new name, irrelevant
-            if self.current.value == ',':
-                self.consume(tk.OP)
-            self.log.debug("parsing import, token is %r (%s)",
-                           self.current.kind, self.current.value)
+            return self.get_children(node, *args, **kwargs)
+
+    def handle_node(self, node, *args, **kwargs):
+        handlers = {
+            'funcdef': self.handle_function,
+            'classdef': self.handle_class,
+            'suite': self.get_children,
+            'decorated': self.get_children,
+        }
+
+        handler = handlers.get(node.type, self.handle_unknown_type)
+        return handler(node, *args, **kwargs)
