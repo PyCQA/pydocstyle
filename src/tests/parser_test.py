@@ -425,6 +425,20 @@ def test_module_publicity():
     assert module.is_public
 
 
+def test_dunder_all():
+    """Test that __all__ assignment is recognized."""
+    parser = Parser()
+    code = CodeSnippet("""\
+    import foo
+    from bar import baz
+
+    __all__ = ('foo', 'baz')
+    """)
+
+    module = parser.parse(code, "filepath")
+    assert module.all == ('foo', 'baz')
+
+
 def test_complex_module():
     """Test that a complex module is parsed correctly."""
     parser = Parser()
@@ -450,6 +464,4 @@ def test_complex_module():
 
     module = parser.parse(code, "filepath")
     assert list(module)[0] == module
-    for i in module:
-        print(i.name)
     assert len(list(module)) == 8

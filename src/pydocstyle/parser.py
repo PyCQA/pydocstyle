@@ -1,13 +1,13 @@
 """Python code parser."""
 
+import ast
 import logging
-import sys
 import textwrap
 import tokenize as tk
-from collections import defaultdict
 from itertools import chain, dropwhile
 from re import compile as re
 import jedi
+from jedi.parser.tree import is_node
 
 try:
     from StringIO import StringIO
@@ -292,7 +292,7 @@ class Parser(object):
 
         module = Module(name=filename,
                         _source=self.source,
-                        start=0,
+                        start=1,
                         end=len(self.source),
                         decorators=[],
                         docstring="",
@@ -312,11 +312,11 @@ class Parser(object):
 
         docstring_node = node.children[node.children.index(':') + 1]
         # Normally a suite
-        if jedi.parser.tree.is_node(docstring_node, 'suite'):
+        if is_node(docstring_node, 'suite'):
             # NEWLINE INDENT stmt
             docstring_node = docstring_node.children[2]
 
-        if jedi.parser.tree.is_node(docstring_node, 'simple_stmt'):
+        if is_node(docstring_node, 'simple_stmt'):
             docstring_node = docstring_node.children[0]
 
         if docstring_node.type == 'string':
@@ -391,6 +391,8 @@ class Parser(object):
                 for d in node.get_decorators()]
 
     def handle_unknown_type(self, node, *args, **kwargs):
+        self.log.debug(node.type)
+        print(node.type)
         try:
             node.children
         except AttributeError:
@@ -398,12 +400,35 @@ class Parser(object):
         else:
             return self.get_children(node, *args, **kwargs)
 
+    def handle_statement(self, node, nested=False, *args, **kwargs):
+        if nested:
+            return
+
+        name_node, op_node, value_node = node.children
+        if not all((is_node(name_node, 'name'),
+                    str(name_node) == '__all__',
+                    is_node(op_node, 'operator'),
+                    op_node.value == '=',
+                    is_node(value_node.children[0], 'operator'),
+                    value_node.children[0].value in ['(', '['],)):
+            return
+
+        name_list = value_node.children[1]
+
+        dunder_all_names = [ast.literal_eval(c.value) for c in name_list.children
+                            if is_node(c, 'string')]
+
+        print(dunder_all_names)
+
+
+
     def handle_node(self, node, *args, **kwargs):
         handlers = {
             'funcdef': self.handle_function,
             'classdef': self.handle_class,
             'suite': self.get_children,
             'decorated': self.get_children,
+            'expr_stmt': self.handle_statement
         }
 
         handler = handlers.get(node.type, self.handle_unknown_type)
