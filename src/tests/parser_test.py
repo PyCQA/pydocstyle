@@ -26,6 +26,8 @@ def test_function():
             return None
     """)
     module = parser.parse(code, 'file_path')
+    assert module.is_public
+
     function, = module.children
     assert function.name == 'do_something'
     assert function.decorators == []
@@ -465,3 +467,18 @@ def test_complex_module():
     module = parser.parse(code, "filepath")
     assert list(module)[0] == module
     assert len(list(module)) == 8
+
+
+def test_dunder_all_split():
+    """Test that __all__ is parsed correctly when it is split across lines.."""
+    parser = Parser()
+    code = CodeSnippet("""\
+    __all__ = ['foo', 'ba'
+               'r',]
+    """)
+
+    module = parser.parse(code, "filepath")
+    assert module.all == ('foo', 'bar')
+    assert module.docstring is None
+    assert module.start == 1
+    assert module.end == 3

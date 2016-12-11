@@ -210,6 +210,10 @@ class Decorator(Value):
     _fields = 'name'.split()
 
 
+class DunderAll(Value):
+    """A list of exported names in a module."""
+    _fields = 'names'.split()
+
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
 
 
@@ -289,20 +293,27 @@ class Parser(object):
         module_node = jedi_parser.module
 
         module_children = self.get_children(module_node)
+        definitions = [c for c in module_children if isinstance(c, Definition)]
+        # If there are several __all__ statements, use the last one.
+        dunder_all_stmts = [c for c in module_children
+                            if isinstance(c, DunderAll)]
+        dunder_all_names = (dunder_all_stmts[-1].names
+                            if dunder_all_stmts
+                            else None)
 
         module = Module(name=filename,
                         _source=self.source,
                         start=1,
-                        end=len(self.source),
+                        end=len(self.source) + 1,
                         decorators=[],
-                        docstring="",
-                        children=module_children,
+                        docstring=None,
+                        children=definitions,
                         parent=None,
-                        _all=None,
+                        _all=dunder_all_names,
                         future_imports={},
-                        skipped_error_codes=[])
+                        skipped_error_codes='')
 
-        for child in module_children:
+        for child in definitions:
             child.parent = module
 
         return module
@@ -391,8 +402,6 @@ class Parser(object):
                 for d in node.get_decorators()]
 
     def handle_unknown_type(self, node, *args, **kwargs):
-        self.log.debug(node.type)
-        print(node.type)
         try:
             node.children
         except AttributeError:
@@ -415,12 +424,16 @@ class Parser(object):
 
         name_list = value_node.children[1]
 
-        dunder_all_names = [ast.literal_eval(c.value) for c in name_list.children
-                            if is_node(c, 'string')]
+        dunder_all_names = []
+        for n in name_list.children:
+            if is_node(n, 'string'):
+                dunder_all_names.append(ast.literal_eval(n.value))
+            if is_node(n, 'atom'):
+                if all(is_node(c, 'string') for c in n.children):
+                    dunder_all_names.append(''.join(ast.literal_eval(c.value)
+                                                    for c in n.children))
 
-        print(dunder_all_names)
-
-
+        return [DunderAll(names=tuple(dunder_all_names))]
 
     def handle_node(self, node, *args, **kwargs):
         handlers = {
