@@ -18,6 +18,7 @@ from itertools import takewhile, dropwhile, chain
 from re import compile as re
 import itertools
 from collections import defaultdict, namedtuple, Set
+from functools import partial
 
 try:  # Python 3.x
     from ConfigParser import RawConfigParser
@@ -119,6 +120,7 @@ class Definition(Value):
     all = property(lambda self: self.module.all)
     _slice = property(lambda self: slice(self.start - 1, self.end))
     is_class = False
+    is_function = False
 
     def __iter__(self):
         return chain([self], *self.children)
@@ -161,6 +163,9 @@ class Package(Module):
 
 class Function(Definition):
 
+    is_function = True
+    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+               'children', 'parent', 'parameters')
     _nest = staticmethod(lambda s: {'def': NestedFunction,
                                     'class': NestedClass}[s])
 
@@ -448,6 +453,8 @@ class Parser(object):
         self.stream.move()
         if self.current.kind == tk.OP and self.current.value == '(':
             parenthesis_level = 0
+            arguments = []
+            is_default_assignment = False
             while True:
                 if self.current.kind == tk.OP:
                     if self.current.value == '(':
@@ -456,6 +463,14 @@ class Parser(object):
                         parenthesis_level -= 1
                         if parenthesis_level == 0:
                             break
+                    elif self.current.value == '=':
+                        is_default_assignment = True
+                elif self.current.kind == tk.NAME:
+                    if is_default_assignment:
+                        is_default_assignment = False
+                    else:
+                        arguments.append(self.current.value)
+
                 self.stream.move()
         if self.current.kind != tk.OP or self.current.value != ':':
             self.leapfrog(tk.OP, value=":")
@@ -477,8 +492,11 @@ class Parser(object):
             children = []
             end = self.line
             self.leapfrog(tk.NEWLINE)
-        definition = class_(name, self.source, start, end,
-                            decorators, docstring, children, None)
+
+        creator = partial(class_, name, self.source, start, end,
+                          decorators, docstring, children, None)
+
+        definition = creator(arguments) if class_.is_function else creator()
         for child in definition.children:
             child.parent = definition
         log.debug("finished parsing %s '%s'. Next token is %r (%s)",
@@ -683,6 +701,8 @@ D212 = D2xx.create_error('D212', 'Multi-line docstring summary should start '
                                  'at the first line')
 D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
                                  'at the second line')
+D214 = D2xx.create_error('D214', 'Section or section underline is '
+                                 'over-indented', 'in section %r')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
@@ -701,6 +721,12 @@ D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '%r, not %r')
 D404 = D4xx.create_error('D404', 'First word of the docstring should not '
                                  'be `This`')
+D405 = D4xx.create_error('D405', 'Section name should be properly capitalized',
+                         '%r, not %r')
+D406 = D4xx.create_error('D406', 'Section name should not end with a colon',
+                         '%r, not %r')
+D407 = D4xx.create_error('D407', 'Section underline should match the length '
+                                 'of the section\'s name', 'len(%r) == %r')
 
 
 class AttrDict(dict):
@@ -709,10 +735,12 @@ class AttrDict(dict):
 
 
 conventions = AttrDict({
-    'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203',
-                                                          'D212',
-                                                          'D213',
-                                                          'D404'])
+    'pep257': set(ErrorRegistry.get_error_codes()) - set(['D203', 'D212',
+                                                          'D213', 'D214',
+                                                          'D404', 'D405',
+                                                          'D406', 'D407']),
+    'numpy': set(ErrorRegistry.get_error_codes()) - set(['D203', 'D212',
+                                                         'D213', 'D402'])
 })
 
 
@@ -1264,7 +1292,7 @@ def check(filenames, select=None, ignore=None):
         try:
             with tokenize_open(filename) as file:
                 source = file.read()
-            for error in PEP257Checker().check_source(source, filename):
+            for error in ConventionChecker().check_source(source, filename):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error
@@ -1354,7 +1382,7 @@ def check_for(kind, terminal=False):
     return decorator
 
 
-class PEP257Checker(object):
+class ConventionChecker(object):
     """Checker for PEP 257.
 
     D10x: Missing docstrings
@@ -1364,13 +1392,27 @@ class PEP257Checker(object):
 
     """
 
+    ALL_NUMPY_SECTIONS = ['Short Summary',
+                          'Extended Summary',
+                          'Parameters',
+                          'Returns',
+                          'Yields',
+                          'Other Parameters',
+                          'Raises',
+                          'See Also',
+                          'Notes',
+                          'References',
+                          'Examples',
+                          'Attributes',
+                          'Methods']
+
     def check_source(self, source, filename):
         module = parse(StringIO(source), filename)
         for definition in module:
             for check in self.checks:
                 terminate = False
                 if isinstance(definition, check._check_for):
-                    error = check(None, definition, definition.docstring)
+                    error = check(self, definition, definition.docstring)
                     errors = error if hasattr(error, '__iter__') else [error]
                     for error in errors:
                         if error is not None:
@@ -1498,6 +1540,13 @@ class PEP257Checker(object):
                 if blanks_count != 1:
                     return D205(blanks_count)
 
+    @staticmethod
+    def _get_docstring_indent(definition, docstring):
+        """Return the indentation of the docstring's opening quotes."""
+        before_docstring, _, _ = definition.source.partition(docstring)
+        _, _, indent = before_docstring.rpartition('\n')
+        return indent
+
     @check_for(Definition)
     def check_indent(self, definition, docstring):
         """D20{6,7,8}: The entire docstring should be indented same as code.
@@ -1507,8 +1556,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            before_docstring, _, _ = definition.source.partition(docstring)
-            _, _, indent = before_docstring.rpartition('\n')
+            indent = self._get_docstring_indent(definition, docstring)
             lines = docstring.split('\n')
             if len(lines) > 1:
                 lines = lines[1:]  # First line does not need indent.
@@ -1709,6 +1757,145 @@ class PEP257Checker(object):
             if 'return' not in docstring.lower():
                 return Error()
 
+    @check_for(Definition)
+    def check_numpy_content(self, definition, docstring):
+        """Check the content of the docstring for numpy conventions."""
+        pass
+
+    def check_numpy_parameters(self, section, content, definition, docstring):
+        print "LALALAL"
+        yield
+
+    def _check_numpy_section(self, section, content, definition, docstring):
+        """Check the content of the docstring for numpy conventions."""
+        method_name = "check_numpy_%s" % section
+        if hasattr(self, method_name):
+            gen_func = getattr(self, method_name)
+
+            for err in gen_func(section, content, definition, docstring):
+                yield err
+        else:
+            print "Now checking numpy section %s" % section
+            for l in content:
+                print "##", l
+
+
+    @check_for(Definition)
+    def check_numpy(self, definition, docstring):
+        """Parse the general structure of a numpy docstring and check it."""
+        if not docstring:
+            return
+
+        lines = docstring.split("\n")
+        if len(lines) < 2:
+            # It's not a multiple lined docstring
+            return
+
+        lines_generator = ScrollableGenerator(lines[1:])  # Skipping first line
+        indent = self._get_docstring_indent(definition, docstring)
+
+        current_section = None
+        curr_section_lines = []
+        start_collecting_lines = False
+
+        for line in lines_generator:
+            for section in self.ALL_NUMPY_SECTIONS:
+                with_colon = section.lower() + ':'
+                if line.strip().lower() in [section.lower(), with_colon]:
+                    # There's a chance that this line is a numpy section
+                    try:
+                        next_line = lines_generator.next()
+                    except StopIteration:
+                        # It probably isn't :)
+                        return
+
+                    if ''.join(set(next_line.strip())) == '-':
+                        # The next line contains only dashes, there's a good
+                        # chance that it's a numpy section
+
+                        if (leading_space(line) > indent or
+                                leading_space(next_line) > indent):
+                            yield D214(section)
+
+                        if section not in line:
+                            # The capitalized section string is not in the line,
+                            # meaning that the word appears there but not
+                            # properly capitalized.
+                            yield D405(section, line.strip())
+                        elif line.strip().lower() == with_colon:
+                            # The section name should not end with a colon.
+                            yield D406(section, line.strip())
+
+                        if next_line.strip() != "-" * len(section):
+                            # The length of the underlining dashes does not
+                            # match the length of the section name.
+                            yield D407(section, len(section))
+
+                        # At this point, we're done with the structured part of
+                        # the section and its underline.
+                        # We will not collect the content of each section and
+                        # let section handlers deal with it.
+
+                        if current_section is not None:
+                            for err in self._check_numpy_section(
+                                                        current_section,
+                                                        curr_section_lines,
+                                                        definition,
+                                                        docstring):
+                                yield err
+
+                        start_collecting_lines = True
+                        current_section = section.lower()
+                        curr_section_lines = []
+                    else:
+                        # The next line does not contain only dashes, so it's
+                        # not likely to be a section header.
+                        lines_generator.scroll_back()
+
+            if current_section is not None:
+                if start_collecting_lines:
+                    start_collecting_lines = False
+                else:
+                    curr_section_lines.append(line)
+
+        if current_section is not None:
+            for err in self._check_numpy_section(current_section,
+                                                 curr_section_lines,
+                                                 definition,
+                                                 docstring):
+                yield err
+
+
+class ScrollableGenerator(object):
+    """A generator over a list that can be moved back during iteration."""
+
+    def __init__(self, list_like):
+        self._list_like = list_like
+        self._index = 0
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        """Generate the next item or raise StopIteration."""
+        try:
+            return self._list_like[self._index]
+        except IndexError:
+            raise StopIteration()
+        finally:
+            self._index += 1
+
+    def scroll_back(self, num=1):
+        """Move the generator `num` items backwards."""
+        if num < 0:
+            raise ValueError('num cannot be a negative number')
+        self._index = max(0, self._index - num)
+
+    def clone(self):
+        """Return a copy of the generator set to the same item index."""
+        obj_copy = self.__class__(self._list_like)
+        obj_copy._index = self._index
+
 
 def main(use_pep257=False):
     try:
@@ -1720,6 +1907,20 @@ def main(use_pep257=False):
 def main_pep257():
     main(use_pep257=True)
 
+
+def foo():
+    """A.
+
+    Parameters
+    ----------
+
+    This is a string that defines some things.
+
+    Returns
+    -------
+
+    Nothing.
+    """
 
 if __name__ == '__main__':
     main()
