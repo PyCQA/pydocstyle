@@ -2,7 +2,6 @@
 
 Use tox or py.test to run the test suite.
 """
-
 try:
     from StringIO import StringIO
 except ImportError:
@@ -10,7 +9,10 @@ except ImportError:
 
 import textwrap
 
-from .. import pydocstyle
+from pydocstyle import parser, checker
+
+
+__all__ = ()
 
 
 class TestParser(object):
@@ -23,7 +25,7 @@ class TestParser(object):
             class Foo:
                 pass
         """)
-        module = pydocstyle.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(StringIO(code), 'dummy.py')
         decorators = module.children[0].decorators
 
         assert 1 == len(decorators)
@@ -43,7 +45,7 @@ class TestParser(object):
                 pass
         """)
 
-        module = pydocstyle.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.decorators
 
@@ -65,7 +67,7 @@ class TestParser(object):
                 class NestedClass:
                     pass
         """)
-        module = pydocstyle.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(StringIO(code), 'dummy.py')
         nested_class = module.children[0].children[0]
         decorators = nested_class.decorators
 
@@ -82,7 +84,7 @@ class TestParser(object):
                     pass
         """)
 
-        module = pydocstyle.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].decorators
 
@@ -104,7 +106,7 @@ class TestParser(object):
                     pass
         """)
 
-        module = pydocstyle.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].decorators
 
@@ -124,7 +126,7 @@ class TestParser(object):
                 pass
         """)
 
-        module = pydocstyle.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(StringIO(code), 'dummy.py')
         decorators = module.children[0].decorators
 
         assert 1 == len(decorators)
@@ -142,7 +144,7 @@ class TestParser(object):
                         pass
         """)
 
-        module = pydocstyle.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].children[0].decorators
 
@@ -151,7 +153,7 @@ class TestParser(object):
         assert '' == decorators[0].arguments
 
 
-class TestMethod:
+class TestMethod(object):
     """Unit test for Method class."""
 
     def makeMethod(self, name='someMethodName'):
@@ -163,48 +165,49 @@ class TestMethod:
                 def %s(self):
         """ % (name))
 
-        module = pydocstyle.Module('module_name', source, 0, 1, [],
-                                   'Docstring for module', [], None, all)
+        module = parser.Module('module_name', source, 0, 1, [],
+                               'Docstring for module', [], None,
+                               all, None, '')
 
-        cls = pydocstyle.Class('ClassName', source, 0, 1, [],
-                               'Docstring for class', children, module, all)
+        cls = parser.Class('ClassName', source, 0, 1, [],
+                           'Docstring for class', children, module, '')
 
-        return pydocstyle.Method(name, source, 0, 1, [],
-                                 'Docstring for method', children, cls, all)
+        return parser.Method(name, source, 0, 1, [],
+                             'Docstring for method', children, cls, '')
 
     def test_is_public_normal(self):
-        """Methods are normally public, even if decorated."""
+        """Test that methods are normally public, even if decorated."""
         method = self.makeMethod('methodName')
-        method.decorators = [pydocstyle.Decorator('some_decorator', [])]
+        method.decorators = [parser.Decorator('some_decorator', [])]
 
         assert method.is_public
 
     def test_is_public_setter(self):
-        """Setter methods are considered private."""
+        """Test that setter methods are considered private."""
         method = self.makeMethod('methodName')
         method.decorators = [
-            pydocstyle.Decorator('some_decorator', []),
-            pydocstyle.Decorator('methodName.setter', []),
+            parser.Decorator('some_decorator', []),
+            parser.Decorator('methodName.setter', []),
         ]
 
         assert not method.is_public
 
     def test_is_public_deleter(self):
-        """Deleter methods are also considered private."""
+        """Test that deleter methods are also considered private."""
         method = self.makeMethod('methodName')
         method.decorators = [
-            pydocstyle.Decorator('methodName.deleter', []),
-            pydocstyle.Decorator('another_decorator', []),
+            parser.Decorator('methodName.deleter', []),
+            parser.Decorator('another_decorator', []),
         ]
 
         assert not method.is_public
 
     def test_is_public_trick(self):
-        """Common prefix does not necessarily indicate private."""
+        """Test that common prefix does not necessarily indicate private."""
         method = self.makeMethod("foo")
         method.decorators = [
-            pydocstyle.Decorator('foobar', []),
-            pydocstyle.Decorator('foobar.baz', []),
+            parser.Decorator('foobar', []),
+            parser.Decorator('foobar.baz', []),
         ]
 
         assert method.is_public

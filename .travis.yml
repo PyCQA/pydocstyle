@@ -9,8 +9,6 @@ install: pip install tox
 script: tox
 matrix:
   include:
-    - python: 2.6
-      env: TOXENV=py26
     - python: 2.7
       env: TOXENV=py27
     - python: 3.3
@@ -21,7 +19,5 @@ matrix:
       env: TOXENV=py35
     - python: pypy
       env: TOXENV=pypy
-    - python: pypy3
-      env: TOXENV=pypy3
     - python: 2.7
       env: TOXENV=docs

@@ -7,19 +7,74 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Major Updates
+
+* Support for Python 2.6 has been dropped (#206, #217).
+* Support for PyPy3 has been temporarily dropped, until it will be
+  equivalent to CPython 3.3+ and supported by ``pip`` (#223).
+* Support for the ``pep257`` console script has been dropped. Only the
+  ``pydocstyle`` console script should be used (#216, #218).
+
+New Features
+
+* Decorator-based skipping via ``--ignore-decorators`` has been added (#204).
+* Support for using pycodestyle style wildcards has been added (#72, #209).
+* Superfluous opening quotes are now reported as part of D300 (#166, #225).
+
+Bug Fixes
+
+* Made parser more robust to bad source files (#168, #214)
+* Modules are now considered private if their name starts with a single
+  underscore. This is a bugfix where "public module" (D100) was reported
+  regardless of module name (#199, #222).
+
+
+1.1.1 - October 4th, 2016
+-------------------------
+
+Bug Fixes
+
+* Fixed an issue where the ``flake8-docstrings`` failed when accessing some
+  public API from ``pydocstyle``.
+
+
+1.1.0 - September 29th, 2016
+----------------------------
+
+Major Updates
+
+* ``pydocstyle`` is no longer a single file. This might make it difficult for
+  some users to just add it to their project, but the project has reached
+  certain complexity where splitting it into modules was necessary (#200).
+
 New Features
 
 * Added the optional error codes D212 and D213, for checking whether
   the summary of a multi-line docstring starts at the first line,
   respectively at the second line (#174).
 
-* Added D404 - First word of the docstring should not be `This`. It is turned
+* Added D404 - First word of the docstring should not be "This". It is turned
   off by default (#183).
+
+* Added the ability to ignore specific function and method docstrings with
+  inline comments:
+
+    1. "# noqa" skips all checks.
+
+    2. "# noqa: D102,D203" can be used to skip specific checks.
 
 Bug Fixes
 
+* Fixed an issue where file paths were printed in lower case (#179, #181).
+
 * The error code D300 is now also being reported if a docstring has
   uppercase literals (``R`` or ``U``) as prefix (#176).
+
+* Fixed a bug where an ``__all__`` error was reported when ``__all__`` was
+  imported from another module with a different name (#182, #187).
+
+* Fixed a bug where ``raise X from Y`` syntax caused ``pydocstyle`` to crash
+  (#196, #200).
 
 1.0.0 - January 30th, 2016
 --------------------------
