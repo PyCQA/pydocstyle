@@ -43,6 +43,20 @@ class PEP257Checker(object):
 
     """
 
+    ALL_NUMPY_SECTIONS = ['Short Summary',
+                          'Extended Summary',
+                          'Parameters',
+                          'Returns',
+                          'Yields',
+                          'Other Parameters',
+                          'Raises',
+                          'See Also',
+                          'Notes',
+                          'References',
+                          'Examples',
+                          'Attributes',
+                          'Methods']
+
     def check_source(self, source, filename, ignore_decorators):
         module = parse(StringIO(source), filename)
         for definition in module:
@@ -54,7 +68,7 @@ class PEP257Checker(object):
                         len(ignore_decorators.findall(dec.name)) > 0
                         for dec in definition.decorators)
                     if not skipping_all and not decorator_skip:
-                        error = this_check(None, definition,
+                        error = this_check(self, definition,
                                            definition.docstring)
                     else:
                         error = None
@@ -190,6 +204,13 @@ class PEP257Checker(object):
                 if blanks_count != 1:
                     return violations.D205(blanks_count)
 
+    @staticmethod
+    def _get_docstring_indent(definition, docstring):
+        """Return the indentation of the docstring's opening quotes."""
+        before_docstring, _, _ = definition.source.partition(docstring)
+        _, _, indent = before_docstring.rpartition('\n')
+        return indent
+
     @check_for(Definition)
     def check_indent(self, definition, docstring):
         """D20{6,7,8}: The entire docstring should be indented same as code.
@@ -199,8 +220,7 @@ class PEP257Checker(object):
 
         """
         if docstring:
-            before_docstring, _, _ = definition.source.partition(docstring)
-            _, _, indent = before_docstring.rpartition('\n')
+            indent = self._get_docstring_indent(definition, docstring)
             lines = docstring.split('\n')
             if len(lines) > 1:
                 lines = lines[1:]  # First line does not need indent.
@@ -389,6 +409,144 @@ class PEP257Checker(object):
             first_word = ast.literal_eval(docstring).split()[0]
             if first_word.lower() == 'this':
                 return violations.D404()
+
+    @check_for(Definition)
+    def check_numpy_content(self, definition, docstring):
+        """Check the content of the docstring for numpy conventions."""
+        pass
+
+    def check_numpy_parameters(self, section, content, definition, docstring):
+        print "LALALAL"
+        yield
+
+    def _check_numpy_section(self, section, content, definition, docstring):
+        """Check the content of the docstring for numpy conventions."""
+        method_name = "check_numpy_%s" % section
+        if hasattr(self, method_name):
+            gen_func = getattr(self, method_name)
+
+            for err in gen_func(section, content, definition, docstring):
+                yield err
+        else:
+            print "Now checking numpy section %s" % section
+            for l in content:
+                print "##", l
+
+    @check_for(Definition)
+    def check_numpy(self, definition, docstring):
+        """Parse the general structure of a numpy docstring and check it."""
+        if not docstring:
+            return
+
+        lines = docstring.split("\n")
+        if len(lines) < 2:
+            # It's not a multiple lined docstring
+            return
+
+        lines_generator = ScrollableGenerator(lines[1:])  # Skipping first line
+        indent = self._get_docstring_indent(definition, docstring)
+
+        current_section = None
+        curr_section_lines = []
+        start_collecting_lines = False
+
+        for line in lines_generator:
+            for section in self.ALL_NUMPY_SECTIONS:
+                with_colon = section.lower() + ':'
+                if line.strip().lower() in [section.lower(), with_colon]:
+                    # There's a chance that this line is a numpy section
+                    try:
+                        next_line = lines_generator.next()
+                    except StopIteration:
+                        # It probably isn't :)
+                        return
+
+                    if ''.join(set(next_line.strip())) == '-':
+                        # The next line contains only dashes, there's a good
+                        # chance that it's a numpy section
+
+                        if (leading_space(line) > indent or
+                                leading_space(next_line) > indent):
+                            yield violations.D214(section)
+
+                        if section not in line:
+                            # The capitalized section string is not in the line,
+                            # meaning that the word appears there but not
+                            # properly capitalized.
+                            yield violations.D405(section, line.strip())
+                        elif line.strip().lower() == with_colon:
+                            # The section name should not end with a colon.
+                            yield violations.D406(section, line.strip())
+
+                        if next_line.strip() != "-" * len(section):
+                            # The length of the underlining dashes does not
+                            # match the length of the section name.
+                            yield violations.D407(section, len(section))
+
+                        # At this point, we're done with the structured part of
+                        # the section and its underline.
+                        # We will not collect the content of each section and
+                        # let section handlers deal with it.
+
+                        if current_section is not None:
+                            for err in self._check_numpy_section(
+                                    current_section,
+                                    curr_section_lines,
+                                    definition,
+                                    docstring):
+                                yield err
+
+                        start_collecting_lines = True
+                        current_section = section.lower()
+                        curr_section_lines = []
+                    else:
+                        # The next line does not contain only dashes, so it's
+                        # not likely to be a section header.
+                        lines_generator.scroll_back()
+
+            if current_section is not None:
+                if start_collecting_lines:
+                    start_collecting_lines = False
+                else:
+                    curr_section_lines.append(line)
+
+        if current_section is not None:
+            for err in self._check_numpy_section(current_section,
+                                                 curr_section_lines,
+                                                 definition,
+                                                 docstring):
+                yield err
+
+
+class ScrollableGenerator(object):
+    """A generator over a list that can be moved back during iteration."""
+
+    def __init__(self, list_like):
+        self._list_like = list_like
+        self._index = 0
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        """Generate the next item or raise StopIteration."""
+        try:
+            return self._list_like[self._index]
+        except IndexError:
+            raise StopIteration()
+        finally:
+            self._index += 1
+
+    def scroll_back(self, num=1):
+        """Move the generator `num` items backwards."""
+        if num < 0:
+            raise ValueError('num cannot be a negative number')
+        self._index = max(0, self._index - num)
+
+    def clone(self):
+        """Return a copy of the generator set to the same item index."""
+        obj_copy = self.__class__(self._list_like)
+        obj_copy._index = self._index
 
 
 parse = Parser()

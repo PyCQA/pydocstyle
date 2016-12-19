@@ -206,6 +206,12 @@ D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '{0!r}, not {1!r}')
 D404 = D4xx.create_error('D404', 'First word of the docstring should not '
                                  'be `This`')
+D405 = D4xx.create_error('D405', 'Section name should be properly capitalized',
+                         '{0!r}, not {1!r}')
+D406 = D4xx.create_error('D406', 'Section name should not end with a colon',
+                         '{0!r}, not {1!r}')
+D407 = D4xx.create_error('D407', 'Section underline should match the length '
+                         'of the section\'s name', 'len({0!r}) == {1!r}')
 
 
 class AttrDict(dict):
@@ -215,5 +221,6 @@ class AttrDict(dict):
 all_errors = set(ErrorRegistry.get_error_codes())
 
 conventions = AttrDict({
-    'pep257': all_errors - {'D203', 'D212', 'D213', 'D404'}
+    'pep257': all_errors - {'D203', 'D212', 'D213', 'D404'},
+    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402'}
 })
