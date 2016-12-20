@@ -456,18 +456,23 @@ class PEP257Checker(object):
             # meaning that the words appear there but not properly capitalized.
             yield violations.D405(actual_section, section)
 
-        if line.strip().endswith(":"):
-            # The section name should not end with a colon.
-            yield violations.D406(actual_section, line)
+        suffix = line.lstrip(section).strip()
+        if suffix:
+            # The section name should end with a newline.
+            yield violations.D406(actual_section, suffix)
 
         next_line_index = line_index + 1
         if next_line_index not in dashes_indices:
             yield violations.D407(actual_section)
         else:
+            next_line_index += 1
             if lines[next_line_index].strip() != "-" * len(section):
                 # The length of the underlining dashes does not
                 # match the length of the section name.
                 yield violations.D408(section, len(section))
+
+        if lines[next_line_index].strip():
+            yield violations.D409(actual_section)
 
     @check_for(Definition)
     def check_docstring_internal_structure(self, definition, docstring):
