@@ -4,6 +4,7 @@ import ast
 import string
 import sys
 import tokenize as tk
+import pyparsing as pr
 from itertools import takewhile
 from re import compile as re
 
@@ -432,8 +433,44 @@ class PEP257Checker(object):
             for l in content:
                 print "##", l
 
+    @staticmethod
+    def _find_line_indices(lines, predicate):
+        """Return a list of indices of lines that match `predicate`."""
+        return [i for i, line in enumerate(lines) if predicate(line)]
+
+    @staticmethod
+    def _rstrip_non_alpha(line):
+        result = re("[A-Za-z ]+").match(line.strip())
+        if result is not None:
+            return result.group()
+
+    @classmethod
+    def _check_section(cls, line_index, dashes_indices, lines):
+        line = lines[line_index].strip()
+        section = cls._rstrip_non_alpha(line)
+        actual_section = section.title()
+
+        if (section not in cls.ALL_NUMPY_SECTIONS and
+                section.title() in cls.ALL_NUMPY_SECTIONS):
+            # The capitalized section string is not in the line,
+            # meaning that the words appear there but not properly capitalized.
+            yield violations.D405(actual_section, section)
+
+        if line.strip().endswith(":"):
+            # The section name should not end with a colon.
+            yield violations.D406(actual_section, line)
+
+        next_line_index = line_index + 1
+        if next_line_index not in dashes_indices:
+            yield violations.D407(actual_section)
+        else:
+            if lines[next_line_index].strip() != "-" * len(section):
+                # The length of the underlining dashes does not
+                # match the length of the section name.
+                yield violations.D408(section, len(section))
+
     @check_for(Definition)
-    def check_numpy(self, definition, docstring):
+    def check_docstring_internal_structure(self, definition, docstring):
         """Parse the general structure of a numpy docstring and check it."""
         if not docstring:
             return
@@ -443,7 +480,34 @@ class PEP257Checker(object):
             # It's not a multiple lined docstring
             return
 
-        lines_generator = ScrollableGenerator(lines[1:])  # Skipping first line
+        lower_section_names = [s.lower() for s in self.ALL_NUMPY_SECTIONS]
+
+        def _suspected_as_section(line):
+            result = self._rstrip_non_alpha(line.lower())
+            return result in lower_section_names
+
+        def _contains_only_dashes(line):
+            return ''.join(set(line.strip())) == '-'
+
+        # Finding our suspects.
+        section_indices = self._find_line_indices(lines, _suspected_as_section)
+        dashes_indices = self._find_line_indices(lines, _contains_only_dashes)
+
+        for i in section_indices:
+            for err in self._check_section(i, dashes_indices, lines):
+                yield err
+
+    def SKIP_check_numpy(self, definition, docstring):
+        """Parse the general structure of a numpy docstring and check it."""
+        if not docstring:
+            return
+
+        lines = docstring.split("\n")
+        if len(lines) < 2:
+            # It's not a multiple lined docstring
+            return
+
+        lines_generator = ScrollableIterator(lines[1:])  # Skipping first line
         indent = self._get_docstring_indent(definition, docstring)
 
         current_section = None
@@ -485,7 +549,7 @@ class PEP257Checker(object):
 
                         # At this point, we're done with the structured part of
                         # the section and its underline.
-                        # We will not collect the content of each section and
+                        # We will now collect the content of each section and
                         # let section handlers deal with it.
 
                         if current_section is not None:
@@ -518,11 +582,11 @@ class PEP257Checker(object):
                 yield err
 
 
-class ScrollableGenerator(object):
-    """A generator over a list that can be moved back during iteration."""
+class ScrollableIterator(object):
+    """An iterator over an iterable that can be moved back during iteration."""
 
-    def __init__(self, list_like):
-        self._list_like = list_like
+    def __init__(self, iterable):
+        self._iterable = iterable
         self._index = 0
 
     def __iter__(self):
@@ -531,7 +595,7 @@ class ScrollableGenerator(object):
     def next(self):
         """Generate the next item or raise StopIteration."""
         try:
-            return self._list_like[self._index]
+            return self._iterable[self._index]
         except IndexError:
             raise StopIteration()
         finally:
@@ -545,7 +609,7 @@ class ScrollableGenerator(object):
 
     def clone(self):
         """Return a copy of the generator set to the same item index."""
-        obj_copy = self.__class__(self._list_like)
+        obj_copy = self.__class__(self._iterable)
         obj_copy._index = self._index
 
 

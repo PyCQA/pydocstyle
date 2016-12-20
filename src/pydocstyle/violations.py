@@ -212,7 +212,9 @@ D405 = D4xx.create_error('D405', 'Section name should be properly capitalized',
                          '{0!r}, not {1!r}')
 D406 = D4xx.create_error('D406', 'Section name should not end with a colon',
                          '{0!r}, not {1!r}')
-D407 = D4xx.create_error('D407', 'Section underline should match the length '
+D407 = D4xx.create_error('D407', 'Missing dashed underline after section name',
+                         'section={0!r}')
+D408 = D4xx.create_error('D408', 'Section underline should match the length '
                          'of the section\'s name', 'len({0!r}) == {1!r}')
 
 
