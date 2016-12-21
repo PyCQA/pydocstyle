@@ -216,7 +216,10 @@ D407 = D4xx.create_error('D407', 'Missing dashed underline after section name',
                          'section={0!r}')
 D408 = D4xx.create_error('D408', 'Section underline should match the length '
                          'of the section\'s name', 'len({0!r}) == {1!r}')
-D409 = D4xx.create_error('D409', 'Missing blank line after section', '{0!r}')
+D409 = D4xx.create_error('D409', 'Missing blank line after section name',
+                         '{0!r}')
+D410 = D4xx.create_error('D410', 'Missing blank line before section name',
+                         '{0!r}')
 
 
 class AttrDict(dict):

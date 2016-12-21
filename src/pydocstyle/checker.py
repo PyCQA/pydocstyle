@@ -44,19 +44,19 @@ class PEP257Checker(object):
 
     """
 
-    ALL_NUMPY_SECTIONS = ['Short Summary',
-                          'Extended Summary',
-                          'Parameters',
-                          'Returns',
-                          'Yields',
-                          'Other Parameters',
-                          'Raises',
-                          'See Also',
-                          'Notes',
-                          'References',
-                          'Examples',
-                          'Attributes',
-                          'Methods']
+    SECTION_NAMES = ['Short Summary',
+                     'Extended Summary',
+                     'Parameters',
+                     'Returns',
+                     'Yields',
+                     'Other Parameters',
+                     'Raises',
+                     'See Also',
+                     'Notes',
+                     'References',
+                     'Examples',
+                     'Attributes',
+                     'Methods']
 
     def check_source(self, source, filename, ignore_decorators):
         module = parse(StringIO(source), filename)
@@ -444,35 +444,73 @@ class PEP257Checker(object):
         if result is not None:
             return result.group()
 
+    @staticmethod
+    def _is_real_section(section, line, prev_line):
+        """Check if the suspected line is a real section name or not.
+
+        This is done by checking the next conditions:
+        * Does the current line has a suffix after the suspected section name?
+        * Is the previous line not empty?
+        * Does the previous line end with a punctuation mark?
+
+        If so, this is probably not a real section name. For example:
+            '''Title.
+
+            Some part of the docstring that specifies what the function
+            returns. <----- Not a real section name.
+            '''
+        """
+        punctuation = [',', ';', '.', '-', '\\', '/', ']', '}', ')']
+        prev_line_ends_with_punctuation = \
+            any(prev_line.endswith(x) for x in punctuation)
+        prev_line_is_empty = prev_line == ''
+
+        suffix = line.lstrip(section).strip()
+
+        # If there's a suffix to our suspected section name, and the previous
+        # line is not empty and ends with a punctuation mark, this is probably
+        # a false-positive.
+        return (suffix and not
+                prev_line_ends_with_punctuation and not
+                prev_line_is_empty)
+
     @classmethod
     def _check_section(cls, line_index, dashes_indices, lines):
         line = lines[line_index].strip()
+        prev_line = lines[line_index - 1].strip()
         section = cls._rstrip_non_alpha(line)
-        actual_section = section.title()
+        capitalized_section = section.title()
 
-        if (section not in cls.ALL_NUMPY_SECTIONS and
-                section.title() in cls.ALL_NUMPY_SECTIONS):
-            # The capitalized section string is not in the line,
-            # meaning that the words appear there but not properly capitalized.
-            yield violations.D405(actual_section, section)
+        if cls._is_real_section(section, line, prev_line):
+            return
 
         suffix = line.lstrip(section).strip()
         if suffix:
-            # The section name should end with a newline.
-            yield violations.D406(actual_section, suffix)
+            yield violations.D406(capitalized_section, suffix)
+
+        if prev_line != '':
+            yield violations.D410(capitalized_section)  # Missing blank line
+
+        if (section not in cls.SECTION_NAMES and
+                capitalized_section in cls.SECTION_NAMES):
+            yield violations.D405(capitalized_section, section)
 
         next_line_index = line_index + 1
         if next_line_index not in dashes_indices:
-            yield violations.D407(actual_section)
+            yield violations.D407(capitalized_section)
         else:
-            next_line_index += 1
             if lines[next_line_index].strip() != "-" * len(section):
                 # The length of the underlining dashes does not
                 # match the length of the section name.
                 yield violations.D408(section, len(section))
 
+            # If there are no dashes - the next line after the section name
+            # should be empty. Otherwise, it's the next line after the dashes.
+            # This is why we increment the line index by 1 here.
+            next_line_index += 1
+
         if lines[next_line_index].strip():
-            yield violations.D409(actual_section)
+            yield violations.D409(capitalized_section)
 
     @check_for(Definition)
     def check_docstring_internal_structure(self, definition, docstring):
@@ -485,7 +523,7 @@ class PEP257Checker(object):
             # It's not a multiple lined docstring
             return
 
-        lower_section_names = [s.lower() for s in self.ALL_NUMPY_SECTIONS]
+        lower_section_names = [s.lower() for s in self.SECTION_NAMES]
 
         def _suspected_as_section(line):
             result = self._rstrip_non_alpha(line.lower())
@@ -501,121 +539,6 @@ class PEP257Checker(object):
         for i in section_indices:
             for err in self._check_section(i, dashes_indices, lines):
                 yield err
-
-    def SKIP_check_numpy(self, definition, docstring):
-        """Parse the general structure of a numpy docstring and check it."""
-        if not docstring:
-            return
-
-        lines = docstring.split("\n")
-        if len(lines) < 2:
-            # It's not a multiple lined docstring
-            return
-
-        lines_generator = ScrollableIterator(lines[1:])  # Skipping first line
-        indent = self._get_docstring_indent(definition, docstring)
-
-        current_section = None
-        curr_section_lines = []
-        start_collecting_lines = False
-
-        for line in lines_generator:
-            for section in self.ALL_NUMPY_SECTIONS:
-                with_colon = section.lower() + ':'
-                if line.strip().lower() in [section.lower(), with_colon]:
-                    # There's a chance that this line is a numpy section
-                    try:
-                        next_line = lines_generator.next()
-                    except StopIteration:
-                        # It probably isn't :)
-                        return
-
-                    if ''.join(set(next_line.strip())) == '-':
-                        # The next line contains only dashes, there's a good
-                        # chance that it's a numpy section
-
-                        if (leading_space(line) > indent or
-                                leading_space(next_line) > indent):
-                            yield violations.D214(section)
-
-                        if section not in line:
-                            # The capitalized section string is not in the line,
-                            # meaning that the word appears there but not
-                            # properly capitalized.
-                            yield violations.D405(section, line.strip())
-                        elif line.strip().lower() == with_colon:
-                            # The section name should not end with a colon.
-                            yield violations.D406(section, line.strip())
-
-                        if next_line.strip() != "-" * len(section):
-                            # The length of the underlining dashes does not
-                            # match the length of the section name.
-                            yield violations.D407(section, len(section))
-
-                        # At this point, we're done with the structured part of
-                        # the section and its underline.
-                        # We will now collect the content of each section and
-                        # let section handlers deal with it.
-
-                        if current_section is not None:
-                            for err in self._check_numpy_section(
-                                    current_section,
-                                    curr_section_lines,
-                                    definition,
-                                    docstring):
-                                yield err
-
-                        start_collecting_lines = True
-                        current_section = section.lower()
-                        curr_section_lines = []
-                    else:
-                        # The next line does not contain only dashes, so it's
-                        # not likely to be a section header.
-                        lines_generator.scroll_back()
-
-            if current_section is not None:
-                if start_collecting_lines:
-                    start_collecting_lines = False
-                else:
-                    curr_section_lines.append(line)
-
-        if current_section is not None:
-            for err in self._check_numpy_section(current_section,
-                                                 curr_section_lines,
-                                                 definition,
-                                                 docstring):
-                yield err
-
-
-class ScrollableIterator(object):
-    """An iterator over an iterable that can be moved back during iteration."""
-
-    def __init__(self, iterable):
-        self._iterable = iterable
-        self._index = 0
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        """Generate the next item or raise StopIteration."""
-        try:
-            return self._iterable[self._index]
-        except IndexError:
-            raise StopIteration()
-        finally:
-            self._index += 1
-
-    def scroll_back(self, num=1):
-        """Move the generator `num` items backwards."""
-        if num < 0:
-            raise ValueError('num cannot be a negative number')
-        self._index = max(0, self._index - num)
-
-    def clone(self):
-        """Return a copy of the generator set to the same item index."""
-        obj_copy = self.__class__(self._iterable)
-        obj_copy._index = self._index
 
 
 parse = Parser()
