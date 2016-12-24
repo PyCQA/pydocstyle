@@ -4,7 +4,6 @@ import ast
 import string
 import sys
 import tokenize as tk
-import pyparsing as pr
 from itertools import takewhile
 from re import compile as re
 from collections import namedtuple
