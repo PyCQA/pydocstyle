@@ -452,7 +452,8 @@ class PEP257Checker(object):
         """D4{07,08,09,10}, D215: Section underline checks.
 
         Check for correct formatting for docstring sections. Checks that:
-            * The line that follows the section name contains dashes (D40{7,8}).
+            * The line that follows the section name contains
+              dashes (D40{7,8}).
             * The amount of dashes is equal to the length of the section
               name (D409).
             * The line that follows the section header (with or without dashes)

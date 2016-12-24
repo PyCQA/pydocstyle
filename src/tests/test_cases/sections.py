@@ -78,6 +78,7 @@ def no_blank_line_after_section():
     A whole lot of values.
     """
 
+
 @expect(_D213)
 @expect("D411: Missing blank line before section ('Returns')")
 def no_blank_line_before_section():
