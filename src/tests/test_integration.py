@@ -501,6 +501,28 @@ def test_pep257_convention(env):
     assert 'D213' not in out
 
 
+def test_numpy_convention(env):
+    """Test that the 'numpy' convention options has the correct errors."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''
+            class Foo(object):
+                """Docstring for this class.
+
+                returns
+                 ------
+                """
+        '''))
+
+    env.write_config(convention="numpy")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D213' not in out
+    assert 'D215' in out
+    assert 'D405' in out
+    assert 'D409' in out
+    assert 'D410' in out
+
+
 def test_config_file_inheritance(env):
     """Test configuration files inheritance.
 

@@ -212,7 +212,7 @@ D404 = D4xx.create_error('D404', 'First word of the docstring should not '
 D405 = D4xx.create_error('D405', 'Section name should be properly capitalized',
                          '{0!r}, not {1!r}')
 D406 = D4xx.create_error('D406', 'Section name should end with a newline',
-                         '{0!r}, found {1!r}')
+                         '{0!r}, not {1!r}')
 D407 = D4xx.create_error('D407', 'Missing dashed underline after section',
                          '{0!r}')
 D408 = D4xx.create_error('D408', 'Section underline should be in the line '

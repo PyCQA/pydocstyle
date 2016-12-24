@@ -517,7 +517,7 @@ class PEP257Checker(object):
 
         suffix = context.line.strip().lstrip(context.section_name)
         if suffix != '':
-            yield violations.D406(capitalized_section, suffix)
+            yield violations.D406(capitalized_section, context.line.strip())
 
         if context.previous_line.strip() != '':
             yield violations.D411(capitalized_section)
