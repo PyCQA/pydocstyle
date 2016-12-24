@@ -7,6 +7,7 @@ import tokenize as tk
 import pyparsing as pr
 from itertools import takewhile
 from re import compile as re
+from collections import namedtuple
 
 from . import violations
 from .config import IllegalConfiguration
@@ -411,44 +412,21 @@ class PEP257Checker(object):
             if first_word.lower() == 'this':
                 return violations.D404()
 
-    @check_for(Definition)
-    def check_numpy_content(self, definition, docstring):
-        """Check the content of the docstring for numpy conventions."""
-        pass
-
-    def check_numpy_parameters(self, section, content, definition, docstring):
-        print "LALALAL"
-        yield
-
-    def _check_numpy_section(self, section, content, definition, docstring):
-        """Check the content of the docstring for numpy conventions."""
-        method_name = "check_numpy_%s" % section
-        if hasattr(self, method_name):
-            gen_func = getattr(self, method_name)
-
-            for err in gen_func(section, content, definition, docstring):
-                yield err
-        else:
-            print "Now checking numpy section %s" % section
-            for l in content:
-                print "##", l
-
     @staticmethod
-    def _find_line_indices(lines, predicate):
-        """Return a list of indices of lines that match `predicate`."""
-        return [i for i, line in enumerate(lines) if predicate(line)]
+    def _get_leading_words(line):
+        """Return any leading set of words from `line`.
 
-    @staticmethod
-    def _rstrip_non_alpha(line):
+        For example, if `line` is "  Hello world!!!", returns "Hello world".
+        """
         result = re("[A-Za-z ]+").match(line.strip())
         if result is not None:
             return result.group()
 
     @staticmethod
-    def _is_real_section(section, line, prev_line):
-        """Check if the suspected line is a real section name or not.
+    def _is_a_docstring_section(context):
+        """Check if the suspected line is really a section.
 
-        This is done by checking the next conditions:
+        This is done by checking the following conditions:
         * Does the current line has a suffix after the suspected section name?
         * Is the previous line not empty?
         * Does the previous line end with a punctuation mark?
@@ -460,85 +438,146 @@ class PEP257Checker(object):
             returns. <----- Not a real section name.
             '''
         """
+        section_name_suffix = context.line.lstrip(context.section_name).strip()
+
         punctuation = [',', ';', '.', '-', '\\', '/', ']', '}', ')']
         prev_line_ends_with_punctuation = \
-            any(prev_line.endswith(x) for x in punctuation)
-        prev_line_is_empty = prev_line == ''
+            any(context.previous_line.strip().endswith(x) for x in punctuation)
 
-        suffix = line.lstrip(section).strip()
-
-        # If there's a suffix to our suspected section name, and the previous
-        # line is not empty and ends with a punctuation mark, this is probably
-        # a false-positive.
-        return (suffix and not
-                prev_line_ends_with_punctuation and not
-                prev_line_is_empty)
+        return not (section_name_suffix != '' and not
+                    prev_line_ends_with_punctuation and not
+                    context.previous_line.strip() == '')
 
     @classmethod
-    def _check_section(cls, line_index, dashes_indices, lines):
-        line = lines[line_index].strip()
-        prev_line = lines[line_index - 1].strip()
-        section = cls._rstrip_non_alpha(line)
-        capitalized_section = section.title()
+    def _check_section_underline(cls, section_name, context, indentation):
+        """D4{07,08,09,10}, D215: Section underline checks.
 
-        if cls._is_real_section(section, line, prev_line):
-            return
+        Check for correct formatting for docstring sections. Checks that:
+            * The line that follows the section name contains dashes (D40{7,8}).
+            * The amount of dashes is equal to the length of the section
+              name (D409).
+            * The line that follows the section header (with or without dashes)
+              is empty (D410).
+            * The indentation of the dashed line is equal to the docstring's
+              indentation (D215).
+        """
+        dash_line_found = False
+        next_non_empty_line_offset = 0
 
-        suffix = line.lstrip(section).strip()
-        if suffix:
+        for line in context.following_lines:
+            line_set = ''.join(set(line.strip()))
+            if line_set != '':
+                dash_line_found = line_set == '-'
+                break
+            next_non_empty_line_offset += 1
+
+        if not dash_line_found:
+            yield violations.D407(section_name)
+            if next_non_empty_line_offset == 0:
+                yield violations.D410(section_name)
+        else:
+            if next_non_empty_line_offset > 0:
+                yield violations.D408(section_name)
+
+            dash_line = context.following_lines[next_non_empty_line_offset]
+            if dash_line.strip() != "-" * len(section_name):
+                yield violations.D409(section_name,
+                                      len(section_name),
+                                      len(dash_line.strip()))
+
+            line_after_dashes = \
+                context.following_lines[next_non_empty_line_offset + 1]
+            if line_after_dashes.strip() != '':
+                yield violations.D410(section_name)
+
+            if leading_space(dash_line) > indentation:
+                yield violations.D215(section_name)
+
+    @classmethod
+    def _check_section(cls, docstring, definition, context):
+        """D4{05,06,11}, D214: Section name checks.
+
+        Check for valid section names. Checks that:
+            * The section name is properly capitalized (D405).
+            * The section is not over-indented (D214).
+            * The section name has no superfluous suffix to it (D406).
+            * There's a blank line before the section (D411).
+
+        Also yields all the errors from `_check_section_underline`.
+        """
+        capitalized_section = context.section_name.title()
+        indentation = cls._get_docstring_indent(definition, docstring)
+
+        if (context.section_name not in cls.SECTION_NAMES and
+                capitalized_section in cls.SECTION_NAMES):
+            yield violations.D405(capitalized_section, context.section_name)
+
+        if leading_space(context.line) > indentation:
+            yield violations.D214(capitalized_section)
+
+        suffix = context.line.strip().lstrip(context.section_name)
+        if suffix != '':
             yield violations.D406(capitalized_section, suffix)
 
-        if prev_line != '':
-            yield violations.D410(capitalized_section)  # Missing blank line
+        if context.previous_line.strip() != '':
+            yield violations.D411(capitalized_section)
 
-        if (section not in cls.SECTION_NAMES and
-                capitalized_section in cls.SECTION_NAMES):
-            yield violations.D405(capitalized_section, section)
-
-        next_line_index = line_index + 1
-        if next_line_index not in dashes_indices:
-            yield violations.D407(capitalized_section)
-        else:
-            if lines[next_line_index].strip() != "-" * len(section):
-                # The length of the underlining dashes does not
-                # match the length of the section name.
-                yield violations.D408(section, len(section))
-
-            # If there are no dashes - the next line after the section name
-            # should be empty. Otherwise, it's the next line after the dashes.
-            # This is why we increment the line index by 1 here.
-            next_line_index += 1
-
-        if lines[next_line_index].strip():
-            yield violations.D409(capitalized_section)
+        for err in cls._check_section_underline(capitalized_section,
+                                                context,
+                                                indentation):
+            yield err
 
     @check_for(Definition)
-    def check_docstring_internal_structure(self, definition, docstring):
-        """Parse the general structure of a numpy docstring and check it."""
+    def check_docstring_sections(self, definition, docstring):
+        """D21{4,5}, D4{05,06,07,08,09,10}: Docstring sections checks.
+
+        Check the general format of a sectioned docstring:
+            '''This is my one-liner.
+
+            Short Summary
+            -------------
+
+            This is my summary.
+
+            Returns
+            -------
+
+            None.
+            '''
+
+        Section names appear in `SECTION_NAMES`.
+        """
         if not docstring:
             return
 
         lines = docstring.split("\n")
         if len(lines) < 2:
-            # It's not a multiple lined docstring
             return
 
         lower_section_names = [s.lower() for s in self.SECTION_NAMES]
 
-        def _suspected_as_section(line):
-            result = self._rstrip_non_alpha(line.lower())
+        def _suspected_as_section(_line):
+            result = self._get_leading_words(_line.lower())
             return result in lower_section_names
 
-        def _contains_only_dashes(line):
-            return ''.join(set(line.strip())) == '-'
-
         # Finding our suspects.
-        section_indices = self._find_line_indices(lines, _suspected_as_section)
-        dashes_indices = self._find_line_indices(lines, _contains_only_dashes)
+        suspected_section_indices = [i for i, line in enumerate(lines) if
+                                     _suspected_as_section(line)]
 
-        for i in section_indices:
-            for err in self._check_section(i, dashes_indices, lines):
-                yield err
+        context = namedtuple('SectionContext', ('section_name',
+                                                'previous_line',
+                                                'line',
+                                                'following_lines'))
+
+        contexts = (context(self._get_leading_words(lines[i].strip()),
+                            lines[i - 1],
+                            lines[i],
+                            lines[i + 1:]) for i in suspected_section_indices)
+
+        for ctx in contexts:
+            if self._is_a_docstring_section(ctx):
+                for err in self._check_section(docstring, definition, ctx):
+                    yield err
 
 
 parse = Parser()
