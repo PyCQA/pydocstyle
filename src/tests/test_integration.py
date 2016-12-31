@@ -436,6 +436,7 @@ def test_illegal_convention(env):
     assert "Illegal convention 'illegal_conv'." in err
     assert 'Possible conventions' in err
     assert 'pep257' in err
+    assert 'numpy' in err
 
 
 def test_empty_select_cli(env):

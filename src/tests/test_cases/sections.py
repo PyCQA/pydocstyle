@@ -45,7 +45,7 @@ def no_underline():
 
 @expect(_D213)
 @expect("D408: Section underline should be in the line following the "
-        "section\'s name ('Returns')")
+        "section's name ('Returns')")
 def blank_line_before_underline():
     """Valid headline.
 
@@ -58,7 +58,7 @@ def blank_line_before_underline():
 
 @expect(_D213)
 @expect("D409: Section underline should match the length of its name "
-        "(len('Returns') == 7, got 2 dashes)")
+        "(Expected 7 dashes in section 'Returns', got 2)")
 def bad_underline_length():
     """Valid headline.
 
@@ -140,7 +140,7 @@ def section_name_in_first_line():
 @expect("D405: Section name should be properly capitalized "
         "('Short Summary', not 'Short summary')")
 @expect("D409: Section underline should match the length of its name "
-        "(len('Returns') == 7, got 6 dashes)")
+        "(Expected 7 dashes in section 'Returns', got 6)")
 @expect("D410: Missing blank line after section ('Returns')")
 @expect("D411: Missing blank line before section ('Raises')")
 @expect("D406: Section name should end with a newline "

@@ -220,7 +220,7 @@ D408 = D4xx.create_error('D408', 'Section underline should be in the line '
                          '{0!r}')
 D409 = D4xx.create_error('D409', 'Section underline should match the length '
                                  'of its name',
-                         'len({0!r}) == {1!r}, got {2!r} dashes')
+                         'Expected {0!r} dashes in section {1!r}, got {2!r}')
 D410 = D4xx.create_error('D410', 'Missing blank line after section', '{0!r}')
 D411 = D4xx.create_error('D411', 'Missing blank line before section', '{0!r}')
 
