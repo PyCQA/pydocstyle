@@ -298,3 +298,8 @@ def test_pep257(test_case):
         assert isinstance(error, Error)
     results = set([(e.definition.name, e.message) for e in results])
     assert case_module.expectation.expected == results
+
+
+def test_parser_no_warning(capsys):
+    parse(StringIO(source_alt), 'file_alt.py')
+    assert capsys.readouterr() == ('', '')
