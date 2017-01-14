@@ -34,8 +34,8 @@ def check_for(kind, terminal=False):
     return decorator
 
 
-class PEP257Checker(object):
-    """Checker for PEP 257.
+class ConventionChecker(object):
+    """Checker for PEP 257 and numpy conventions.
 
     D10x: Missing docstrings
     D20x: Whitespace issues
@@ -642,8 +642,8 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
         try:
             with tokenize_open(filename) as file:
                 source = file.read()
-            for error in PEP257Checker().check_source(source, filename,
-                                                      ignore_decorators):
+            for error in ConventionChecker().check_source(source, filename,
+                                                          ignore_decorators):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error
