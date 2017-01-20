@@ -20,6 +20,7 @@ New Features
 * Decorator-based skipping via ``--ignore-decorators`` has been added (#204).
 * Support for using pycodestyle style wildcards has been added (#72, #209).
 * Superfluous opening quotes are now reported as part of D300 (#166, #225).
+* Support for ``numpy`` conventions verification has been added (#129).
 
 Bug Fixes
 

@@ -28,7 +28,8 @@ class class_(object):
     """Class."""
     def method_1(self):
         """Method."""
-    def method_2(self):
+    def method_2(self,
+                 param=None):
         def nested_3(self):
             """Nested."""
 '''
@@ -277,6 +278,7 @@ def test_token_stream():
     'all_import',
     'all_import_as',
     'superfluous_quotes',
+    'sections',
 ])
 def test_pep257(test_case):
     """Run domain-specific tests from test.py file."""
