@@ -235,6 +235,19 @@ class ConventionChecker(object):
                     yield violations.D207()
 
     @check_for(Definition)
+    def check_length(self, definition, docstring):
+        """D216: The length of the docstring should be under 79 chars.
+
+        The docstring must not exceed 79 characters.
+
+        """
+        if docstring:
+            lines = ast.literal_eval(docstring).split('\n')
+            lengths = [len(l) for l in lines if not is_blank(l)]
+            if max(lengths) > 79:
+                return violations.D216()
+
+    @check_for(Definition)
     def check_newline_after_last_paragraph(self, definition, docstring):
         """D209: Put multi-line docstring closing quotes on separate line.
 

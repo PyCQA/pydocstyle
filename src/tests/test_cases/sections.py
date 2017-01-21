@@ -114,6 +114,16 @@ def section_underline_overindented():
 
 
 @expect(_D213)
+@expect("D216: Line exceeds defined maximum length")
+def section_line_too_long():
+    """Valid headline.
+
+    This is the function's description, which is much longer than the 80 characters
+
+    """
+
+
+@expect(_D213)
 def ignore_non_actual_section():
     """Valid headline.
 

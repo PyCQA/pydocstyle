@@ -191,6 +191,7 @@ D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
 D214 = D2xx.create_error('D214', 'Section is over-indented', '{0!r}')
 D215 = D2xx.create_error('D215', 'Section underline is over-indented',
                          'in section {0!r}')
+D216 = D2xx.create_error('D216', 'Line exceeds defined maximum length')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
@@ -235,5 +236,6 @@ conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
                             'D411'},
-    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402'}
+    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402'},
+    'pep8': all_errors - {'D216'}
 })
