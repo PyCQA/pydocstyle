@@ -1,6 +1,7 @@
 """Parser tests."""
 
 import six
+import pytest
 import textwrap
 from pydocstyle.parser import Parser, Decorator, Function
 
@@ -27,6 +28,7 @@ def test_function():
     """)
     module = parser.parse(code, 'file_path')
     assert module.is_public
+    assert module.all is None
 
     function, = module.children
     assert function.name == 'do_something'
@@ -427,20 +429,6 @@ def test_module_publicity():
     assert module.is_public
 
 
-def test_dunder_all():
-    """Test that __all__ assignment is recognized."""
-    parser = Parser()
-    code = CodeSnippet("""\
-    import foo
-    from bar import baz
-
-    __all__ = ('foo', 'baz')
-    """)
-
-    module = parser.parse(code, "filepath")
-    assert module.all == ('foo', 'baz')
-
-
 def test_complex_module():
     """Test that a complex module is parsed correctly."""
     parser = Parser()
@@ -469,16 +457,88 @@ def test_complex_module():
     assert len(list(module)) == 8
 
 
-def test_dunder_all_split():
-    """Test that __all__ is parsed correctly when it is split across lines.."""
-    parser = Parser()
-    code = CodeSnippet("""\
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+    __all__ = ['foo', 'bar']
+    """),
+    CodeSnippet("""\
     __all__ = ['foo', 'ba'
                'r',]
-    """)
-
+    """),
+    CodeSnippet("""\
+    __all__ = ('foo',
+               'bar'
+    )
+    """),
+    CodeSnippet("""\
+    __all__ = ['foo',
+        # Inconvenient comment
+               'bar'
+    ]
+    """),
+))
+def test_dunder_all(code):
+    """Test that __all__ is parsed correctly."""
+    parser = Parser()
     module = parser.parse(code, "filepath")
     assert module.all == ('foo', 'bar')
-    assert module.docstring is None
-    assert module.start == 1
-    assert module.end == 3
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+    from __future__ import unicode_literals, nested_scopes
+    """),
+    CodeSnippet("""\
+    from __future__ import unicode_literals, nested_scopes;
+    """),
+    CodeSnippet("""\
+    from __future__ import unicode_literals
+    from __future__ import nested_scopes;
+    """),
+    CodeSnippet("""\
+    from __future__ import unicode_literals
+    from __future__ import nested_scopes as ns
+    """),
+    CodeSnippet("""\
+    from __future__ import (unicode_literals as nl,
+                            nested_scopes)
+    """),
+    CodeSnippet("""\
+    from __future__ import (unicode_literals as nl,)
+    from __future__ import (nested_scopes)
+    """),
+    CodeSnippet("""\
+    from __future__ \\
+    import unicode_literals
+    from __future__ \\
+    import nested_scopes
+    """),
+    CodeSnippet("""\
+    from __future__ import unicode_literals; from __future__ import \
+    nested_scopes
+    """),
+    # pep257 does not detect that 'import string' prevents
+    # unicode_literals from being a valid __future__.
+    # That is detected by pyflakes.
+    CodeSnippet("""\
+    from __future__ import unicode_literals; import string; from __future__ \
+    import nested_scopes
+    """),
+))
+def test_future_import(code):
+    """Test that __future__ imports are properly parsed and collected."""
+    parser = Parser()
+    module = parser.parse(code, "filepath")
+    assert module.future_imports == ('unicode_literals', 'nested_scopes')
+
+
+def test_noqa_function():
+    """Test that "# noqa" comments are correctly collected for definitions."""
+    code = CodeSnippet("""\
+    def foo():  # noqa: D100,D101
+        pass
+    """)
+    parser = Parser()
+    module = parser.parse(code, "filepath")
+    function, = module.children
+    assert function.skipped_error_codes == 'D100,D101'

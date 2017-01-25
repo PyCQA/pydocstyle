@@ -214,6 +214,12 @@ class DunderAll(Value):
     """A list of exported names in a module."""
     _fields = 'names'.split()
 
+
+class FutureImport(Value):
+    """A list of __future__ imports in a module."""
+    _fields = 'name'.split()
+
+
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
 
 
@@ -275,6 +281,18 @@ class Token(Value):
         self.kind = TokenKind(self.kind)
 
 
+def verify_node(node, node_type, node_value=None):
+    if not (is_node(node, node_type) or
+            (node_value is not None and node_value != node.value)):
+        msg = 'Node type: expected {}, got {}.'.format(node_type,
+                                                       node.type)
+        if node_value is not None:
+            msg += '\nNode value: expected {}, got {}'(node_value,
+                                                       node.value)
+        raise ValueError(msg)
+    return node
+
+
 class Parser(object):
     """A Python source code parser."""
 
@@ -292,26 +310,34 @@ class Parser(object):
                                          source=''.join(self.source))
         module_node = jedi_parser.module
 
+        module_docstring = None
+        if (is_node(module_node.children[0], 'simple_stmt') and
+                is_node(module_node.children[0].children[0], 'string')):
+            module_docstring = module_node.children[0].children[0].value
+
         module_children = self.get_children(module_node)
         definitions = [c for c in module_children if isinstance(c, Definition)]
         # If there are several __all__ statements, use the last one.
         dunder_all_stmts = [c for c in module_children
                             if isinstance(c, DunderAll)]
-        dunder_all_names = (dunder_all_stmts[-1].names
+        dunder_all_names = (tuple(dunder_all_stmts[-1].names)
                             if dunder_all_stmts
                             else None)
+        future_imports = tuple(c.name for c in module_children
+                               if isinstance(c, FutureImport))
 
-        module = Module(name=filename,
-                        _source=self.source,
-                        start=1,
-                        end=len(self.source) + 1,
-                        decorators=[],
-                        docstring=None,
-                        children=definitions,
-                        parent=None,
-                        _all=dunder_all_names,
-                        future_imports={},
-                        skipped_error_codes='')
+        cls = Package if filename.endswith('__init__.py') else Module
+        module = cls(name=filename,
+                     _source=self.source,
+                     start=1,
+                     end=len(self.source) + 1,
+                     decorators=[],
+                     docstring=module_docstring,
+                     children=definitions,
+                     parent=None,
+                     _all=dunder_all_names,
+                     future_imports=future_imports,
+                     skipped_error_codes='')
 
         for child in definitions:
             child.parent = module
@@ -357,7 +383,7 @@ class Parser(object):
                        docstring=docstring,
                        children=children,
                        parent=None,
-                       skipped_error_codes=None)
+                       skipped_error_codes='')
 
         for child in function.children:
             child.parent = function
@@ -382,7 +408,7 @@ class Parser(object):
                     docstring=docstring,
                     children=children,
                     parent=None,
-                    skipped_error_codes=None)
+                    skipped_error_codes='')
 
         for child in klass.children:
             child.parent = klass
@@ -414,15 +440,18 @@ class Parser(object):
             return
 
         name_node, op_node, value_node = node.children
-        if not all((is_node(name_node, 'name'),
-                    str(name_node) == '__all__',
-                    is_node(op_node, 'operator'),
-                    op_node.value == '=',
-                    is_node(value_node.children[0], 'operator'),
-                    value_node.children[0].value in ['(', '['],)):
+        if not (is_node(name_node, 'name') and
+                str(name_node) == '__all__' and
+                is_node(op_node, 'operator') and
+                op_node.value == '=' and
+                is_node(value_node.children[0], 'operator') and
+                value_node.children[0].value in ['(', '[']):
             return
 
-        name_list = value_node.children[1]
+        try:
+            name_list = verify_node(value_node.children[1], 'testlist_comp')
+        except ValueError:
+            return
 
         dunder_all_names = []
         for n in name_list.children:
@@ -435,13 +464,63 @@ class Parser(object):
 
         return [DunderAll(names=tuple(dunder_all_names))]
 
+    def handle_import_from(self, node, nested=False, *args, **kwargs):
+        if nested:
+            return
+
+        verify_node(node.children[0], 'keyword', 'from')
+
+        try:
+            # The next node might be an operator for relative imports, but then
+            # it won't be a legal __future__ import, so we just return in that
+            # case.
+            package = verify_node(node.children[1], 'name')
+        except ValueError:
+            return
+        verify_node(node.children[2], 'keyword', 'import')
+
+        if package.value != '__future__':
+            return
+
+        for child in node.children[3:]:
+            if not(is_node(child, 'operator')):
+                next_node = child
+                break
+
+        class FutureImportParser(object):
+            def handle_name(self, node):
+                verify_node(node, 'name')
+                return [FutureImport(name=node.value)]
+
+            def handle_import_as_name(self, node):
+                original_name_node = verify_node(node.children[0], 'name')
+                verify_node(node.children[1], 'keyword', 'as')
+                verify_node(node.children[2], 'name')
+                return [FutureImport(name=original_name_node.value)]
+
+            def handle_import_as_names(self, node):
+                return sum((self.handle(child) for child in node.children), [])
+
+            def handle(self, node):
+                handlers = {
+                    'import_as_name': self.handle_import_as_name,
+                    'import_as_names': self.handle_import_as_names,
+                    'name': self.handle_name,
+                }
+
+                handler = handlers.get(node.type, lambda node: [])
+                return handler(node)
+
+        return FutureImportParser().handle(next_node)
+
     def handle_node(self, node, *args, **kwargs):
         handlers = {
             'funcdef': self.handle_function,
             'classdef': self.handle_class,
             'suite': self.get_children,
             'decorated': self.get_children,
-            'expr_stmt': self.handle_statement
+            'expr_stmt': self.handle_statement,
+            'import_from': self.handle_import_from,
         }
 
         handler = handlers.get(node.type, self.handle_unknown_type)

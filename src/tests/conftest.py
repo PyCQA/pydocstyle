@@ -1,7 +1,9 @@
+"""Pytest utilities."""
 from pydocstyle.parser import Module
 
 
 def pytest_assertrepr_compare(op, left, right):
+    """Add rich comparison in pytest tests for `Module` objects."""
     if isinstance(left, Module) and isinstance(right, Module) and op == "==":
         result = ["Comparing modules"]
 

@@ -309,7 +309,7 @@ class PEP257Checker(object):
         For Unicode docstrings, use u"""Unicode triple-quoted strings""".
 
         '''
-        if definition.module.future_imports['unicode_literals']:
+        if 'unicode_literals' in definition.module.future_imports:
             return
 
         # Just check that docstring is unicode, check_triple_double_quotes

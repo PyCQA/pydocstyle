@@ -49,7 +49,7 @@ class Error(object):
     def lines(self):
         """Return the source code lines for this error."""
         source = ''
-        lines = self.definition._source[self.definition._slice]
+        lines = self.definition.source[self.definition._slice]
         offset = self.definition.start
         lines_stripped = list(reversed(list(dropwhile(is_blank,
                                                       reversed(lines)))))
