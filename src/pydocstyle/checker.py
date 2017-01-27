@@ -4,7 +4,7 @@ import ast
 import string
 import sys
 import tokenize as tk
-from itertools import takewhile, tee, izip_longest
+from itertools import takewhile, tee
 from re import compile as re
 from collections import namedtuple
 
@@ -13,6 +13,11 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO)
 from .utils import log, is_blank
+
+try:
+    from itertools import zip_longest
+except ImportError
+    from itertools import izip_longest as zip_longest
 
 
 __all__ = ('check', )
@@ -41,7 +46,7 @@ def pairwise(iterable, default_value):
     """
     a, b = tee(iterable)
     _ = next(b, default_value)
-    return izip_longest(a, b, fillvalue=default_value)
+    return zip_longest(a, b, fillvalue=default_value)
 
 
 class ConventionChecker(object):
