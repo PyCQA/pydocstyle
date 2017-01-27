@@ -4,7 +4,7 @@ import ast
 import string
 import sys
 import tokenize as tk
-from itertools import takewhile
+from itertools import takewhile, tee, izip_longest
 from re import compile as re
 from collections import namedtuple
 
@@ -32,6 +32,16 @@ def check_for(kind, terminal=False):
         f._terminal = terminal
         return f
     return decorator
+
+
+def pairwise(iterable, default_value):
+    """Return pairs of items from `iterable`.
+
+    pairwise([1, 2, 3], default_value=None) -> (1, 2) (2, 3), (3, None)
+    """
+    a, b = tee(iterable)
+    _ = next(b, default_value)
+    return izip_longest(a, b, fillvalue=default_value)
 
 
 class ConventionChecker(object):
@@ -462,15 +472,15 @@ class ConventionChecker(object):
 
     @classmethod
     def _check_section_underline(cls, section_name, context, indentation):
-        """D4{07,08,09,10}, D215: Section underline checks.
+        """D4{07,08,09,12}, D215: Section underline checks.
 
         Check for correct formatting for docstring sections. Checks that:
             * The line that follows the section name contains
               dashes (D40{7,8}).
             * The amount of dashes is equal to the length of the section
               name (D409).
-            * The line that follows the section header (with or without dashes)
-              is empty (D410).
+            * The section's content does not begin in the line that follows
+              the section header (D412).
             * The indentation of the dashed line is equal to the docstring's
               indentation (D215).
         """
@@ -486,8 +496,8 @@ class ConventionChecker(object):
 
         if not dash_line_found:
             yield violations.D407(section_name)
-            if next_non_empty_line_offset == 0:
-                yield violations.D410(section_name)
+            if next_non_empty_line_offset > 0:
+                yield violations.D412(section_name)
         else:
             if next_non_empty_line_offset > 0:
                 yield violations.D408(section_name)
@@ -498,22 +508,24 @@ class ConventionChecker(object):
                                       section_name,
                                       len(dash_line.strip()))
 
-            line_after_dashes = \
-                context.following_lines[next_non_empty_line_offset + 1]
-            if not is_blank(line_after_dashes):
-                yield violations.D410(section_name)
-
             if leading_space(dash_line) > indentation:
                 yield violations.D215(section_name)
 
+            if next_non_empty_line_offset + 1 < len(context.following_lines):
+                line_after_dashes = \
+                    context.following_lines[next_non_empty_line_offset + 1]
+                if is_blank(line_after_dashes):
+                    yield violations.D412(section_name)
+
     @classmethod
     def _check_section(cls, docstring, definition, context):
-        """D4{05,06,11}, D214: Section name checks.
+        """D4{05,06,10,11}, D214: Section name checks.
 
         Check for valid section names. Checks that:
             * The section name is properly capitalized (D405).
             * The section is not over-indented (D214).
             * The section name has no superfluous suffix to it (D406).
+            * There's a blank line after the section (D410).
             * There's a blank line before the section (D411).
 
         Also yields all the errors from `_check_section_underline`.
@@ -532,6 +544,10 @@ class ConventionChecker(object):
         if suffix:
             yield violations.D406(capitalized_section, context.line.strip())
 
+        if (not context.following_lines or
+                not is_blank(context.following_lines[-1])):
+            yield violations.D410(capitalized_section)
+
         if not is_blank(context.previous_line):
             yield violations.D411(capitalized_section)
 
@@ -549,13 +565,12 @@ class ConventionChecker(object):
 
             Short Summary
             -------------
-
             This is my summary.
 
             Returns
             -------
-
             None.
+
             '''
 
         Section names appear in `SECTION_NAMES`.
@@ -580,18 +595,32 @@ class ConventionChecker(object):
         SectionContext = namedtuple('SectionContext', ('section_name',
                                                        'previous_line',
                                                        'line',
-                                                       'following_lines'))
+                                                       'following_lines',
+                                                       'original_index'))
 
+        # First - create a list of possible contexts. Note that the
+        # `following_linex` member is until the end of the docstring.
         contexts = (SectionContext(self._get_leading_words(lines[i].strip()),
                                    lines[i - 1],
                                    lines[i],
-                                   lines[i + 1:])
+                                   lines[i + 1:],
+                                   i)
                     for i in suspected_section_indices)
 
-        for ctx in contexts:
-            if self._is_a_docstring_section(ctx):
-                for err in self._check_section(docstring, definition, ctx):
-                    yield err
+        # Now that we have manageable objects - rule out false positives.
+        contexts = (c for c in contexts if self._is_a_docstring_section(c))
+
+        # Now we shall trim the `following lines` field to only reach the
+        # next section name.
+        for a, b in pairwise(contexts, None):
+            end = -1 if b is None else b.original_index
+            new_ctx = SectionContext(a.section_name,
+                                     a.previous_line,
+                                     a.line,
+                                     lines[a.original_index + 1:end],
+                                     a.original_index)
+            for err in self._check_section(docstring, definition, new_ctx):
+                yield err
 
 
 parse = Parser()

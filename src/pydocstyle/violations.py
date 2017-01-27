@@ -223,6 +223,8 @@ D409 = D4xx.create_error('D409', 'Section underline should match the length '
                          'Expected {0!r} dashes in section {1!r}, got {2!r}')
 D410 = D4xx.create_error('D410', 'Missing blank line after section', '{0!r}')
 D411 = D4xx.create_error('D411', 'Missing blank line before section', '{0!r}')
+D412 = D4xx.create_error('D412', 'Section content should be in the line '
+                                 'following its header', '{0!r}')
 
 
 class AttrDict(dict):
