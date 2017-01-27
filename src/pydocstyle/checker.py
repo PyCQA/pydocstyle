@@ -16,7 +16,7 @@ from .utils import log, is_blank
 
 try:
     from itertools import zip_longest
-except ImportError
+except ImportError:
     from itertools import izip_longest as zip_longest
 
 
