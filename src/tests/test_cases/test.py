@@ -1,5 +1,7 @@
 # encoding: utf-8
 # No docstring, so we can test D100
+from functools import wraps
+import os
 import sys
 from .expected import Expectation
 
@@ -339,5 +341,34 @@ def outer_function():
         """Do inner something."""
         return 0
 
-expect(__file__ if __file__[-1] != 'c' else __file__[:-1],
+
+@expect("D400: First line should end with a period (not 'g')")
+@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
+def docstring_bad():
+    """Runs something"""
+    pass
+
+
+def docstring_bad_ignore_all():  # noqa
+    """Runs something"""
+    pass
+
+
+def docstring_bad_ignore_one():  # noqa: D400,D401
+    """Runs something"""
+    pass
+
+
+@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
+def docstring_ignore_violations_of_pydocstyle_D400_and_PEP8_E501_but_catch_D401():  # noqa: E501,D400
+    """Runs something"""
+    pass
+
+
+@wraps(docstring_bad_ignore_one)
+def bad_decorated_function():
+    """Bad (E501) but decorated"""
+    pass
+
+expect(os.path.normcase(__file__ if __file__[-1] != 'c' else __file__[:-1]),
        'D100: Missing docstring in public module')

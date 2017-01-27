@@ -1,14 +1,14 @@
 pydocstyle's documentation
 ==========================
 
-(formerly pep257)
-
 **pydocstyle** is a static analysis tool for checking compliance with Python
 docstring conventions.
 
 **pydocstyle** supports most of
 `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ out of the box, but it
 should not be considered a reference implementation.
+
+**pydocstyle** supports Python 2.7, 3.3, 3.4, 3.5 and pypy.
 
 
 .. include:: quickstart.rst
