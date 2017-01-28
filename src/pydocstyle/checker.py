@@ -4,7 +4,7 @@ import ast
 import string
 import sys
 import tokenize as tk
-from itertools import takewhile, tee
+from itertools import takewhile
 from re import compile as re
 from collections import namedtuple
 
@@ -12,12 +12,7 @@ from . import violations
 from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO)
-from .utils import log, is_blank
-
-try:
-    from itertools import zip_longest
-except ImportError:
-    from itertools import izip_longest as zip_longest
+from .utils import log, is_blank, pairwise
 
 
 __all__ = ('check', )
@@ -37,16 +32,6 @@ def check_for(kind, terminal=False):
         f._terminal = terminal
         return f
     return decorator
-
-
-def pairwise(iterable, default_value):
-    """Return pairs of items from `iterable`.
-
-    pairwise([1, 2, 3], default_value=None) -> (1, 2) (2, 3), (3, None)
-    """
-    a, b = tee(iterable)
-    _ = next(b, default_value)
-    return zip_longest(a, b, fillvalue=default_value)
 
 
 class ConventionChecker(object):
@@ -489,48 +474,62 @@ class ConventionChecker(object):
             * The indentation of the dashed line is equal to the docstring's
               indentation (D215).
         """
-        dash_line_found = False
-        next_non_empty_line_offset = 0
+        blank_lines_after_header = 0
 
         for line in context.following_lines:
-            line_set = ''.join(set(line.strip()))
-            if not is_blank(line_set):
-                dash_line_found = line_set == '-'
+            if not is_blank(line):
                 break
-            next_non_empty_line_offset += 1
+            blank_lines_after_header += 1
+        else:
+            # There are only blank lines after the header.
+            yield violations.D407(section_name)
+            return
+
+        non_empty_line = context.following_lines[blank_lines_after_header]
+        dash_line_found = ''.join(set(non_empty_line.strip())) == '-'
 
         if not dash_line_found:
             yield violations.D407(section_name)
-            if next_non_empty_line_offset > 0:
+            if blank_lines_after_header > 0:
                 yield violations.D412(section_name)
         else:
-            if next_non_empty_line_offset > 0:
+            if blank_lines_after_header > 0:
                 yield violations.D408(section_name)
 
-            dash_line = context.following_lines[next_non_empty_line_offset]
-            if dash_line.strip() != "-" * len(section_name):
+            if non_empty_line.strip() != "-" * len(section_name):
                 yield violations.D409(len(section_name),
                                       section_name,
-                                      len(dash_line.strip()))
+                                      len(non_empty_line.strip()))
 
-            if leading_space(dash_line) > indentation:
+            if leading_space(non_empty_line) > indentation:
                 yield violations.D215(section_name)
 
-            if next_non_empty_line_offset + 1 < len(context.following_lines):
+            line_after_dashes_index = blank_lines_after_header + 1
+            # If the line index after the dashes is in range (perhaps we have
+            # a header + underline followed by another section header).
+            if line_after_dashes_index < len(context.following_lines):
                 line_after_dashes = \
-                    context.following_lines[next_non_empty_line_offset + 1]
+                    context.following_lines[line_after_dashes_index]
                 if is_blank(line_after_dashes):
-                    yield violations.D412(section_name)
+                    rest_of_lines = \
+                        context.following_lines[line_after_dashes_index:]
+                    if not is_blank(''.join(rest_of_lines)):
+                        yield violations.D412(section_name)
+                    else:
+                        yield violations.D414(section_name)
+            else:
+                yield violations.D414(section_name)
+
 
     @classmethod
     def _check_section(cls, docstring, definition, context):
-        """D4{05,06,10,11}, D214: Section name checks.
+        """D4{05,06,10,11,13}, D214: Section name checks.
 
         Check for valid section names. Checks that:
             * The section name is properly capitalized (D405).
             * The section is not over-indented (D214).
             * The section name has no superfluous suffix to it (D406).
-            * There's a blank line after the section (D410).
+            * There's a blank line after the section (D410, D413).
             * There's a blank line before the section (D411).
 
         Also yields all the errors from `_check_section_underline`.
@@ -551,7 +550,10 @@ class ConventionChecker(object):
 
         if (not context.following_lines or
                 not is_blank(context.following_lines[-1])):
-            yield violations.D410(capitalized_section)
+            if context.is_last_section:
+                yield violations.D413(capitalized_section)
+            else:
+                yield violations.D410(capitalized_section)
 
         if not is_blank(context.previous_line):
             yield violations.D411(capitalized_section)
@@ -601,7 +603,8 @@ class ConventionChecker(object):
                                                        'previous_line',
                                                        'line',
                                                        'following_lines',
-                                                       'original_index'))
+                                                       'original_index',
+                                                       'is_last_section'))
 
         # First - create a list of possible contexts. Note that the
         # `following_linex` member is until the end of the docstring.
@@ -609,7 +612,8 @@ class ConventionChecker(object):
                                    lines[i - 1],
                                    lines[i],
                                    lines[i + 1:],
-                                   i)
+                                   i,
+                                   False)
                     for i in suspected_section_indices)
 
         # Now that we have manageable objects - rule out false positives.
@@ -623,7 +627,8 @@ class ConventionChecker(object):
                                      a.previous_line,
                                      a.line,
                                      lines[a.original_index + 1:end],
-                                     a.original_index)
+                                     a.original_index,
+                                     b is None)
             for err in self._check_section(docstring, definition, new_ctx):
                 yield err
 

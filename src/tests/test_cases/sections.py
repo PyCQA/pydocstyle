@@ -48,11 +48,31 @@ def no_underline():
 
 @expect(_D213)
 @expect("D407: Missing dashed underline after section ('Returns')")
-@expect("D410: Missing blank line after section ('Returns')")
 def no_underline():
     """Valid headline.
 
     Returns
+
+    """
+
+
+@expect(_D213)
+@expect("D410: Missing blank line after section ('Returns')")
+@expect("D414: Section has no content ('Returns')")
+@expect("D411: Missing blank line before section ('Yields')")
+@expect("D414: Section has no content ('Yields')")
+def consecutive_sections():
+    """Valid headline.
+
+    Returns
+    -------
+    Yields
+    ------
+
+    Raises
+    ------
+    Questions.
+
     """
 
 
@@ -84,8 +104,8 @@ def bad_underline_length():
 
 
 @expect(_D213)
-@expect("D410: Missing blank line after section ('Returns')")
-def no_blank_line_after_section():
+@expect("D413: Missing blank line after last section ('Returns')")
+def no_blank_line_after_last_section():
     """Valid headline.
 
     Returns
@@ -133,7 +153,8 @@ def section_underline_overindented():
 
 @expect(_D213)
 @expect("D215: Section underline is over-indented (in section 'Returns')")
-@expect("D410: Missing blank line after section ('Returns')")
+@expect("D413: Missing blank line after last section ('Returns')")
+@expect("D414: Section has no content ('Returns')")
 def section_underline_overindented_and_contentless():
     """Valid headline.
 
@@ -169,8 +190,8 @@ def section_name_in_first_line():
 @expect(_D213)
 @expect("D405: Section name should be properly capitalized "
         "('Short Summary', not 'Short summary')")
-@expect("D412: Section content should be in the line following its header "
-        "('Short Summary')")
+@expect("D412: No blank lines allowed between a section header and its "
+        "content ('Short Summary')")
 @expect("D409: Section underline should match the length of its name "
         "(Expected 7 dashes in section 'Returns', got 6)")
 @expect("D410: Missing blank line after section ('Returns')")
