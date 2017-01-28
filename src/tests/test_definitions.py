@@ -73,8 +73,9 @@ def _test_module():
     'all_import',
     'all_import_as',
     'superfluous_quotes',
+    'noqa',
 ])
-def test_pep257(test_case):
+def test_complex_file(test_case):
     """Run domain-specific tests from test.py file."""
     case_module = __import__('test_cases.{}'.format(test_case),
                              globals=globals(),

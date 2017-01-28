@@ -6,6 +6,7 @@ import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
 from re import compile as re
+
 import jedi
 from jedi.parser.tree import is_node
 
@@ -383,7 +384,7 @@ class Parser(object):
                        docstring=docstring,
                        children=children,
                        parent=None,
-                       skipped_error_codes='')
+                       skipped_error_codes=self.parse_skip_comment(node))
 
         for child in function.children:
             child.parent = function
@@ -408,12 +409,24 @@ class Parser(object):
                     docstring=docstring,
                     children=children,
                     parent=None,
-                    skipped_error_codes='')
+                    skipped_error_codes=self.parse_skip_comment(node))
 
         for child in klass.children:
             child.parent = klass
 
         return [klass]
+
+    def parse_skip_comment(self, node):
+        """Parse a "# noqa" comment for definitions."""
+        for child in node.children:
+            if is_node(child, 'operator') and child.value == ':':
+                break
+        else:
+            return
+        line_number = child.start_pos[0]
+        line = self.source[line_number - 1]
+        line_stream = StringIO(line)
+        tokens = tokenize(line_stream)
 
     def get_children(self, node, *args, **kwargs):
         children = []
