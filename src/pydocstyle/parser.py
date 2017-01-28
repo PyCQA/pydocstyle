@@ -422,11 +422,26 @@ class Parser(object):
             if is_node(child, 'operator') and child.value == ':':
                 break
         else:
-            return
+            return ''
         line_number = child.start_pos[0]
         line = self.source[line_number - 1]
         line_stream = StringIO(line)
-        tokens = tokenize(line_stream)
+        # The line always ends with an NEWLINE and ENDMARKER, so we take
+        # the third one from the end and check if it's a comment.
+        try:
+            token = list(tk.generate_tokens(line_stream.readline))[-3]
+        except tk.TokenError:
+            return ''
+        if token[0] != tk.COMMENT:
+            return ''
+        comment = token[1]
+        skipped_error_codes = ''
+        if 'noqa: ' in comment:
+            skipped_error_codes = ''.join(
+                comment.split('noqa: ')[1:])
+        elif comment.startswith('# noqa'):
+            skipped_error_codes = 'all'
+        return skipped_error_codes
 
     def get_children(self, node, *args, **kwargs):
         children = []

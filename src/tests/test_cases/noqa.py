@@ -1,3 +1,4 @@
+"""Test case for "# noqa" comments."""
 from .expected import Expectation
 
 
