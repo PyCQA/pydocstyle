@@ -520,7 +520,6 @@ class ConventionChecker(object):
             else:
                 yield violations.D414(section_name)
 
-
     @classmethod
     def _check_section(cls, docstring, definition, context):
         """D4{05,06,10,11,13}, D214: Section name checks.
