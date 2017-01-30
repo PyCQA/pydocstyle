@@ -425,7 +425,10 @@ class Parser(object):
             return ''
         line_number = child.start_pos[0]
         line = self.source[line_number - 1]
-        line_stream = StringIO(line)
+        try:
+            line_stream = StringIO(line)
+        except TypeError:
+            line_stream = StringIO(unicode(line))
         # The line always ends with an NEWLINE and ENDMARKER, so we take
         # the third one from the end and check if it's a comment.
         try:
