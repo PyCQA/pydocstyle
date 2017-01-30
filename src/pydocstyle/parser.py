@@ -307,8 +307,13 @@ class Parser(object):
         self.source = filelike.readlines()
         grammar = jedi.parser.load_grammar()
 
-        jedi_parser = jedi.parser.Parser(grammar=grammar,
-                                         source=''.join(self.source))
+        source_for_jedi = ''.join(self.source)
+        try:
+            jedi_parser = jedi.parser.Parser(grammar=grammar,
+                                             source=source_for_jedi)
+        except TypeError:  # Python 2.x
+            jedi_parser = jedi.parser.Parser(grammar=grammar,
+                                             source=unicode(source_for_jedi))
         module_node = jedi_parser.module
 
         module_docstring = None
@@ -425,10 +430,7 @@ class Parser(object):
             return ''
         line_number = child.start_pos[0]
         line = self.source[line_number - 1]
-        try:
-            line_stream = StringIO(line)
-        except TypeError:
-            line_stream = StringIO(unicode(line))
+        line_stream = StringIO(line)
         # The line always ends with an NEWLINE and ENDMARKER, so we take
         # the third one from the end and check if it's a comment.
         try:
