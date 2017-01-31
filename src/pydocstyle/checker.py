@@ -3,6 +3,7 @@
 import ast
 import string
 import sys
+import functools
 import tokenize as tk
 from itertools import takewhile
 from re import compile as re
@@ -439,6 +440,10 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
         try:
             with tokenize_open(filename) as file:
                 source = file.read()
+                try:
+                    source = source.decode('utf-8')
+                except:
+                    pass
             for error in PEP257Checker().check_source(source, filename,
                                                       ignore_decorators):
                 code = getattr(error, 'code', None)

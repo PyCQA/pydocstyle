@@ -424,7 +424,7 @@ def test_unicode_raw(env):
         ''').encode('utf-8')))
     env.write_config(ignore='D100', verbose=True)
     out, err, code = env.invoke()
-    assert code == 0
+    assert code == 0, err
     assert 'D301' not in out
     assert 'D302' not in out
 

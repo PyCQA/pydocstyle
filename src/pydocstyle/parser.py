@@ -307,13 +307,9 @@ class Parser(object):
         self.source = filelike.readlines()
         grammar = jedi.parser.load_grammar()
 
-        source_for_jedi = ''.join(self.source)
-        try:
-            jedi_parser = jedi.parser.Parser(grammar=grammar,
-                                             source=source_for_jedi)
-        except TypeError:  # Python 2.x
-            jedi_parser = jedi.parser.Parser(grammar=grammar,
-                                             source=unicode(source_for_jedi))
+        source_for_jedi = u''.join(self.source)
+        jedi_parser = jedi.parser.Parser(grammar=grammar,
+                                         source=source_for_jedi)
         module_node = jedi_parser.module
 
         module_docstring = None
