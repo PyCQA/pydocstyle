@@ -3,7 +3,7 @@
 import six
 import pytest
 import textwrap
-from pydocstyle.parser import Parser, Decorator, Function
+from pydocstyle.parser import Parser, Decorator, ParseError
 
 
 class CodeSnippet(six.StringIO):
@@ -459,21 +459,21 @@ def test_complex_module():
 
 @pytest.mark.parametrize("code", (
     CodeSnippet("""\
-    __all__ = ['foo', 'bar']
+        __all__ = ['foo', 'bar']
     """),
     CodeSnippet("""\
-    __all__ = ['foo', 'ba'
-               'r',]
+        __all__ = ['foo', 'ba'
+                   'r',]
     """),
     CodeSnippet("""\
-    __all__ = ('foo',
-               'bar'
+        __all__ = ('foo',
+                   'bar'
     )
     """),
     CodeSnippet("""\
-    __all__ = ['foo',
-        # Inconvenient comment
-               'bar'
+        __all__ = ['foo',
+            # Inconvenient comment
+                   'bar'
     ]
     """),
 ))
@@ -486,43 +486,43 @@ def test_dunder_all(code):
 
 @pytest.mark.parametrize("code", (
     CodeSnippet("""\
-    from __future__ import unicode_literals, nested_scopes
+        from __future__ import unicode_literals, nested_scopes
     """),
     CodeSnippet("""\
-    from __future__ import unicode_literals, nested_scopes;
+        from __future__ import unicode_literals, nested_scopes;
     """),
     CodeSnippet("""\
-    from __future__ import unicode_literals
-    from __future__ import nested_scopes;
+        from __future__ import unicode_literals
+        from __future__ import nested_scopes;
     """),
     CodeSnippet("""\
-    from __future__ import unicode_literals
-    from __future__ import nested_scopes as ns
+        from __future__ import unicode_literals
+        from __future__ import nested_scopes as ns
     """),
     CodeSnippet("""\
-    from __future__ import (unicode_literals as nl,
-                            nested_scopes)
+        from __future__ import (unicode_literals as nl,
+                                nested_scopes)
     """),
     CodeSnippet("""\
-    from __future__ import (unicode_literals as nl,)
-    from __future__ import (nested_scopes)
+        from __future__ import (unicode_literals as nl,)
+        from __future__ import (nested_scopes)
     """),
     CodeSnippet("""\
-    from __future__ \\
-    import unicode_literals
-    from __future__ \\
-    import nested_scopes
+        from __future__ \\
+        import unicode_literals
+        from __future__ \\
+        import nested_scopes
     """),
     CodeSnippet("""\
-    from __future__ import unicode_literals; from __future__ import \
-    nested_scopes
+        from __future__ import unicode_literals; from __future__ import \
+        nested_scopes
     """),
     # pep257 does not detect that 'import string' prevents
     # unicode_literals from being a valid __future__.
     # That is detected by pyflakes.
     CodeSnippet("""\
-    from __future__ import unicode_literals; import string; from __future__ \
-    import nested_scopes
+        from __future__ import unicode_literals; import string; from \
+        __future__ import nested_scopes
     """),
 ))
 def test_future_import(code):
@@ -542,3 +542,18 @@ def test_noqa_function():
     module = parser.parse(code, "filepath")
     function, = module.children
     assert function.skipped_error_codes == 'D100,D101'
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+        while True:
+            try:
+                pass
+    """),
+    CodeSnippet("["),
+))
+def test_invalid_syntax(code):
+    """Test invalid code input to the parser."""
+    parser = Parser()
+    with pytest.raises(ParseError):
+        module = parser.parse(code, "filepath")

@@ -32,7 +32,7 @@ except NameError:  # Python 2.5 and earlier
 
 __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
            'NestedFunction', 'Method', 'Class', 'NestedClass', 'AllError',
-           'StringIO')
+           'StringIO', 'ParseError')
 
 
 def humanize(string):
@@ -224,6 +224,10 @@ class FutureImport(Value):
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
 
 
+class ParseError(Exception):
+    """Raised when the parsing fails for any reason"""
+
+
 class AllError(Exception):
     """Raised when there is a problem with __all__ when parsing."""
 
@@ -288,8 +292,8 @@ def verify_node(node, node_type, node_value=None):
         msg = 'Node type: expected {}, got {}.'.format(node_type,
                                                        node.type)
         if node_value is not None:
-            msg += '\nNode value: expected {}, got {}'(node_value,
-                                                       node.value)
+            msg += '\nNode value: expected {}, got {}'.format(node_value,
+                                                              node.value)
         raise ValueError(msg)
     return node
 
