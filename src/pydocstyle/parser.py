@@ -316,6 +316,9 @@ class Parser(object):
                                          source=source_for_jedi)
         module_node = jedi_parser.module
 
+        if module_node.error_statement_stacks:
+            raise ParseError(str(module_node.error_statement_stacks)[0])
+
         module_docstring = None
         if (is_node(module_node.children[0], 'simple_stmt') and
                 is_node(module_node.children[0].children[0], 'string')):

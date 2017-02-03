@@ -5,62 +5,6 @@ import re
 import pytest
 from pydocstyle.violations import Error, ErrorRegistry
 from pydocstyle.checker import check
-from pydocstyle.parser import (Parser, Module, Function, NestedFunction,
-                               Method, Class, AllError, TokenStream, StringIO)
-
-__all__ = ()
-_ = type('', (), dict(__repr__=lambda *a: '_', __eq__=lambda *a: True))()
-
-
-parse = Parser()
-
-
-source_invalid_syntax = """
-while True:
-\ttry:
-    pass
-"""
-
-source_token_error = '['
-
-source_complex_all = '''
-import foo
-import bar
-
-__all__ = (foo.__all__ +
-           bar.__all)
-'''
-
-
-def test_import_parser():
-    """Test invalid code input to the parser."""
-    # These are invalid syntax, so there is no need to verify the result
-    for i, source_ucli in enumerate((
-            source_token_error,
-            source_invalid_syntax,
-            ), 1):
-        module = parse(StringIO(source_ucli), 'file_invalid{}.py'.format(i))
-
-        assert Module('file_invalid{}.py'.format(i), _, 1,
-                      _, _, None, _, _,
-                      _, _, '') == module
-
-
-def _test_module():
-
-    module = Module(source, 'module.py')
-    assert module.source == source
-    assert module.parent is None
-    assert module.name == 'module'
-    assert module.docstring == '"""Module docstring."""'
-    assert module.is_public
-
-    function, = module.children
-    assert function.source.startswith('def function')
-    assert function.source.endswith('pass\n')
-    assert function.parent is module
-    assert function.name == 'function'
-    assert function.docstring == '"""Function docstring."""'
 
 
 @pytest.mark.parametrize('test_case', [
