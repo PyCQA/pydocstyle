@@ -13,6 +13,7 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO)
 from .utils import log, is_blank
+from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
 
 __all__ = ('check', )
@@ -361,12 +362,21 @@ class ConventionChecker(object):
         "Returns the pathname ...".
 
         """
-        if docstring:
+        if docstring and not function.is_test:
             stripped = ast.literal_eval(docstring).strip()
             if stripped:
                 first_word = stripped.split()[0]
-                if first_word.endswith('s') and not first_word.endswith('ss'):
-                    return violations.D401(first_word[:-1], first_word)
+                check_word = first_word.lower()
+
+                if check_word in IMPERATIVE_BLACKLIST:
+                    return violations.D401b(first_word)
+
+                correct_form = IMPERATIVE_VERBS.get(stem(check_word))
+                if correct_form and correct_form != check_word:
+                    return violations.D401(
+                        correct_form.capitalize(),
+                        first_word
+                    )
 
     @check_for(Function)
     def check_no_signature(self, function, docstring):  # def context

@@ -133,6 +133,17 @@ class Function(Definition):
         else:
             return not self.name.startswith('_')
 
+    @property
+    def is_test(self):
+        """Return True if this function is a test function/method.
+
+        We exclude tests from the imperative mood check, because to phrase
+        their docstring in the imperative mood, they would have to start with
+        a highly redundant "Test that ...".
+
+        """
+        return self.name.startswith('test') or self.name == 'runTest'
+
 
 class NestedFunction(Function):
     """A Python source code nested function."""

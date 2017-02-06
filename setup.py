@@ -31,6 +31,10 @@ setup(
     keywords='pydocstyle, PEP 257, pep257, PEP 8, pep8, docstrings',
     packages=('pydocstyle',),
     package_dir={'': 'src'},
+    package_data={'pydocstyle': ['data/*.txt']},
+    install_requires=[
+        'snowballstemmer==1.2.1',
+    ],
     entry_points={
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',
