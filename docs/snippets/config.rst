@@ -12,6 +12,9 @@ file specified above *in that exact order*. If a configuration file was not
 found, it keeps looking for one up the directory tree until one is found or
 uses the default configuration.
 
+``pydocstyle`` also accepts a ``--config`` CLI option to specify the path to a
+custom config file location.
+
 .. note::
 
     For backwards compatibility purposes, **pydocstyle** supports configuration
