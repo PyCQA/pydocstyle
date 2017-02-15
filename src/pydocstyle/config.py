@@ -77,7 +77,9 @@ class ConfigurationParser(object):
         'setup.cfg',
         'tox.ini',
         '.pydocstyle',
+        '.pydocstyle.ini',
         '.pydocstylerc',
+        '.pydocstylerc.ini',
         # The following is deprecated, but remains for backwards compatibility.
         '.pep257',
     )
