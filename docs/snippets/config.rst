@@ -5,7 +5,9 @@ options, and have a ``[pydocstyle]`` section.
 * ``setup.cfg``
 * ``tox.ini``
 * ``.pydocstyle``
+* ``.pydocstyle.ini``
 * ``.pydocstylerc``
+* ``.pydocstylerc.ini``
 
 When searching for a configuration file, ``pydocstyle`` looks for one of the
 file specified above *in that exact order*. If a configuration file was not
