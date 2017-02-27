@@ -13,12 +13,6 @@
 #   "importantly" or "currently".
 # - Some irregular verb forms that don't stem to the same string as the
 #   imperative does (eg. 'does')
-:param
-:return
-:return:
-:returns
-:returns:
-:rtype
 a
 an
 the
@@ -43,7 +37,6 @@ data
 default
 deprecated
 description
-description:
 dict
 dictionary
 does
@@ -71,11 +64,9 @@ new
 number
 optional
 package
-parameters:
 placeholder
 reference
 result
-returns:
 same
 schema
 setup
