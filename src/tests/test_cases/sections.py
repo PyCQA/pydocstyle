@@ -49,7 +49,7 @@ def no_underline():
 @expect(_D213)
 @expect("D407: Missing dashed underline after section ('Returns')")
 def no_underline():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
 
@@ -62,7 +62,7 @@ def no_underline():
 @expect("D411: Missing blank line before section ('Yields')")
 @expect("D414: Section has no content ('Yields')")
 def consecutive_sections():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
     -------
@@ -156,7 +156,7 @@ def section_underline_overindented():
 @expect("D413: Missing blank line after last section ('Returns')")
 @expect("D414: Section has no content ('Returns')")
 def section_underline_overindented_and_contentless():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
         -------
