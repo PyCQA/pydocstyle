@@ -26,10 +26,10 @@ def load_wordlist(name):
 
     """
     text = pkgutil.get_data('pydocstyle', 'data/' + name).decode('utf8')
-    for l in text.splitlines():
-        l = COMMENT_RE.sub('', l).strip()
-        if l:
-            yield l
+    for line in text.splitlines():
+        line = COMMENT_RE.sub('', line).strip()
+        if line:
+            yield line
 
 
 #: A dict mapping stemmed verbs to the imperative form
