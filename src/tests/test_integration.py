@@ -521,7 +521,9 @@ def test_numpy_convention(env):
     assert 'D215' in out
     assert 'D405' in out
     assert 'D409' in out
-    assert 'D410' in out
+    assert 'D414' in out
+    assert 'D410' not in out
+    assert 'D413' not in out
 
 
 def test_config_file_inheritance(env):

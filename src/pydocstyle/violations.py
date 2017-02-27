@@ -225,6 +225,11 @@ D409 = D4xx.create_error('D409', 'Section underline should match the length '
                          'Expected {0!r} dashes in section {1!r}, got {2!r}')
 D410 = D4xx.create_error('D410', 'Missing blank line after section', '{0!r}')
 D411 = D4xx.create_error('D411', 'Missing blank line before section', '{0!r}')
+D412 = D4xx.create_error('D412', 'No blank lines allowed between a section '
+                                 'header and its content', '{0!r}')
+D413 = D4xx.create_error('D413', 'Missing blank line after last section',
+                         '{0!r}')
+D414 = D4xx.create_error('D414', 'Section has no content', '{0!r}')
 
 
 class AttrDict(dict):
@@ -237,5 +242,5 @@ conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
                             'D411'},
-    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402'}
+    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402', 'D413'}
 })
