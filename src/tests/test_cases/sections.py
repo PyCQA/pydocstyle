@@ -17,6 +17,7 @@ def not_capitalized():
 
     returns
     -------
+    A value of some sort.
 
     """
 
@@ -29,6 +30,18 @@ def superfluous_suffix():
 
     Returns:
     -------
+    A value of some sort.
+
+    """
+
+
+@expect(_D213)
+@expect("D407: Missing dashed underline after section ('Returns')")
+def no_underline():
+    """Valid headline.
+
+    Returns
+    A value of some sort.
 
     """
 
@@ -44,6 +57,26 @@ def no_underline():
 
 
 @expect(_D213)
+@expect("D410: Missing blank line after section ('Returns')")
+@expect("D414: Section has no content ('Returns')")
+@expect("D411: Missing blank line before section ('Yields')")
+@expect("D414: Section has no content ('Yields')")
+def consecutive_sections():
+    """Valid headline.
+
+    Returns
+    -------
+    Yields
+    ------
+
+    Raises
+    ------
+    Questions.
+
+    """
+
+
+@expect(_D213)
 @expect("D408: Section underline should be in the line following the "
         "section's name ('Returns')")
 def blank_line_before_underline():
@@ -52,6 +85,7 @@ def blank_line_before_underline():
     Returns
 
     -------
+    A value of some sort.
 
     """
 
@@ -64,18 +98,19 @@ def bad_underline_length():
 
     Returns
     --
+    A value of some sort.
 
     """
 
 
 @expect(_D213)
-@expect("D410: Missing blank line after section ('Returns')")
-def no_blank_line_after_section():
+@expect("D413: Missing blank line after last section ('Returns')")
+def no_blank_line_after_last_section():
     """Valid headline.
 
     Returns
     -------
-    A whole lot of values.
+    A value of some sort.
     """
 
 
@@ -87,6 +122,7 @@ def no_blank_line_before_section():
     The function's description.
     Returns
     -------
+    A value of some sort.
 
     """
 
@@ -98,6 +134,7 @@ def section_overindented():
 
         Returns
     -------
+    A value of some sort.
 
     """
 
@@ -109,7 +146,20 @@ def section_underline_overindented():
 
     Returns
         -------
+    A value of some sort.
 
+    """
+
+
+@expect(_D213)
+@expect("D215: Section underline is over-indented (in section 'Returns')")
+@expect("D413: Missing blank line after last section ('Returns')")
+@expect("D414: Section has no content ('Returns')")
+def section_underline_overindented_and_contentless():
+    """Valid headline.
+
+    Returns
+        -------
     """
 
 
@@ -132,6 +182,7 @@ def ignore_non_actual_section():
 def section_name_in_first_line():
     """Returns
     -------
+    A value of some sort.
 
     """
 
@@ -139,6 +190,8 @@ def section_name_in_first_line():
 @expect(_D213)
 @expect("D405: Section name should be properly capitalized "
         "('Short Summary', not 'Short summary')")
+@expect("D412: No blank lines allowed between a section header and its "
+        "content ('Short Summary')")
 @expect("D409: Section underline should match the length of its name "
         "(Expected 7 dashes in section 'Returns', got 6)")
 @expect("D410: Missing blank line after section ('Returns')")
@@ -146,7 +199,6 @@ def section_name_in_first_line():
 @expect("D406: Section name should end with a newline "
         "('Raises', not 'Raises:')")
 @expect("D407: Missing dashed underline after section ('Raises')")
-@expect("D410: Missing blank line after section ('Raises')")
 def multiple_sections():
     """Valid headline.
 
