@@ -31,6 +31,9 @@ setup(
     keywords='pydocstyle, PEP 257, pep257, PEP 8, pep8, docstrings',
     packages=('pydocstyle',),
     package_dir={'': 'src'},
+    install_requires=[
+        'jedi>=0.10.0',
+    ],
     entry_points={
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',

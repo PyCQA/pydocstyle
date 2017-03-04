@@ -8,7 +8,6 @@ from itertools import chain, dropwhile
 from re import compile as re
 
 import jedi
-from jedi.parser.tree import is_node
 
 try:
     from StringIO import StringIO
@@ -287,7 +286,7 @@ class Token(Value):
 
 
 def verify_node(node, node_type, node_value=None):
-    if not (is_node(node, node_type) or
+    if (node.type != node_type or
             (node_value is not None and node_value != node.value)):
         msg = 'Node type: expected {}, got {}.'.format(node_type,
                                                        node.type)
@@ -320,8 +319,8 @@ class Parser(object):
             raise ParseError(str(module_node.error_statement_stacks)[0])
 
         module_docstring = None
-        if (is_node(module_node.children[0], 'simple_stmt') and
-                is_node(module_node.children[0].children[0], 'string')):
+        if (module_node.children[0].type == 'simple_stmt' and
+                module_node.children[0].children[0].type == 'string'):
             module_docstring = module_node.children[0].children[0].value
 
         module_children = self.get_children(module_node)
@@ -358,11 +357,11 @@ class Parser(object):
 
         docstring_node = node.children[node.children.index(':') + 1]
         # Normally a suite
-        if is_node(docstring_node, 'suite'):
+        if docstring_node.type == 'suite':
             # NEWLINE INDENT stmt
             docstring_node = docstring_node.children[2]
 
-        if is_node(docstring_node, 'simple_stmt'):
+        if docstring_node.type == 'simple_stmt':
             docstring_node = docstring_node.children[0]
 
         if docstring_node.type == 'string':
@@ -427,7 +426,7 @@ class Parser(object):
     def parse_skip_comment(self, node):
         """Parse a "# noqa" comment for definitions."""
         for child in node.children:
-            if is_node(child, 'operator') and child.value == ':':
+            if child.type == 'operator' and child.value == ':':
                 break
         else:
             return ''
@@ -476,11 +475,11 @@ class Parser(object):
             return
 
         name_node, op_node, value_node = node.children
-        if not (is_node(name_node, 'name') and
+        if not (name_node.type == 'name' and
                 str(name_node) == '__all__' and
-                is_node(op_node, 'operator') and
+                op_node.type == 'operator' and
                 op_node.value == '=' and
-                is_node(value_node.children[0], 'operator') and
+                value_node.children[0].type == 'operator' and
                 value_node.children[0].value in ['(', '[']):
             return
 
@@ -491,10 +490,10 @@ class Parser(object):
 
         dunder_all_names = []
         for n in name_list.children:
-            if is_node(n, 'string'):
+            if n.type == 'string':
                 dunder_all_names.append(ast.literal_eval(n.value))
-            if is_node(n, 'atom'):
-                if all(is_node(c, 'string') for c in n.children):
+            if n.type == 'atom':
+                if all(c.type == 'string' for c in n.children):
                     dunder_all_names.append(''.join(ast.literal_eval(c.value)
                                                     for c in n.children))
 
@@ -519,7 +518,7 @@ class Parser(object):
             return
 
         for child in node.children[3:]:
-            if not(is_node(child, 'operator')):
+            if child.type != 'operator':
                 next_node = child
                 break
 

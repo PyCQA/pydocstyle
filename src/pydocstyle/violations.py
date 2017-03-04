@@ -188,6 +188,9 @@ D212 = D2xx.create_error('D212', 'Multi-line docstring summary should start '
                                  'at the first line')
 D213 = D2xx.create_error('D213', 'Multi-line docstring summary should start '
                                  'at the second line')
+D214 = D2xx.create_error('D214', 'Section is over-indented', '{0!r}')
+D215 = D2xx.create_error('D215', 'Section underline is over-indented',
+                         'in section {0!r}')
 
 D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
@@ -206,6 +209,25 @@ D403 = D4xx.create_error('D403', 'First word of the first line should be '
                                  'properly capitalized', '{0!r}, not {1!r}')
 D404 = D4xx.create_error('D404', 'First word of the docstring should not '
                                  'be `This`')
+D405 = D4xx.create_error('D405', 'Section name should be properly capitalized',
+                         '{0!r}, not {1!r}')
+D406 = D4xx.create_error('D406', 'Section name should end with a newline',
+                         '{0!r}, not {1!r}')
+D407 = D4xx.create_error('D407', 'Missing dashed underline after section',
+                         '{0!r}')
+D408 = D4xx.create_error('D408', 'Section underline should be in the line '
+                                 'following the section\'s name',
+                         '{0!r}')
+D409 = D4xx.create_error('D409', 'Section underline should match the length '
+                                 'of its name',
+                         'Expected {0!r} dashes in section {1!r}, got {2!r}')
+D410 = D4xx.create_error('D410', 'Missing blank line after section', '{0!r}')
+D411 = D4xx.create_error('D411', 'Missing blank line before section', '{0!r}')
+D412 = D4xx.create_error('D412', 'No blank lines allowed between a section '
+                                 'header and its content', '{0!r}')
+D413 = D4xx.create_error('D413', 'Missing blank line after last section',
+                         '{0!r}')
+D414 = D4xx.create_error('D414', 'Section has no content', '{0!r}')
 
 
 class AttrDict(dict):
@@ -215,5 +237,8 @@ class AttrDict(dict):
 all_errors = set(ErrorRegistry.get_error_codes())
 
 conventions = AttrDict({
-    'pep257': all_errors - {'D203', 'D212', 'D213', 'D404'}
+    'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
+                            'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
+                            'D411'},
+    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402', 'D413'}
 })

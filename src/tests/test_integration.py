@@ -444,7 +444,9 @@ def test_illegal_convention(env):
     _, err, code = env.invoke('--convention=illegal_conv')
     assert code == 2, err
     assert "Illegal convention 'illegal_conv'." in err
-    assert 'Possible conventions: pep257' in err
+    assert 'Possible conventions' in err
+    assert 'pep257' in err
+    assert 'numpy' in err
 
 
 def test_empty_select_cli(env):
@@ -508,6 +510,30 @@ def test_pep257_convention(env):
     assert 'D203' not in out
     assert 'D212' not in out
     assert 'D213' not in out
+
+
+def test_numpy_convention(env):
+    """Test that the 'numpy' convention options has the correct errors."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''
+            class Foo(object):
+                """Docstring for this class.
+
+                returns
+                 ------
+                """
+        '''))
+
+    env.write_config(convention="numpy")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D213' not in out
+    assert 'D215' in out
+    assert 'D405' in out
+    assert 'D409' in out
+    assert 'D414' in out
+    assert 'D410' not in out
+    assert 'D413' not in out
 
 
 def test_config_file_inheritance(env):

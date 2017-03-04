@@ -25,6 +25,11 @@ a class called ``_Foo`` is considered private. A method ``bar`` in ``_Foo`` is
 also considered private since its parent is a private class, even though its
 name does not begin with a single underscore.
 
+Modules are parsed to look if ``__all__`` is defined. If so, only those top
+level constructs are considered public. The parser looks for ``__all__``
+defined as a literal list or tuple. As the parser doesn't execute the module,
+any mutation of ``__all__`` will not be considered.
+
 
 How publicity affects error reports
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
