@@ -33,7 +33,7 @@ setup(
     package_dir={'': 'src'},
     package_data={'pydocstyle': ['data/*.txt']},
     install_requires=[
-        'snowballstemmer==1.2.1',
+        'snowballstemmer',
     ],
     entry_points={
         'console_scripts': [
