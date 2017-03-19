@@ -2,14 +2,8 @@ from __future__ import with_statement
 import os
 from setuptools import setup
 
-
-this_dir = os.path.dirname(__file__)
-
-with open(os.path.join(this_dir, 'src', 'pydocstyle', 'utils.py')) as f:
-    for line in f:
-        if line.startswith('__version__'):
-            version = eval(line.split('=')[-1])
-
+# Do not update the version manually - it is managed by `bumpversion`.
+version = '2.0.0rc'
 
 setup(
     name='pydocstyle',
