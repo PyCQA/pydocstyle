@@ -30,7 +30,11 @@ except NameError:  # Python 2.5 and earlier
 
 __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
            'NestedFunction', 'Method', 'Class', 'NestedClass', 'AllError',
-           'StringIO')
+           'StringIO', 'ParseError')
+
+
+class ParseError(Exception):
+    pass
 
 
 def humanize(string):
@@ -273,7 +277,7 @@ class Parser(object):
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
-        self.future_imports = defaultdict(lambda: False)
+        self.future_imports = set()
         self._accumulated_decorators = []
         return self.parse_module()
 
@@ -557,7 +561,7 @@ class Parser(object):
                            self.current.kind, self.current.value)
             if is_future_import:
                 self.log.debug('found future import: %s', self.current.value)
-                self.future_imports[self.current.value] = True
+                self.future_imports.add(self.current.value)
             self.consume(tk.NAME)
             self.log.debug("parsing import, token is %r (%s)",
                            self.current.kind, self.current.value)
