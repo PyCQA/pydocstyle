@@ -13,7 +13,7 @@ _D213 = 'D213: Multi-line docstring summary should start at the second line'
 @expect("D405: Section name should be properly capitalized "
         "('Returns', not 'returns')")
 def not_capitalized():
-    """Valid headline.
+    """Toggle the gizmo.
 
     returns
     -------
@@ -26,7 +26,7 @@ def not_capitalized():
 @expect("D406: Section name should end with a newline "
         "('Returns', not 'Returns:')")
 def superfluous_suffix():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns:
     -------
@@ -38,7 +38,7 @@ def superfluous_suffix():
 @expect(_D213)
 @expect("D407: Missing dashed underline after section ('Returns')")
 def no_underline():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
     A value of some sort.
@@ -49,7 +49,7 @@ def no_underline():
 @expect(_D213)
 @expect("D407: Missing dashed underline after section ('Returns')")
 def no_underline():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
 
@@ -62,7 +62,7 @@ def no_underline():
 @expect("D411: Missing blank line before section ('Yields')")
 @expect("D414: Section has no content ('Yields')")
 def consecutive_sections():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
     -------
@@ -80,7 +80,7 @@ def consecutive_sections():
 @expect("D408: Section underline should be in the line following the "
         "section's name ('Returns')")
 def blank_line_before_underline():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
 
@@ -94,7 +94,7 @@ def blank_line_before_underline():
 @expect("D409: Section underline should match the length of its name "
         "(Expected 7 dashes in section 'Returns', got 2)")
 def bad_underline_length():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
     --
@@ -106,7 +106,7 @@ def bad_underline_length():
 @expect(_D213)
 @expect("D413: Missing blank line after last section ('Returns')")
 def no_blank_line_after_last_section():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
     -------
@@ -117,7 +117,7 @@ def no_blank_line_after_last_section():
 @expect(_D213)
 @expect("D411: Missing blank line before section ('Returns')")
 def no_blank_line_before_section():
-    """Valid headline.
+    """Toggle the gizmo.
 
     The function's description.
     Returns
@@ -130,7 +130,7 @@ def no_blank_line_before_section():
 @expect(_D213)
 @expect("D214: Section is over-indented ('Returns')")
 def section_overindented():
-    """Valid headline.
+    """Toggle the gizmo.
 
         Returns
     -------
@@ -142,7 +142,7 @@ def section_overindented():
 @expect(_D213)
 @expect("D215: Section underline is over-indented (in section 'Returns')")
 def section_underline_overindented():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
         -------
@@ -156,7 +156,7 @@ def section_underline_overindented():
 @expect("D413: Missing blank line after last section ('Returns')")
 @expect("D414: Section has no content ('Returns')")
 def section_underline_overindented_and_contentless():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
         -------
@@ -165,7 +165,7 @@ def section_underline_overindented_and_contentless():
 
 @expect(_D213)
 def ignore_non_actual_section():
-    """Valid headline.
+    """Toggle the gizmo.
 
     This is the function's description, which will also specify what it
     returns
@@ -200,7 +200,7 @@ def section_name_in_first_line():
         "('Raises', not 'Raises:')")
 @expect("D407: Missing dashed underline after section ('Raises')")
 def multiple_sections():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Short summary
     -------------

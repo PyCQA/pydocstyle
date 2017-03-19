@@ -55,6 +55,6 @@ def more_partial_caps():
 
 
 @expect("D403: First word of the first line should be properly capitalized "
-        "('A', not 'a')")
+        "('Generate', not 'generate')")
 def just_one_more_example():
-    """a function."""
+    """generate a function."""
