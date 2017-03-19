@@ -7,6 +7,7 @@ except ImportError:
     from itertools import izip_longest as zip_longest
 
 
+# Do not update the version manually - it is managed by `bumpversion`.
 __version__ = '2.0.0rc'
 log = logging.getLogger(__name__)
 
