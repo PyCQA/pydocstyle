@@ -32,7 +32,7 @@ setup(
     packages=('pydocstyle',),
     package_dir={'': 'src'},
     install_requires=[
-        'jedi==0.9.0',
+        'jedi',
     ],
     entry_points={
         'console_scripts': [
