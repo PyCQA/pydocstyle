@@ -38,7 +38,7 @@ class SandboxEnv(object):
         self.tempdir = None
         self.script_name = script_name
 
-    def write_config(self, prefix='', **kwargs):
+    def write_config(self, prefix='', filename='tox.ini', **kwargs):
         """Change an environment config file.
 
         Applies changes to `tox.ini` relative to `tempdir/prefix`.
@@ -49,7 +49,7 @@ class SandboxEnv(object):
         if not os.path.isdir(base):
             self.makedirs(base)
 
-        with open(os.path.join(base, 'tox.ini'), 'wt') as conf:
+        with open(os.path.join(base, filename), 'wt') as conf:
             conf.write("[{}]\n".format(self.script_name))
             for k, v in kwargs.items():
                 conf.write("{} = {}\n".format(k.replace('_', '-'), v))
@@ -80,6 +80,7 @@ class SandboxEnv(object):
                           .format(self.script_name, run_target, args),
                           posix=False)
         p = subprocess.Popen(cmd,
+                             cwd=self.tempdir,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         out, err = p.communicate()
@@ -268,6 +269,31 @@ def test_count(env):
     # The error count should be in the last line of the output.
     # -2 since there is a newline at the end of the output.
     assert '2' == out.split('\n')[-2].strip()
+
+
+def test_config_cli(env):
+    """Test choosing a custom config file path."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            def foo():
+                pass
+        """))
+
+    env.write_config(prefix='foo', filename='bar.ini', select="D100")
+
+    out, err, code = env.invoke(args='--config=foo/bar.ini')
+    assert code == 1
+    assert not err
+    assert 'D100' in out
+    assert 'D103' not in out
+
+
+def test_config_cli_with_bad_path(env):
+    """Test choosing an invalid config file path is handled."""
+    out, err, code = env.invoke(args='--config=missing.ini')
+    assert code == 2
+    assert not out
+    assert "Config file not found" in err
 
 
 def test_select_cli(env):

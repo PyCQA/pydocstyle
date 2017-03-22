@@ -210,7 +210,10 @@ class ConfigurationParser(object):
         if path in self._cache:
             return self._cache[path]
 
-        config_file = self._get_config_file_in_folder(path)
+        if self._options.config_file:
+            config_file = os.path.abspath(self._options.config_file)
+        else:
+            config_file = self._get_config_file_in_folder(path)
 
         if config_file is None:
             parent_dir, tail = os.path.split(path)
@@ -259,6 +262,9 @@ class ConfigurationParser(object):
         parser = RawConfigParser()
         options = None
         should_inherit = True
+
+        if not os.path.isfile(path):
+            self._parser.error("Config file not found: {}".format(path))
 
         if parser.read(path) and self._get_section_name(parser):
             option_list = dict([(o.dest, o.type or o.action)
@@ -511,6 +517,8 @@ class ConfigurationParser(object):
                help='print status information')
         option('--count', action='store_true', default=False,
                help='print total number of errors to stdout')
+        option('--config', metavar='<path>', dest='config_file',
+               help='specify a custom config file location')
 
         # Error check options
         option('--select', metavar='<codes>', default=None,
