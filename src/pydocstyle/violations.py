@@ -1,6 +1,8 @@
 """Docstring violation definition."""
+
 from itertools import dropwhile
 
+from .exceptions import InvalidErrorFormat
 from .utils import is_blank
 
 
@@ -16,6 +18,7 @@ class Error(object):
     context = None
 
     # Options that define how errors are printed:
+    format = None
     explain = False
     source = False
 
@@ -70,6 +73,9 @@ class Error(object):
     def __str__(self):
         self.explanation = '\n'.join(l for l in self.explanation.split('\n')
                                      if not is_blank(l))
+        substitutions = dict((name, getattr(self, name)) for name in
+                             ['code', 'definition', 'explanation', 'filename',
+                              'line', 'lines', 'message', 'short_desc'])
         template = '{filename}:{line} {definition}:\n        {message}'
         if self.source and self.explain:
             template += '\n\n{explanation}\n\n{lines}\n'
@@ -77,9 +83,11 @@ class Error(object):
             template += '\n\n{lines}\n'
         elif self.explain and not self.source:
             template += '\n\n{explanation}\n\n'
-        return template.format(**dict((name, getattr(self, name)) for name in
-                               ['filename', 'line', 'definition', 'message',
-                                'explanation', 'lines']))
+        try:
+            return (self.format or template).format(**substitutions)
+        except (AttributeError, KeyError, ValueError) as exc:
+            raise InvalidErrorFormat(
+                "Invalid error format '{}': {}".format(self.format, exc))
 
     def __repr__(self):
         return str(self)

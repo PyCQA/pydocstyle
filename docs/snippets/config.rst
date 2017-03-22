@@ -67,10 +67,9 @@ root), simply add ``inherit=false`` to your configuration file.
 Example
 #######
 
-.. code::
+.. code:: cfg
 
     [pydocstyle]
     inherit = false
     ignore = D100,D203,D405
     match = *.py
-

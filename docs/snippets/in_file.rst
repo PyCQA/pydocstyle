@@ -8,7 +8,9 @@ specific functions or methods. The supported comments that can be added are:
    e.g. ``# noqa: D102,E501,D203``.
 
 For example, this will skip the check for a period at the end of a function
-docstring::
+docstring:
+
+.. code:: pycon
 
     >>> def bad_function():  # noqa: D400
     ...     """Omit a period in the docstring as an exception"""
