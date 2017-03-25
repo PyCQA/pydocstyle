@@ -518,13 +518,6 @@ def test_dunder_all(code):
         from __future__ import unicode_literals; from __future__ import \
         nested_scopes
     """),
-    # pep257 does not detect that 'import string' prevents
-    # unicode_literals from being a valid __future__.
-    # That is detected by pyflakes.
-    CodeSnippet("""\
-        from __future__ import unicode_literals; import string; from \
-        __future__ import nested_scopes
-    """),
 ))
 def test_future_import(code):
     """Test that __future__ imports are properly parsed and collected."""
@@ -551,7 +544,13 @@ def test_noqa_function():
             try:
                 pass
     """),
-    CodeSnippet("["),
+    CodeSnippet("[\n"),
+    # Should result in `SyntaxError: from __future__ imports must occur
+    # at the beginning of the file`
+    CodeSnippet("""\
+        from __future__ import unicode_literals; import string; from \
+        __future__ import nested_scopes
+    """),
 ))
 def test_invalid_syntax(code):
     """Test invalid code input to the parser."""

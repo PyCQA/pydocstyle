@@ -274,6 +274,10 @@ class Parser(object):
         self.log = logging.getLogger()
         self.source = filelike.readlines()
         src = ''.join(self.source)
+        try:
+            compile(src, filename, 'exec')
+        except SyntaxError as error:
+            raise ParseError() from error
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
