@@ -1,10 +1,9 @@
 """Python code parser."""
 
 import logging
-import sys
+import six
 import textwrap
 import tokenize as tk
-from collections import defaultdict
 from itertools import chain, dropwhile
 from re import compile as re
 
@@ -277,7 +276,7 @@ class Parser(object):
         try:
             compile(src, filename, 'exec')
         except SyntaxError as error:
-            raise ParseError() from error
+            six.raise_from(ParseError(), error)
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
