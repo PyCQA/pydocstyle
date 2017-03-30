@@ -408,6 +408,7 @@ def test_nested_class():
     assert str(inner_class) == 'in public nested class `InnerClass`'
 
 
+@pytest.mark.skipif(six.PY2, reason='`raise from` is invalid in Python 2.x')
 def test_raise_from():
     """Make sure 'raise x from y' doesn't trip the parser."""
     parser = Parser()
