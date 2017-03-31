@@ -515,10 +515,16 @@ def test_dunder_all(code):
         from __future__ \\
         import nested_scopes
     """),
-    CodeSnippet("""\
-        from __future__ import unicode_literals; from __future__ import \
-        nested_scopes
-    """),
+
+    # The following code snippet fails for PyPy, see:
+    # "Future statements are considered illegal if they are separated
+    # by a semicolon"
+    # https://bitbucket.org/pypy/pypy/issues/2526/
+
+    # CodeSnippet("""\
+    #     from __future__ import unicode_literals; from __future__ import \
+    #     nested_scopes
+    # """),
 ))
 def test_future_import(code):
     """Test that __future__ imports are properly parsed and collected."""
