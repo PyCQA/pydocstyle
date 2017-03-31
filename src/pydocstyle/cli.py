@@ -49,7 +49,8 @@ def run_pydocstyle():
 
     count = 0
     for error in errors:
-        sys.stdout.write('%s\n' % error)
+        if hasattr(error, 'code'):
+            sys.stdout.write('%s\n' % error)
         count += 1
     if count == 0:
         exit_code = ReturnCode.no_violations_found

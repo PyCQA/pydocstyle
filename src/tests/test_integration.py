@@ -964,3 +964,15 @@ def test_config_file_nearest_match_re(env):
     _, _, code = env.invoke()
 
     assert code == 0
+
+
+def test_syntax_error_multiple_files(env):
+    """Test that a syntax error in a file doesn't prevent further checking."""
+    for filename in ('first.py', 'second.py'):
+        with env.open(filename, 'wt') as fobj:
+            fobj.write("[")
+
+    out, err, code = env.invoke(args="-v")
+    assert code == 1
+    assert 'first.py: cannot parse file' in err
+    assert 'second.py: cannot parse file' in err

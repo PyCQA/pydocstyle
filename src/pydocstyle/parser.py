@@ -33,7 +33,8 @@ __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
 
 
 class ParseError(Exception):
-    pass
+    def __str__(self):
+        return "cannot parse file"
 
 
 def humanize(string):
