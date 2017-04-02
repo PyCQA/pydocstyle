@@ -974,5 +974,5 @@ def test_syntax_error_multiple_files(env):
 
     out, err, code = env.invoke(args="-v")
     assert code == 1
-    assert 'first.py: cannot parse file' in err
-    assert 'second.py: cannot parse file' in err
+    assert 'first.py: Cannot parse file' in err
+    assert 'second.py: Cannot parse file' in err

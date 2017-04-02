@@ -34,7 +34,7 @@ __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
 
 class ParseError(Exception):
     def __str__(self):
-        return "cannot parse file"
+        return "Cannot parse file."
 
 
 def humanize(string):
