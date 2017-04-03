@@ -11,7 +11,8 @@ from collections import namedtuple
 from . import violations
 from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
-                     Method, Function, NestedFunction, Parser, StringIO)
+                     Method, Function, NestedFunction, Parser, StringIO,
+                     ParseError)
 from .utils import log, is_blank, pairwise
 from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
@@ -331,7 +332,7 @@ class ConventionChecker(object):
         For Unicode docstrings, use u"""Unicode triple-quoted strings""".
 
         '''
-        if definition.module.future_imports['unicode_literals']:
+        if 'unicode_literals' in definition.module.future_imports:
             return
 
         # Just check that docstring is unicode, check_triple_double_quotes
@@ -695,8 +696,9 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error
-        except (EnvironmentError, AllError):
-            yield sys.exc_info()[1]
+        except (EnvironmentError, AllError, ParseError) as error:
+            log.warning('Error in file %s: %s', filename, error)
+            yield error
         except tk.TokenError:
             yield SyntaxError('invalid syntax in file %s' % filename)
 

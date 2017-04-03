@@ -28,6 +28,7 @@ setup(
     package_data={'pydocstyle': ['data/*.txt']},
     install_requires=[
         'snowballstemmer',
+        'six',
     ],
     entry_points={
         'console_scripts': [

@@ -1,10 +1,9 @@
 """Python code parser."""
 
 import logging
-import sys
+import six
 import textwrap
 import tokenize as tk
-from collections import defaultdict
 from itertools import chain, dropwhile
 from re import compile as re
 
@@ -30,7 +29,12 @@ except NameError:  # Python 2.5 and earlier
 
 __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
            'NestedFunction', 'Method', 'Class', 'NestedClass', 'AllError',
-           'StringIO')
+           'StringIO', 'ParseError')
+
+
+class ParseError(Exception):
+    def __str__(self):
+        return "Cannot parse file."
 
 
 def humanize(string):
@@ -270,10 +274,14 @@ class Parser(object):
         self.log = logging.getLogger()
         self.source = filelike.readlines()
         src = ''.join(self.source)
+        try:
+            compile(src, filename, 'exec')
+        except SyntaxError as error:
+            six.raise_from(ParseError(), error)
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
-        self.future_imports = defaultdict(lambda: False)
+        self.future_imports = set()
         self._accumulated_decorators = []
         return self.parse_module()
 
@@ -557,7 +565,7 @@ class Parser(object):
                            self.current.kind, self.current.value)
             if is_future_import:
                 self.log.debug('found future import: %s', self.current.value)
-                self.future_imports[self.current.value] = True
+                self.future_imports.add(self.current.value)
             self.consume(tk.NAME)
             self.log.debug("parsing import, token is %r (%s)",
                            self.current.kind, self.current.value)

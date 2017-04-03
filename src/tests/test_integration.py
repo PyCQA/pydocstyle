@@ -35,6 +35,7 @@ class SandboxEnv(object):
     Result = namedtuple('Result', ('out', 'err', 'code'))
 
     def __init__(self, script_name='pydocstyle'):
+        """Initialize the object."""
         self.tempdir = None
         self.script_name = script_name
 
@@ -100,6 +101,11 @@ class SandboxEnv(object):
 
 @pytest.yield_fixture(scope="module")
 def install_package(request):
+    """Install the package in development mode for the tests.
+
+    This is so we can run the integration tests on the installed console
+    script.
+    """
     cwd = os.path.join(os.path.dirname(__file__), '..', '..')
     install_cmd = "python setup.py develop"
     uninstall_cmd = install_cmd + ' --uninstall'
@@ -110,6 +116,7 @@ def install_package(request):
 
 @pytest.yield_fixture(scope="function")
 def env(request):
+    """Add an testing environment to a test method."""
     with SandboxEnv() as test_env:
         yield test_env
 
@@ -153,6 +160,7 @@ def test_pep257_conformance():
 
 
 def test_ignore_list():
+    """Test that `ignore`d errors are not reported in the API."""
     function_to_check = textwrap.dedent('''
         def function_with_bad_docstring(foo):
             """ does spacinwithout a period in the end
@@ -416,12 +424,13 @@ def test_unicode_raw(env):
         ''').encode('utf-8')))
     env.write_config(ignore='D100', verbose=True)
     out, err, code = env.invoke()
-    assert code == 0
+    assert code == 0, err
     assert 'D301' not in out
     assert 'D302' not in out
 
 
 def test_missing_docstring_in_package(env):
+    """Make sure __init__.py files are treated as packages."""
     with env.open('__init__.py', 'wt') as init:
         pass  # an empty package file
     out, err, code = env.invoke()
@@ -431,6 +440,7 @@ def test_missing_docstring_in_package(env):
 
 
 def test_illegal_convention(env):
+    """Test that illegal convention names are dealt with properly."""
     _, err, code = env.invoke('--convention=illegal_conv')
     assert code == 2, err
     assert "Illegal convention 'illegal_conv'." in err
@@ -954,3 +964,15 @@ def test_config_file_nearest_match_re(env):
     _, _, code = env.invoke()
 
     assert code == 0
+
+
+def test_syntax_error_multiple_files(env):
+    """Test that a syntax error in a file doesn't prevent further checking."""
+    for filename in ('first.py', 'second.py'):
+        with env.open(filename, 'wt') as fobj:
+            fobj.write("[")
+
+    out, err, code = env.invoke(args="-v")
+    assert code == 1
+    assert 'first.py: Cannot parse file' in err
+    assert 'second.py: Cannot parse file' in err
