@@ -224,6 +224,8 @@ class AllError(Exception):
 
 
 class TokenStream(object):
+    NEWLINES = {tk.NEWLINE, tk.INDENT, tk.DEDENT}
+
     def __init__(self, filelike):
         self._generator = tk.generate_tokens(filelike.readline)
         self.current = Token(*next(self._generator, None))
@@ -236,7 +238,7 @@ class TokenStream(object):
         current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
-        self.got_newline = (previous.kind == tk.NEWLINE)
+        self.got_newline = (previous.kind in self.NEWLINES)
         return previous
 
     def _next_from_generator(self):
@@ -399,7 +401,6 @@ class Parser(object):
                 self.parse_from_import_statement()
             else:
                 self.stream.move()
-
 
     def parse_all(self):
         """Parse the __all__ definition in a module."""
