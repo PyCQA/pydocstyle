@@ -15,6 +15,7 @@ Usage
       -d, --debug           print debug information
       -v, --verbose         print status information
       --count               print total number of errors to stdout
+      --config              specify the config file to use
       --select=<codes>      choose the basic list of checked errors by specifying
                             which errors to check for (with a list of comma-
                             separated error codes or prefixes). for example:

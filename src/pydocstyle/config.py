@@ -210,7 +210,16 @@ class ConfigurationParser(object):
         if path in self._cache:
             return self._cache[path]
 
-        config_file = self._get_config_file_in_folder(path)
+        if self._options.config_location:
+            # Find the config directory
+            cli_config_dir = os.path.dirname(self._options.config_location)
+            if os.path.abspath(cli_config_dir) == os.getcwd():
+                config_file = self._options.config_location
+            else:
+                config_file = self._get_config_file_in_folder(path)
+        else:
+            # No config file was provided on CLI so we search for it
+            config_file = self._get_config_file_in_folder(path)
 
         if config_file is None:
             parent_dir, tail = os.path.split(path)
@@ -501,6 +510,8 @@ class ConfigurationParser(object):
         option = parser.add_option
 
         # Run configuration options
+        option('--config', metavar='<path>', dest='config_location',
+               help='specify the config file to use')
         option('-e', '--explain', action='store_true', default=False,
                help='show explanation of each error')
         option('-s', '--source', action='store_true', default=False,

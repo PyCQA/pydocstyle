@@ -14,6 +14,8 @@ file specified above *in that exact order*. If a configuration file was not
 found, it keeps looking for one up the directory tree until one is found or
 uses the default configuration.
 
+You can also explicitly specify the configuration file using the `--config` CLI option.
+
 .. note::
 
     For backwards compatibility purposes, **pydocstyle** supports configuration
