@@ -6,6 +6,7 @@ import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
 from re import compile as re
+from .utils import log
 
 try:
     from StringIO import StringIO
@@ -223,17 +224,26 @@ class AllError(Exception):
 
 
 class TokenStream(object):
+    # A logical newline is where a new expression or statement begins. When
+    # there is a physical new line, but not a logical one, for example:
+    # (x +
+    #  y)
+    # The token will be tk.NL, not tk.NEWLINE.
+    LOGICAL_NEWLINES = {tk.NEWLINE, tk.INDENT, tk.DEDENT}
+
     def __init__(self, filelike):
         self._generator = tk.generate_tokens(filelike.readline)
         self.current = Token(*next(self._generator, None))
         self.line = self.current.start[0]
-        self.log = logging.getLogger()
+        self.log = log
+        self.got_logical_newline = True
 
     def move(self):
         previous = self.current
         current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
+        self.got_logical_newline = (previous.kind in self.LOGICAL_NEWLINES)
         return previous
 
     def _next_from_generator(self):
@@ -270,8 +280,7 @@ class Parser(object):
 
     def parse(self, filelike, filename):
         """Parse the given file-like object and return its Module object."""
-        # TODO: fix log
-        self.log = logging.getLogger()
+        self.log = log
         self.source = filelike.readlines()
         src = ''.join(self.source)
         try:
@@ -336,6 +345,8 @@ class Parser(object):
         at_arguments = False
 
         while self.current is not None:
+            self.log.debug("parsing decorators, current token is %r (%s)",
+                           self.current.kind, self.current.value)
             if (self.current.kind == tk.NAME and
                     self.current.value in ['def', 'class']):
                 # Done with decorators - found function or class proper
@@ -373,9 +384,12 @@ class Parser(object):
         while self.current is not None:
             self.log.debug("parsing definition list, current token is %r (%s)",
                            self.current.kind, self.current.value)
+            self.log.debug('got_newline: %s', self.stream.got_logical_newline)
             if all and self.current.value == '__all__':
                 self.parse_all()
-            elif self.current.kind == tk.OP and self.current.value == '@':
+            elif (self.current.kind == tk.OP and
+                  self.current.value == '@' and
+                  self.stream.got_logical_newline):
                 self.consume(tk.OP)
                 self.parse_decorators()
             elif self.current.value in ['def', 'class']:
@@ -471,6 +485,7 @@ class Parser(object):
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()
             decorators = self._accumulated_decorators
+            self.log.debug("current accumulated decorators: %s", decorators)
             self._accumulated_decorators = []
             self.log.debug("parsing nested definitions.")
             children = list(self.parse_definitions(class_))

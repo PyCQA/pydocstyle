@@ -1,9 +1,10 @@
 """Parser tests."""
 
 import six
+import sys
 import pytest
 import textwrap
-from pydocstyle.parser import Parser, Decorator, ParseError
+from pydocstyle.parser import Parser, ParseError
 
 
 class CodeSnippet(six.StringIO):
@@ -414,6 +415,46 @@ def test_raise_from():
     parser = Parser()
     code = CodeSnippet("raise ValueError() from None")
     parser.parse(code, 'file_path')
+
+
+@pytest.mark.skipif(six.PY2, reason='Matrix multiplication operator is '
+                                    'invalid in Python 2.x')
+def test_simple_matrix_multiplication():
+    """Make sure 'a @ b' doesn't trip the parser."""
+    if sys.version_info.minor < 5:
+        return
+    parser = Parser()
+    code = CodeSnippet("""
+        def foo():
+            a @ b
+    """)
+    parser.parse(code, 'file_path')
+
+
+@pytest.mark.skipif(six.PY2, reason='Matrix multiplication operator is '
+                                    'invalid in Python 2.x')
+def test_matrix_multiplication_with_decorators():
+    """Make sure 'a @ b' doesn't trip the parser."""
+    if sys.version_info.minor < 5:
+        return
+    parser = Parser()
+    code = CodeSnippet("""
+        def foo():
+            a @ b
+            (a
+            @b)
+            @a
+            def b():
+                pass
+    """)
+    module = parser.parse(code, 'file_path')
+
+    outer_function, = module.children
+    assert outer_function.name == 'foo'
+
+    inner_function, = outer_function.children
+    assert len(inner_function.decorators) == 1
+    assert inner_function.decorators[0].name == 'a'
 
 
 def test_module_publicity():
