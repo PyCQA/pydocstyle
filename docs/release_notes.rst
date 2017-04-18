@@ -9,21 +9,26 @@ Current Development Version
 
 Major Updates
 
+* Support for ``numpy`` conventions verification has been added (#129, #226).
 * Support for Python 2.6 has been dropped (#206, #217).
 * Support for PyPy3 has been temporarily dropped, until it will be
   equivalent to CPython 3.3+ and supported by ``pip`` (#223).
 * Support for the ``pep257`` console script has been dropped. Only the
   ``pydocstyle`` console script should be used (#216, #218).
+* Errors are now printed to ``stdout`` instead of ``stderr`` (#201, #210).
 
 New Features
 
 * Decorator-based skipping via ``--ignore-decorators`` has been added (#204).
 * Support for using pycodestyle style wildcards has been added (#72, #209).
 * Superfluous opening quotes are now reported as part of D300 (#166, #225).
-* Support for ``numpy`` conventions verification has been added (#129, #226).
 * Fixed a false-positive recognition of `D410` and added `D412` (#230, #233).
 * Added ``--config=<path>`` flag to override the normal config file discovery
   and choose a specific config file (#117, #247).
+* Support for specifying error codes with partial prefix has been added, e.g.,
+  ``--select=D101,D2`` (#72, #209).
+* All configuration file can now have the ``.ini`` extension (#237).
+* Added better imperative mood checks using third party stemmer (#235, #68).
 
 Bug Fixes
 
@@ -31,6 +36,9 @@ Bug Fixes
 * Modules are now considered private if their name starts with a single
   underscore. This is a bugfix where "public module" (D100) was reported
   regardless of module name (#199, #222).
+* Removed error when ``__all__`` is a list (#62, #227).
+* Fixed a bug where the ``@`` sign was used as a matrix multiplication operator
+  in Python 3.5, but was considered a decorator by the parser (#246, #191).
 
 
 1.1.1 - October 4th, 2016
