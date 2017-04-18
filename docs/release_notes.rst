@@ -22,6 +22,8 @@ New Features
 * Superfluous opening quotes are now reported as part of D300 (#166, #225).
 * Support for ``numpy`` conventions verification has been added (#129, #226).
 * Fixed a false-positive recognition of `D410` and added `D412` (#230, #233).
+* Added ``--config=<path>`` flag to override the normal config file discovery
+  and choose a specific config file (#117, #247).
 
 Bug Fixes
 
