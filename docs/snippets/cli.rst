@@ -15,6 +15,7 @@ Usage
       -d, --debug           print debug information
       -v, --verbose         print status information
       --count               print total number of errors to stdout
+      --config=<path>       use given config file and disable config discovery
       --select=<codes>      choose the basic list of checked errors by specifying
                             which errors to check for (with a list of comma-
                             separated error codes or prefixes). for example:
@@ -24,7 +25,8 @@ Usage
                             error codes or prefixes). for example:
                             --ignore=D101,D2
       --convention=<name>   choose the basic list of checked errors by specifying
-                            an existing convention. Possible conventions: pep257
+                            an existing convention. Possible conventions: pep257,
+                            numpy
       --add-select=<codes>  amend the list of errors to check for by specifying
                             more error codes to check.
       --add-ignore=<codes>  amend the list of errors to check for by specifying

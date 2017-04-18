@@ -4,8 +4,8 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
-Current Development Version
----------------------------
+2.0.0 - April 18th, 2017
+------------------------
 
 Major Updates
 
