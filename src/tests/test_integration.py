@@ -35,10 +35,11 @@ class SandboxEnv(object):
     Result = namedtuple('Result', ('out', 'err', 'code'))
 
     def __init__(self, script_name='pydocstyle'):
+        """Initialize the object."""
         self.tempdir = None
         self.script_name = script_name
 
-    def write_config(self, prefix='', **kwargs):
+    def write_config(self, prefix='', name='tox.ini', **kwargs):
         """Change an environment config file.
 
         Applies changes to `tox.ini` relative to `tempdir/prefix`.
@@ -49,7 +50,7 @@ class SandboxEnv(object):
         if not os.path.isdir(base):
             self.makedirs(base)
 
-        with open(os.path.join(base, 'tox.ini'), 'wt') as conf:
+        with open(os.path.join(base, name), 'wt') as conf:
             conf.write("[{}]\n".format(self.script_name))
             for k, v in kwargs.items():
                 conf.write("{} = {}\n".format(k.replace('_', '-'), v))
@@ -61,6 +62,9 @@ class SandboxEnv(object):
 
         """
         return open(os.path.join(self.tempdir, path), *args, **kwargs)
+
+    def get_path(self, name, prefix=''):
+        return os.path.join(self.tempdir, prefix, name)
 
     def makedirs(self, path, *args, **kwargs):
         """Create a directory in a path relative to the environment base."""
@@ -100,6 +104,11 @@ class SandboxEnv(object):
 
 @pytest.yield_fixture(scope="module")
 def install_package(request):
+    """Install the package in development mode for the tests.
+
+    This is so we can run the integration tests on the installed console
+    script.
+    """
     cwd = os.path.join(os.path.dirname(__file__), '..', '..')
     install_cmd = "python setup.py develop"
     uninstall_cmd = install_cmd + ' --uninstall'
@@ -110,6 +119,7 @@ def install_package(request):
 
 @pytest.yield_fixture(scope="function")
 def env(request):
+    """Add an testing environment to a test method."""
     with SandboxEnv() as test_env:
         yield test_env
 
@@ -153,6 +163,7 @@ def test_pep257_conformance():
 
 
 def test_ignore_list():
+    """Test that `ignore`d errors are not reported in the API."""
     function_to_check = textwrap.dedent('''
         def function_with_bad_docstring(foo):
             """ does spacinwithout a period in the end
@@ -238,6 +249,39 @@ def test_config_file(env):
     assert code == 0
     assert 'D100' not in err
     assert 'D103' not in err
+
+
+def test_config_path(env):
+    """Test that options are correctly loaded from a specific config file.
+
+    Make sure that a config file passed via --config is actually used and that
+    normal config file discovery is disabled.
+
+    """
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            def foo():
+                pass
+        """))
+
+    env.write_config(ignore='D100')
+    env.write_config(name='my_config', ignore='D103')
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' not in out
+    assert 'D103' in out
+
+    out, err, code = env.invoke('--config={} -d'
+                                .format(env.get_path('my_config')))
+    assert code == 1, out + err
+    assert 'D100' in out
+    assert 'D103' not in out
+
+
+def test_non_existent_config(env):
+    out, err, code = env.invoke('--config=does_not_exist')
+    assert code == 2
 
 
 def test_verbose(env):
@@ -416,12 +460,13 @@ def test_unicode_raw(env):
         ''').encode('utf-8')))
     env.write_config(ignore='D100', verbose=True)
     out, err, code = env.invoke()
-    assert code == 0
+    assert code == 0, err
     assert 'D301' not in out
     assert 'D302' not in out
 
 
 def test_missing_docstring_in_package(env):
+    """Make sure __init__.py files are treated as packages."""
     with env.open('__init__.py', 'wt') as init:
         pass  # an empty package file
     out, err, code = env.invoke()
@@ -431,6 +476,7 @@ def test_missing_docstring_in_package(env):
 
 
 def test_illegal_convention(env):
+    """Test that illegal convention names are dealt with properly."""
     _, err, code = env.invoke('--convention=illegal_conv')
     assert code == 2, err
     assert "Illegal convention 'illegal_conv'." in err
@@ -521,7 +567,9 @@ def test_numpy_convention(env):
     assert 'D215' in out
     assert 'D405' in out
     assert 'D409' in out
-    assert 'D410' in out
+    assert 'D414' in out
+    assert 'D410' not in out
+    assert 'D413' not in out
 
 
 def test_config_file_inheritance(env):
@@ -952,3 +1000,15 @@ def test_config_file_nearest_match_re(env):
     _, _, code = env.invoke()
 
     assert code == 0
+
+
+def test_syntax_error_multiple_files(env):
+    """Test that a syntax error in a file doesn't prevent further checking."""
+    for filename in ('first.py', 'second.py'):
+        with env.open(filename, 'wt') as fobj:
+            fobj.write("[")
+
+    out, err, code = env.invoke(args="-v")
+    assert code == 1
+    assert 'first.py: Cannot parse file' in err
+    assert 'second.py: Cannot parse file' in err

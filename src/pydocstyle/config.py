@@ -34,9 +34,10 @@ class ConfigurationParser(object):
 
     Run Configurations:
     ------------------
-    Responsible for deciding things that are related to the user interface,
-    e.g. verbosity, debug options, etc.
-    All run configurations default to `False` and are decided only by CLI.
+    Responsible for deciding things that are related to the user interface and
+    configuration discovery, e.g. verbosity, debug options, etc.
+    All run configurations default to `False` or `None` and are decided only 
+    by CLI.
 
     Check Configurations:
     --------------------
@@ -175,6 +176,48 @@ class ConfigurationParser(object):
 
     # --------------------------- Private Methods -----------------------------
 
+    def _get_config_by_discovery(self, node):
+        """Get a configuration for checking `node` by config discovery.
+        
+        Config discovery happens when no explicit config file is specified. The
+        file system is searched for config files starting from the directory
+        containing the file being checked, and up until the root directory of
+        the project.
+        
+        See `_get_config` for further details.
+        
+        """
+        path = self._get_node_dir(node)
+
+        if path in self._cache:
+            return self._cache[path]
+
+        config_file = self._get_config_file_in_folder(path)
+
+        if config_file is None:
+            parent_dir, tail = os.path.split(path)
+            if tail:
+                # No configuration file, simply take the parent's.
+                config = self._get_config(parent_dir)
+            else:
+                # There's no configuration file and no parent directory.
+                # Use the default configuration or the one given in the CLI.
+                config = self._create_check_config(self._options)
+        else:
+            # There's a config file! Read it and merge if necessary.
+            options, inherit = self._read_configuration_file(config_file)
+
+            parent_dir, tail = os.path.split(path)
+            if tail and inherit:
+                # There is a parent dir and we should try to merge.
+                parent_config = self._get_config(parent_dir)
+                config = self._merge_configuration(parent_config, options)
+            else:
+                # No need to merge or parent dir does not exist.
+                config = self._create_check_config(options)
+
+        return config
+
     def _get_config(self, node):
         """Get and cache the run configuration for `node`.
 
@@ -204,35 +247,19 @@ class ConfigurationParser(object):
         * Set the `--add-select` and `--add-ignore` CLI configurations.
 
         """
-        path = os.path.abspath(node)
-        path = path if os.path.isdir(path) else os.path.dirname(path)
-
-        if path in self._cache:
-            return self._cache[path]
-
-        config_file = self._get_config_file_in_folder(path)
-
-        if config_file is None:
-            parent_dir, tail = os.path.split(path)
-            if tail:
-                # No configuration file, simply take the parent's.
-                config = self._get_config(parent_dir)
-            else:
-                # There's no configuration file and no parent directory.
-                # Use the default configuration or the one given in the CLI.
-                config = self._create_check_config(self._options)
+        if self._run_conf.config is None:
+            log.debug('No config file specified, discovering.')
+            config = self._get_config_by_discovery(node)
         else:
-            # There's a config file! Read it and merge if necessary.
-            options, inherit = self._read_configuration_file(config_file)
-
-            parent_dir, tail = os.path.split(path)
-            if tail and inherit:
-                # There is a parent dir and we should try to merge.
-                parent_config = self._get_config(parent_dir)
-                config = self._merge_configuration(parent_config, options)
-            else:
-                # No need to merge or parent dir does not exist.
-                config = self._create_check_config(options)
+            log.debug('Using config file %r', self._run_conf.config)
+            if not os.path.exists(self._run_conf.config):
+                raise IllegalConfiguration('Configuration file {!r} specified '
+                                           'via --config was not found.'
+                                           .format(self._run_conf.config))
+            if None in self._cache:
+                return self._cache[None]
+            options, _ = self._read_configuration_file(self._run_conf.config)
+            config = self._create_check_config(options)
 
         # Make the CLI always win
         final_config = {}
@@ -244,8 +271,19 @@ class ConfigurationParser(object):
         config = CheckConfiguration(**final_config)
 
         self._set_add_options(config.checked_codes, self._options)
-        self._cache[path] = config
-        return self._cache[path]
+
+        # Handle caching
+        if self._run_conf.config is not None:
+            self._cache[None] = config
+        else:
+            self._cache[self._get_node_dir(node)] = config
+        return config
+
+    @staticmethod
+    def _get_node_dir(node):
+        """Return the absolute path of the directory of a filesystem node."""
+        path = os.path.abspath(node)
+        return path if os.path.isdir(path) else os.path.dirname(path)
 
     def _read_configuration_file(self, path):
         """Try to read and parse `path` as a configuration file.
@@ -365,7 +403,7 @@ class ConfigurationParser(object):
     def _get_config_file_in_folder(cls, path):
         """Look for a configuration file in `path`.
 
-        If exists return it's full path, otherwise None.
+        If exists return its full path, otherwise None.
 
         """
         if os.path.isfile(path):
@@ -511,6 +549,8 @@ class ConfigurationParser(object):
                help='print status information')
         option('--count', action='store_true', default=False,
                help='print total number of errors to stdout')
+        option('--config', metavar='<path>', default=None,
+               help='use given config file and disable config discovery')
 
         # Error check options
         option('--select', metavar='<codes>', default=None,
@@ -571,4 +611,4 @@ class IllegalConfiguration(Exception):
 # General configurations for pydocstyle run.
 RunConfiguration = namedtuple('RunConfiguration',
                               ('explain', 'source', 'debug',
-                               'verbose', 'count'))
+                               'verbose', 'count', 'config'))

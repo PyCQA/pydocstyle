@@ -283,6 +283,12 @@ def liouiwnlkjl():
     """Returns foo."""
 
 
+@expect("D401: First line should be in imperative mood; try rephrasing "
+        "(found 'Constructor')")
+def sdgfsdg23245():
+    """Constructor for a foo."""
+
+
 @expect('D402: First line should not be the function\'s "signature"')
 def foobar():
     """Signature: foobar()."""
@@ -323,7 +329,7 @@ def docstring_start_in_same_line(): """First Line.
 
 
 def function_with_lambda_arg(x=lambda y: y):
-    """A valid docstring."""
+    """Wrap the given lambda."""
 
 
 @expect('D213: Multi-line docstring summary should start at the second line')

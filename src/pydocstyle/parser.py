@@ -1,12 +1,12 @@
 """Python code parser."""
 
 import logging
-import sys
+import six
 import textwrap
 import tokenize as tk
-from collections import defaultdict
 from itertools import chain, dropwhile
 from re import compile as re
+from .utils import log
 
 try:
     from StringIO import StringIO
@@ -30,7 +30,12 @@ except NameError:  # Python 2.5 and earlier
 
 __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
            'NestedFunction', 'Method', 'Class', 'NestedClass', 'AllError',
-           'StringIO')
+           'StringIO', 'ParseError')
+
+
+class ParseError(Exception):
+    def __str__(self):
+        return "Cannot parse file."
 
 
 def humanize(string):
@@ -133,6 +138,17 @@ class Function(Definition):
         else:
             return not self.name.startswith('_')
 
+    @property
+    def is_test(self):
+        """Return True if this function is a test function/method.
+
+        We exclude tests from the imperative mood check, because to phrase
+        their docstring in the imperative mood, they would have to start with
+        a highly redundant "Test that ...".
+
+        """
+        return self.name.startswith('test') or self.name == 'runTest'
+
 
 class NestedFunction(Function):
     """A Python source code nested function."""
@@ -208,17 +224,26 @@ class AllError(Exception):
 
 
 class TokenStream(object):
+    # A logical newline is where a new expression or statement begins. When
+    # there is a physical new line, but not a logical one, for example:
+    # (x +
+    #  y)
+    # The token will be tk.NL, not tk.NEWLINE.
+    LOGICAL_NEWLINES = {tk.NEWLINE, tk.INDENT, tk.DEDENT}
+
     def __init__(self, filelike):
         self._generator = tk.generate_tokens(filelike.readline)
         self.current = Token(*next(self._generator, None))
         self.line = self.current.start[0]
-        self.log = logging.getLogger()
+        self.log = log
+        self.got_logical_newline = True
 
     def move(self):
         previous = self.current
         current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
+        self.got_logical_newline = (previous.kind in self.LOGICAL_NEWLINES)
         return previous
 
     def _next_from_generator(self):
@@ -255,14 +280,17 @@ class Parser(object):
 
     def parse(self, filelike, filename):
         """Parse the given file-like object and return its Module object."""
-        # TODO: fix log
-        self.log = logging.getLogger()
+        self.log = log
         self.source = filelike.readlines()
         src = ''.join(self.source)
+        try:
+            compile(src, filename, 'exec')
+        except SyntaxError as error:
+            six.raise_from(ParseError(), error)
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.all = None
-        self.future_imports = defaultdict(lambda: False)
+        self.future_imports = set()
         self._accumulated_decorators = []
         return self.parse_module()
 
@@ -317,6 +345,8 @@ class Parser(object):
         at_arguments = False
 
         while self.current is not None:
+            self.log.debug("parsing decorators, current token is %r (%s)",
+                           self.current.kind, self.current.value)
             if (self.current.kind == tk.NAME and
                     self.current.value in ['def', 'class']):
                 # Done with decorators - found function or class proper
@@ -354,9 +384,12 @@ class Parser(object):
         while self.current is not None:
             self.log.debug("parsing definition list, current token is %r (%s)",
                            self.current.kind, self.current.value)
+            self.log.debug('got_newline: %s', self.stream.got_logical_newline)
             if all and self.current.value == '__all__':
                 self.parse_all()
-            elif self.current.kind == tk.OP and self.current.value == '@':
+            elif (self.current.kind == tk.OP and
+                  self.current.value == '@' and
+                  self.stream.got_logical_newline):
                 self.consume(tk.OP)
                 self.parse_decorators()
             elif self.current.value in ['def', 'class']:
@@ -452,6 +485,7 @@ class Parser(object):
             assert self.current.kind != tk.INDENT
             docstring = self.parse_docstring()
             decorators = self._accumulated_decorators
+            self.log.debug("current accumulated decorators: %s", decorators)
             self._accumulated_decorators = []
             self.log.debug("parsing nested definitions.")
             children = list(self.parse_definitions(class_))
@@ -546,7 +580,7 @@ class Parser(object):
                            self.current.kind, self.current.value)
             if is_future_import:
                 self.log.debug('found future import: %s', self.current.value)
-                self.future_imports[self.current.value] = True
+                self.future_imports.add(self.current.value)
             self.consume(tk.NAME)
             self.log.debug("parsing import, token is %r (%s)",
                            self.current.kind, self.current.value)

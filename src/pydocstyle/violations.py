@@ -202,7 +202,9 @@ D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
 D400 = D4xx.create_error('D400', 'First line should end with a period',
                          'not {0!r}')
 D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
-                         '{0!r}, not {1!r}')
+                         "'{0}', not '{1}'")
+D401b = D4xx.create_error('D401', 'First line should be in imperative mood; '
+                          'try rephrasing', "found '{0}'")
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
                                  '"signature"')
 D403 = D4xx.create_error('D403', 'First word of the first line should be '
@@ -223,6 +225,11 @@ D409 = D4xx.create_error('D409', 'Section underline should match the length '
                          'Expected {0!r} dashes in section {1!r}, got {2!r}')
 D410 = D4xx.create_error('D410', 'Missing blank line after section', '{0!r}')
 D411 = D4xx.create_error('D411', 'Missing blank line before section', '{0!r}')
+D412 = D4xx.create_error('D412', 'No blank lines allowed between a section '
+                                 'header and its content', '{0!r}')
+D413 = D4xx.create_error('D413', 'Missing blank line after last section',
+                         '{0!r}')
+D414 = D4xx.create_error('D414', 'Section has no content', '{0!r}')
 
 
 class AttrDict(dict):
@@ -235,5 +242,5 @@ conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
                             'D411'},
-    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402'}
+    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402', 'D413'}
 })

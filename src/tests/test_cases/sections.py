@@ -13,10 +13,11 @@ _D213 = 'D213: Multi-line docstring summary should start at the second line'
 @expect("D405: Section name should be properly capitalized "
         "('Returns', not 'returns')")
 def not_capitalized():
-    """Valid headline.
+    """Toggle the gizmo.
 
     returns
     -------
+    A value of some sort.
 
     """
 
@@ -25,10 +26,11 @@ def not_capitalized():
 @expect("D406: Section name should end with a newline "
         "('Returns', not 'Returns:')")
 def superfluous_suffix():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns:
     -------
+    A value of some sort.
 
     """
 
@@ -36,9 +38,40 @@ def superfluous_suffix():
 @expect(_D213)
 @expect("D407: Missing dashed underline after section ('Returns')")
 def no_underline():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
+    A value of some sort.
+
+    """
+
+
+@expect(_D213)
+@expect("D407: Missing dashed underline after section ('Returns')")
+def no_underline():
+    """Toggle the gizmo.
+
+    Returns
+
+    """
+
+
+@expect(_D213)
+@expect("D410: Missing blank line after section ('Returns')")
+@expect("D414: Section has no content ('Returns')")
+@expect("D411: Missing blank line before section ('Yields')")
+@expect("D414: Section has no content ('Yields')")
+def consecutive_sections():
+    """Toggle the gizmo.
+
+    Returns
+    -------
+    Yields
+    ------
+
+    Raises
+    ------
+    Questions.
 
     """
 
@@ -47,11 +80,12 @@ def no_underline():
 @expect("D408: Section underline should be in the line following the "
         "section's name ('Returns')")
 def blank_line_before_underline():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
 
     -------
+    A value of some sort.
 
     """
 
@@ -60,33 +94,35 @@ def blank_line_before_underline():
 @expect("D409: Section underline should match the length of its name "
         "(Expected 7 dashes in section 'Returns', got 2)")
 def bad_underline_length():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
     --
+    A value of some sort.
 
     """
 
 
 @expect(_D213)
-@expect("D410: Missing blank line after section ('Returns')")
-def no_blank_line_after_section():
-    """Valid headline.
+@expect("D413: Missing blank line after last section ('Returns')")
+def no_blank_line_after_last_section():
+    """Toggle the gizmo.
 
     Returns
     -------
-    A whole lot of values.
+    A value of some sort.
     """
 
 
 @expect(_D213)
 @expect("D411: Missing blank line before section ('Returns')")
 def no_blank_line_before_section():
-    """Valid headline.
+    """Toggle the gizmo.
 
     The function's description.
     Returns
     -------
+    A value of some sort.
 
     """
 
@@ -94,10 +130,11 @@ def no_blank_line_before_section():
 @expect(_D213)
 @expect("D214: Section is over-indented ('Returns')")
 def section_overindented():
-    """Valid headline.
+    """Toggle the gizmo.
 
         Returns
     -------
+    A value of some sort.
 
     """
 
@@ -105,17 +142,30 @@ def section_overindented():
 @expect(_D213)
 @expect("D215: Section underline is over-indented (in section 'Returns')")
 def section_underline_overindented():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Returns
         -------
+    A value of some sort.
 
     """
 
 
 @expect(_D213)
+@expect("D215: Section underline is over-indented (in section 'Returns')")
+@expect("D413: Missing blank line after last section ('Returns')")
+@expect("D414: Section has no content ('Returns')")
+def section_underline_overindented_and_contentless():
+    """Toggle the gizmo.
+
+    Returns
+        -------
+    """
+
+
+@expect(_D213)
 def ignore_non_actual_section():
-    """Valid headline.
+    """Toggle the gizmo.
 
     This is the function's description, which will also specify what it
     returns
@@ -132,6 +182,7 @@ def ignore_non_actual_section():
 def section_name_in_first_line():
     """Returns
     -------
+    A value of some sort.
 
     """
 
@@ -139,6 +190,8 @@ def section_name_in_first_line():
 @expect(_D213)
 @expect("D405: Section name should be properly capitalized "
         "('Short Summary', not 'Short summary')")
+@expect("D412: No blank lines allowed between a section header and its "
+        "content ('Short Summary')")
 @expect("D409: Section underline should match the length of its name "
         "(Expected 7 dashes in section 'Returns', got 6)")
 @expect("D410: Missing blank line after section ('Returns')")
@@ -146,9 +199,8 @@ def section_name_in_first_line():
 @expect("D406: Section name should end with a newline "
         "('Raises', not 'Raises:')")
 @expect("D407: Missing dashed underline after section ('Raises')")
-@expect("D410: Missing blank line after section ('Raises')")
 def multiple_sections():
-    """Valid headline.
+    """Toggle the gizmo.
 
     Short summary
     -------------
