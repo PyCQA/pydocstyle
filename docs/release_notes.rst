@@ -4,6 +4,15 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+----------------------------
+
+Bug fixes
+
+* Include documentation and all files needed for building it in source
+  distribution.
+* Include tests and all files needed for running them in source distribution.
+
 2.0.0 - April 18th, 2017
 ------------------------
 

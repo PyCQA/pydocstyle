@@ -1,1 +1,9 @@
+# include meta data
 include README.rst LICENSE-MIT
+# include documentation and files needed by documentation
+recursive-include docs *.py *.rst
+include docs/Makefile docs/make.bat
+# include tests and files needed by tests
+include tox.ini
+recursive-include requirements *.txt
+recursive-include src/tests *.py
