@@ -13,7 +13,7 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO,
                      ParseError)
-from .utils import log, is_blank, pairwise
+from .utils import log, is_blank, pairwise, rst_lint
 from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
 
@@ -641,6 +641,19 @@ class ConventionChecker(object):
                                      b is None)
             for err in self._check_section(docstring, definition, new_ctx):
                 yield err
+
+    @check_for(Definition)
+    def check_valid_rst(self, definition, docstring):
+        """D415: Fails reStructuredText validation.
+
+        PEP-287 recommends reStructuredText (RST) as the docstring markup
+        format, and this checks the docstring passes validation as RST.
+
+        Extract the docstring, remove the indentation as per the trim
+        function define in PEP-257, then validate it as RST.
+        """
+        if docstring:
+            return [violations.D415(_) for _ in rst_lint(docstring)]
 
 
 parse = Parser()
