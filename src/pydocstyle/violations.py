@@ -59,9 +59,8 @@ class Error(object):
         numbers_width = len(str(numbers_width))
         numbers_width = 6
         for n, line in enumerate(lines_stripped):
-            source += '{{}}{}: {{}}'.format(numbers_width).format(
+            source += '{{:{}}}: {{}}'.format(numbers_width).format(
                 n + offset, line)
-            source += '%*d: %s' % (numbers_width, n + offset, line)
             if n > 5:
                 source += '        ...\n'
                 break
