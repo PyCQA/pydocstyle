@@ -114,7 +114,7 @@ class ConventionChecker(object):
                 docstring and is_blank(ast.literal_eval(docstring))):
             codes = {Module: violations.D100,
                      Class: violations.D101,
-                     NestedClass: violations.D101,
+                     NestedClass: violations.D106,
                      Method: (lambda: violations.D105() if definition.is_magic
                               else violations.D102()),
                      Function: violations.D103,

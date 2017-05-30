@@ -4,6 +4,14 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+2.0.1 - Unreleased
+------------------------
+
+New Features
+
+* Public nested classes missing a docstring are now reported as D106 instead
+  of D101 (#198, #261).
+
 2.0.0 - April 18th, 2017
 ------------------------
 

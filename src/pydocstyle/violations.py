@@ -160,6 +160,7 @@ D102 = D1xx.create_error('D102', 'Missing docstring in public method')
 D103 = D1xx.create_error('D103', 'Missing docstring in public function')
 D104 = D1xx.create_error('D104', 'Missing docstring in public package')
 D105 = D1xx.create_error('D105', 'Missing docstring in magic method')
+D106 = D1xx.create_error('D106', 'Missing docstring in public nested class')
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '
