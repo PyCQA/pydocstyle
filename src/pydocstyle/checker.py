@@ -60,7 +60,7 @@ class ConventionChecker(object):
                      'Attributes',
                      'Methods']
 
-    def check_source(self, source, filename, ignore_decorators):
+    def check_source(self, source, filename, ignore_decorators=None):
         module = parse(StringIO(source), filename)
         for definition in module:
             for this_check in self.checks:
