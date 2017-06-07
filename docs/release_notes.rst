@@ -4,6 +4,15 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Fixed an issue where the ``--source`` flag would result in improperly
+  spaced output (#256, #257, #260).
+
 2.0.0 - April 18th, 2017
 ------------------------
 
