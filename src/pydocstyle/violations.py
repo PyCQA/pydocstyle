@@ -229,6 +229,7 @@ D412 = D4xx.create_error('D412', 'No blank lines allowed between a section '
 D413 = D4xx.create_error('D413', 'Missing blank line after last section',
                          '{0!r}')
 D414 = D4xx.create_error('D414', 'Section has no content', '{0!r}')
+D415 = D4xx.create_error('D415', 'Fails reStructuredText validation', '{0}')
 
 
 class AttrDict(dict):
@@ -240,6 +241,6 @@ all_errors = set(ErrorRegistry.get_error_codes())
 conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
-                            'D411'},
-    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402', 'D413'}
+                            'D411', 'D415'},
+    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402', 'D413', 'D415'}
 })
