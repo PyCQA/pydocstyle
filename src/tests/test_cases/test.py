@@ -376,5 +376,10 @@ def bad_decorated_function():
     """Bad (E501) but decorated"""
     pass
 
+
+def first_word_has_unicode_byte():
+    u"""עושה את הthingy."""
+
+
 expect(os.path.normcase(__file__ if __file__[-1] != 'c' else __file__[:-1]),
        'D100: Missing docstring in public module')
