@@ -8,10 +8,16 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
+* Public nested classes missing a docstring are now reported as D106 instead
+  of D101 (#198, #261).
+
 Bug Fixes
 
 * Fixed an issue where the ``--source`` flag would result in improperly
   spaced output (#256, #257, #260).
+
 
 2.0.0 - April 18th, 2017
 ------------------------

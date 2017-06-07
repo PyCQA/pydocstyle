@@ -14,7 +14,7 @@ expect('class_', 'D101: Missing docstring in public class')
 
 class class_:
 
-    expect('meta', 'D101: Missing docstring in public class')
+    expect('meta', 'D106: Missing docstring in public nested class')
 
     class meta:
         """"""
