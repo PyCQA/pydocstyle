@@ -17,6 +17,9 @@ Bug Fixes
 
 * Fixed an issue where the ``--source`` flag would result in improperly
   spaced output (#256, #257, #260).
+* Fixed an issue where if a first word in a docstring had Unicode characters
+  and the docstring was not a unicode string, an exception would be raised
+  (#258, #264).
 
 
 2.0.0 - April 18th, 2017

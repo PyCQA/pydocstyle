@@ -271,6 +271,10 @@ if sys.version_info[0] <= 2:
     def unicode_unmarked():
         """Юникод."""
 
+    @expect('D302: Use u""" for Unicode docstrings')
+    def first_word_has_unicode_byte():
+        """あy."""
+
 
 @expect("D400: First line should end with a period (not 'y')")
 def lwnlkjl():
@@ -375,6 +379,7 @@ def docstring_ignore_violations_of_pydocstyle_D400_and_PEP8_E501_but_catch_D401(
 def bad_decorated_function():
     """Bad (E501) but decorated"""
     pass
+
 
 expect(os.path.normcase(__file__ if __file__[-1] != 'c' else __file__[:-1]),
        'D100: Missing docstring in public module')

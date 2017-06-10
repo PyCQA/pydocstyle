@@ -372,7 +372,14 @@ class ConventionChecker(object):
                 if check_word in IMPERATIVE_BLACKLIST:
                     return violations.D401b(first_word)
 
-                correct_form = IMPERATIVE_VERBS.get(stem(check_word))
+                try:
+                    correct_form = IMPERATIVE_VERBS.get(stem(check_word))
+                except UnicodeDecodeError:
+                    # This is raised when the docstring contains unicode
+                    # characters in the first word, but is not a unicode
+                    # string. In which case D302 will be reported. Ignoring.
+                    return
+
                 if correct_form and correct_form != check_word:
                     return violations.D401(
                         correct_form.capitalize(),
