@@ -171,7 +171,7 @@ class ConfigurationParser(object):
                 config = self._get_config(name)
                 match, _ = _get_matches(config)
                 ignore_decorators = _get_ignore_decorators(config)
-                if match(name):
+                if match(name) or name == '-':
                     yield (name, list(config.checked_codes), ignore_decorators)
 
     # --------------------------- Private Methods -----------------------------

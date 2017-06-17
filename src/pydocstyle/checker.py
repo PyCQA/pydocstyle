@@ -696,8 +696,12 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
     for filename in filenames:
         log.info('Checking file %s.', filename)
         try:
-            with tokenize_open(filename) as file:
-                source = file.read()
+            if filename == '-':
+                source = sys.stdin.read()
+                filename = "stdin"
+            else:
+                with tokenize_open(filename) as file:
+                    source = file.read()
             for error in ConventionChecker().check_source(source, filename,
                                                           ignore_decorators):
                 code = getattr(error, 'code', None)
