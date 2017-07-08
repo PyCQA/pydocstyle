@@ -12,6 +12,7 @@ New Features
 
 * Public nested classes missing a docstring are now reported as D106 instead
   of D101 (#198, #261).
+* Added support for Python 3.6 (#270).
 
 Bug Fixes
 
