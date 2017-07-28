@@ -1,4 +1,0 @@
--r requirements/docs.txt
--r requirements/tests.txt
--r requirements/test_env.txt
--r requirements/runtime.txt

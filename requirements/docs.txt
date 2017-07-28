@@ -1,2 +1,0 @@
-sphinxcontrib-issuetracker
-sphinx_rtd_theme

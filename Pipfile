@@ -1,0 +1,13 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+[packages]
+sphinxcontrib-issuetracker = "*"
+sphinx_rtd_theme = "*"
+pytest = "*"
+pytest-pep8 = "*"
+mock = "*"
+pathlib = "*"
+tox = "*"
+snowballstemmer = "==1.2.1"

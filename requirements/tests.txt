@@ -1,4 +1,0 @@
-pytest==3.0.2
-pytest-pep8==1.0.6
-mock==2.0.0
-pathlib
