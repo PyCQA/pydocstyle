@@ -116,7 +116,8 @@ class ConventionChecker(object):
                      Class: violations.D101,
                      NestedClass: violations.D106,
                      Method: (lambda: violations.D105() if definition.is_magic
-                              else (violations.D107() if definition.name == '__init__' else violations.D102())),
+                              else (violations.D107() if definition.is_init
+                              else violations.D102())),
                      Function: violations.D103,
                      NestedFunction: violations.D103,
                      Package: violations.D104}
