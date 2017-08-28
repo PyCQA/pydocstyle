@@ -26,6 +26,10 @@ class class_:
     def _ok_since_private():
         pass
 
+    @expect('D102: Missing docstring in public method')
+    def __new__(self=None):
+        pass
+
     @expect('D107: Missing docstring in __init__')
     def __init__(self=None):
         pass
