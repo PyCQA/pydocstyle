@@ -13,7 +13,7 @@ New Features
 * Public nested classes missing a docstring are now reported as D106 instead
   of D101 (#198, #261).
 * ``__init__`` methods missing a docstring are now reported as D107 instead of
-  D102 (#273).
+  D102 (#273, #277).
 * Added support for Python 3.6 (#270).
 
 Bug Fixes
