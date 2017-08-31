@@ -167,6 +167,11 @@ class Method(Function):
                 self.name not in VARIADIC_MAGIC_METHODS)
 
     @property
+    def is_init(self):
+        """Return True iff this method is `__init__`."""
+        return self.name == '__init__'
+
+    @property
     def is_public(self):
         """Return True iff this method should be considered public."""
         # Check if we are a setter/deleter method, and mark as private if so.
