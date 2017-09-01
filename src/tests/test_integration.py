@@ -414,7 +414,9 @@ def test_bad_wildcard_add_ignore_cli(env):
     assert code == 1
     assert 'D203' in out
     assert 'D300' in out
-    assert 'D3034' not in out
+    assert 'D3004' not in out
+    assert ('Error code passed is not a prefix of any known errors: D3004'
+            in err)
 
 
 def test_conflicting_select_ignore_config(env):
