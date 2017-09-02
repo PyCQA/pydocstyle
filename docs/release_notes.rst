@@ -13,6 +13,8 @@ New Features
 * Public nested classes missing a docstring are now reported as D106 instead
   of D101 (#198, #261).
 * Added support for Python 3.6 (#270).
+* Specifying an invalid error code prefix (e.g., ``--select=D9``) will print
+  a warning message to ``stderr`` (#253, #279).
 
 Bug Fixes
 
