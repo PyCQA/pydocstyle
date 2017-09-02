@@ -15,6 +15,8 @@ New Features
 * ``__init__`` methods missing a docstring are now reported as D107 instead of
   D102 (#273, #277).
 * Added support for Python 3.6 (#270).
+* Specifying an invalid error code prefix (e.g., ``--select=D9``) will print
+  a warning message to ``stderr`` (#253, #279).
 
 Bug Fixes
 
