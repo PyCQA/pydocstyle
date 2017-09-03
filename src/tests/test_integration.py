@@ -261,6 +261,20 @@ def test_sectionless_config_file(env):
     assert code == 0
     assert 'Configuration file does not contain a pydocstyle section' in err
 
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            def foo():
+                pass
+        """))
+
+    with env.open('tox.ini', 'wt') as conf:
+        conf.write('[pdcstl]\n')
+        conf.write('ignore = D100')
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+
 
 def test_config_path(env):
     """Test that options are correctly loaded from a specific config file.
