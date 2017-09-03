@@ -25,6 +25,8 @@ Bug Fixes
 * Fixed an issue where if a first word in a docstring had Unicode characters
   and the docstring was not a unicode string, an exception would be raised
   (#258, #264).
+* Configuration files that were specified by CLI and don't contain a valid
+  section name will now issue a warning to ``stderr`` (#276, #280).
 
 
 2.0.0 - April 18th, 2017

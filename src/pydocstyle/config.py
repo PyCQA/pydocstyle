@@ -256,10 +256,17 @@ class ConfigurationParser(object):
                 raise IllegalConfiguration('Configuration file {!r} specified '
                                            'via --config was not found.'
                                            .format(self._run_conf.config))
+
             if None in self._cache:
                 return self._cache[None]
             options, _ = self._read_configuration_file(self._run_conf.config)
-            config = self._create_check_config(options)
+
+            if options is None:
+                log.warning('Configuration file does not contain a '
+                            'pydocstyle section. Using default configuration.')
+                config = self._create_check_config(self._options)
+            else:
+                config = self._create_check_config(options)
 
         # Make the CLI always win
         final_config = {}
