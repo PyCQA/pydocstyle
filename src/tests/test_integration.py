@@ -251,6 +251,17 @@ def test_config_file(env):
     assert 'D103' not in err
 
 
+def test_sectionless_config_file(env):
+    """Test that config files without a valid section name issue a warning."""
+    with env.open('config.ini', 'wt') as conf:
+        conf.write('[pdcstl]')
+        config_path = conf.name
+
+    _, err, code = env.invoke('--config={}'.format(config_path))
+    assert code == 0
+    assert 'Configuration file does not contain a pydocstyle section' in err
+
+
 def test_config_path(env):
     """Test that options are correctly loaded from a specific config file.
 
