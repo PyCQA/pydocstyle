@@ -60,7 +60,7 @@ class ConventionChecker(object):
                      'Attributes',
                      'Methods']
 
-    def check_source(self, source, filename, ignore_decorators):
+    def check_source(self, source, filename, ignore_decorators=None):
         module = parse(StringIO(source), filename)
         for definition in module:
             for this_check in self.checks:
@@ -114,9 +114,10 @@ class ConventionChecker(object):
                 docstring and is_blank(ast.literal_eval(docstring))):
             codes = {Module: violations.D100,
                      Class: violations.D101,
-                     NestedClass: violations.D101,
+                     NestedClass: violations.D106,
                      Method: (lambda: violations.D105() if definition.is_magic
-                              else violations.D102()),
+                              else (violations.D107() if definition.is_init
+                              else violations.D102())),
                      Function: violations.D103,
                      NestedFunction: violations.D103,
                      Package: violations.D104}
@@ -372,7 +373,14 @@ class ConventionChecker(object):
                 if check_word in IMPERATIVE_BLACKLIST:
                     return violations.D401b(first_word)
 
-                correct_form = IMPERATIVE_VERBS.get(stem(check_word))
+                try:
+                    correct_form = IMPERATIVE_VERBS.get(stem(check_word))
+                except UnicodeDecodeError:
+                    # This is raised when the docstring contains unicode
+                    # characters in the first word, but is not a unicode
+                    # string. In which case D302 will be reported. Ignoring.
+                    return
+
                 if correct_form and correct_form != check_word:
                     return violations.D401(
                         correct_form.capitalize(),

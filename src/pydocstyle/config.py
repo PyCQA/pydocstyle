@@ -129,7 +129,7 @@ class ConfigurationParser(object):
     def get_files_to_check(self):
         """Generate files and error codes to check on each one.
 
-        Walk dir trees under `self._arguments` and generate yield filnames
+        Walk dir trees under `self._arguments` and yield file names
         that `match` under each directory that `match_dir`.
         The method locates the configuration for each file name and yields a
         tuple of (filename, [error_codes]).
@@ -155,7 +155,7 @@ class ConfigurationParser(object):
         for name in self._arguments:
             if os.path.isdir(name):
                 for root, dirs, filenames in os.walk(name):
-                    config = self._get_config(root)
+                    config = self._get_config(os.path.abspath(root))
                     match, match_dir = _get_matches(config)
                     ignore_decorators = _get_ignore_decorators(config)
 
@@ -168,7 +168,7 @@ class ConfigurationParser(object):
                             yield (full_path, list(config.checked_codes),
                                    ignore_decorators)
             else:
-                config = self._get_config(name)
+                config = self._get_config(os.path.abspath(name))
                 match, _ = _get_matches(config)
                 ignore_decorators = _get_ignore_decorators(config)
                 if match(name):
@@ -446,12 +446,12 @@ class ConfigurationParser(object):
 
         try:
             for part in code_parts:
-                if len(part) < 4:
-                    for code in codes:
-                        if code.startswith(part):
-                            expanded_codes.add(code)
-                else:
-                    expanded_codes.add(part)
+                codes_to_add = {code for code in codes
+                                if code.startswith(part)}
+                if not codes_to_add:
+                    log.warn('Error code passed is not a prefix of any known '
+                             'errors: %s', part)
+                expanded_codes.update(codes_to_add)
         except TypeError as e:
             raise IllegalConfiguration(e)
 
@@ -496,8 +496,8 @@ class ConfigurationParser(object):
         return any([getattr(options, opt) is not None for opt in
                     cls.BASE_ERROR_SELECTION_OPTIONS])
 
-    @staticmethod
-    def _fix_set_options(options):
+    @classmethod
+    def _fix_set_options(cls, options):
         """Alter the set options from None/strings to sets in place."""
         optional_set_options = ('ignore', 'select')
         mandatory_set_options = ('add_ignore', 'add_select')
@@ -506,9 +506,11 @@ class ConfigurationParser(object):
             """Split `value_str` by the delimiter `,` and return a set.
 
             Removes any occurrences of '' in the set.
+            Also expand error code prefixes, to avoid doing this for every
+            file.
 
             """
-            return set(value_str.split(',')) - {''}
+            return cls._expand_error_codes(set(value_str.split(',')) - {''})
 
         for opt in optional_set_options:
             value = getattr(options, opt)

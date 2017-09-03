@@ -4,6 +4,29 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+
+Current Development Version
+---------------------------
+
+New Features
+
+* Public nested classes missing a docstring are now reported as D106 instead
+  of D101 (#198, #261).
+* ``__init__`` methods missing a docstring are now reported as D107 instead of
+  D102 (#273, #277).
+* Added support for Python 3.6 (#270).
+* Specifying an invalid error code prefix (e.g., ``--select=D9``) will print
+  a warning message to ``stderr`` (#253, #279).
+
+Bug Fixes
+
+* Fixed an issue where the ``--source`` flag would result in improperly
+  spaced output (#256, #257, #260).
+* Fixed an issue where if a first word in a docstring had Unicode characters
+  and the docstring was not a unicode string, an exception would be raised
+  (#258, #264).
+
+
 2.0.0 - April 18th, 2017
 ------------------------
 

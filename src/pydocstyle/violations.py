@@ -1,5 +1,7 @@
 """Docstring violation definition."""
 from itertools import dropwhile
+from functools import partial
+from collections import namedtuple
 
 from .utils import is_blank
 
@@ -7,24 +9,25 @@ from .utils import is_blank
 __all__ = ('Error', 'ErrorRegistry')
 
 
+ErrorParams = namedtuple('ErrorParams', ['code', 'short_desc', 'context'])
+
+
 class Error(object):
     """Error in docstring style."""
-
-    # should be overridden by inheriting classes
-    code = None
-    short_desc = None
-    context = None
 
     # Options that define how errors are printed:
     explain = False
     source = False
 
-    def __init__(self, *parameters):
+    def __init__(self, code, short_desc, context, *parameters):
         """Initialize the object.
 
         `parameters` are specific to the created error.
 
         """
+        self.code = code
+        self.short_desc = short_desc
+        self.context = context
         self.parameters = parameters
         self.definition = None
         self.explanation = None
@@ -42,26 +45,24 @@ class Error(object):
         """Return the message to print to the user."""
         ret = '{}: {}'.format(self.code, self.short_desc)
         if self.context is not None:
-            ret += ' (' + self.context.format(*self.parameters) + ')'
+            specific_error_msg = self.context.format(*self.parameters)
+            ret += ' ({})'.format(specific_error_msg)
         return ret
 
     @property
     def lines(self):
         """Return the source code lines for this error."""
         source = ''
-        lines = self.definition._source[self.definition._slice]
+        lines = self.definition.source
         offset = self.definition.start
         lines_stripped = list(reversed(list(dropwhile(is_blank,
                                                       reversed(lines)))))
-        numbers_width = 0
+        numbers_width = len(str(offset + len(lines_stripped)))
+        line_format = '{{:{}}}:{{}}'.format(numbers_width)
         for n, line in enumerate(lines_stripped):
-            numbers_width = max(numbers_width, n + offset)
-        numbers_width = len(str(numbers_width))
-        numbers_width = 6
-        for n, line in enumerate(lines_stripped):
-            source += '{{}}{}: {{}}'.format(numbers_width).format(
-                n + offset, line)
-            source += '%*d: %s' % (numbers_width, n + offset, line)
+            if line:
+                line = ' ' + line
+            source += line_format.format(n + offset, line)
             if n > 5:
                 source += '        ...\n'
                 break
@@ -112,13 +113,10 @@ class ErrorRegistry(object):
             """Create an error, register it to this group and return it."""
             # TODO: check prefix
 
-            class _Error(Error):
-                code = error_code
-                short_desc = error_desc
-                context = error_context
-
-            self.errors.append(_Error)
-            return _Error
+            error_params = ErrorParams(error_code, error_desc, error_context)
+            factory = partial(Error, *error_params)
+            self.errors.append(error_params)
+            return factory
 
     @classmethod
     def create_group(cls, prefix, name):
@@ -160,6 +158,8 @@ D102 = D1xx.create_error('D102', 'Missing docstring in public method')
 D103 = D1xx.create_error('D103', 'Missing docstring in public function')
 D104 = D1xx.create_error('D104', 'Missing docstring in public package')
 D105 = D1xx.create_error('D105', 'Missing docstring in magic method')
+D106 = D1xx.create_error('D106', 'Missing docstring in public nested class')
+D107 = D1xx.create_error('D107', 'Missing docstring in __init__')
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '

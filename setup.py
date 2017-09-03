@@ -1,9 +1,8 @@
 from __future__ import with_statement
-import os
 from setuptools import setup
 
 # Do not update the version manually - it is managed by `bumpversion`.
-version = '2.0.0'
+version = '2.0.1rc'
 
 setup(
     name='pydocstyle',
