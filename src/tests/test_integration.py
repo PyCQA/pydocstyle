@@ -274,6 +274,7 @@ def test_sectionless_config_file(env):
     out, err, code = env.invoke()
     assert code == 1
     assert 'D100' in out
+    assert 'file does not contain a pydocstyle section' not in err
 
 
 def test_config_path(env):
