@@ -277,6 +277,29 @@ def test_sectionless_config_file(env):
     assert 'file does not contain a pydocstyle section' not in err
 
 
+def test_multiple_lined_config_file(env):
+    """Blah."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            class Foo(object):
+                "Doc string"
+                def foo():
+                    pass
+        """))
+
+    select_string = ('D100,\n'
+                     '  #D103,\n'
+                     ' D204, D300')
+    env.write_config(select=select_string)
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+    assert 'D204' in out
+    assert 'D300' in out
+    assert 'D103' not in out
+
+
 def test_config_path(env):
     """Test that options are correctly loaded from a specific config file.
 
