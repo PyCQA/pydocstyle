@@ -7,10 +7,7 @@ from collections import Set, namedtuple
 from re import compile as re
 
 
-try:  # Python 2.x
-    from ConfigParser import RawConfigParser
-except ImportError:  # Python 3.x
-    from configparser import RawConfigParser
+from configparser import RawConfigParser
 
 
 from .utils import __version__, log
@@ -453,10 +450,10 @@ class ConfigurationParser(object):
 
         try:
             for part in code_parts:
-                # Dealing with split-lined configurations. The part might begin
-                # with a whitespace and/or a comment marker.
+                # Dealing with split-lined configurations; The part might begin
+                # with a whitespace due to the newline character.
                 part = part.strip()
-                if not part or part.startswith(('#', ';')):
+                if not part:
                     continue
 
                 codes_to_add = {code for code in codes
