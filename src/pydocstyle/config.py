@@ -298,7 +298,7 @@ class ConfigurationParser(object):
         Returns (options, should_inherit).
 
         """
-        parser = RawConfigParser()
+        parser = RawConfigParser(inline_comment_prefixes=('#', ';'))
         options = None
         should_inherit = True
 

@@ -289,7 +289,7 @@ def test_multiple_lined_config_file(env):
 
     select_string = ('D100,\n'
                      '  #D103,\n'
-                     ' D204, D300')
+                     ' D204, D300 # Just remember - don\'t check D103!')
     env.write_config(select=select_string)
 
     out, err, code = env.invoke()

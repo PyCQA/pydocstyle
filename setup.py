@@ -28,6 +28,7 @@ setup(
     install_requires=[
         'snowballstemmer',
         'six',
+        'configparser;python_version<"3.3"',
     ],
     entry_points={
         'console_scripts': [
