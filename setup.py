@@ -1,8 +1,21 @@
+import sys
 from __future__ import with_statement
 from setuptools import setup
 
 # Do not update the version manually - it is managed by `bumpversion`.
 version = '2.0.1rc'
+
+
+REQUIRES = [
+        'snowballstemmer',
+        'six',
+    ]
+
+
+# Python3 to Python2 backport support.
+if sys.version_info[0] == 2:
+    REQUIRES.append('configparser == 3.5.0')
+
 
 setup(
     name='pydocstyle',
@@ -25,11 +38,7 @@ setup(
     packages=('pydocstyle',),
     package_dir={'': 'src'},
     package_data={'pydocstyle': ['data/*.txt']},
-    install_requires=[
-        'snowballstemmer',
-        'six',
-        'configparser;python_version<"3.3"',
-    ],
+    install_requires=REQUIRES,
     entry_points={
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',
