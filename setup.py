@@ -1,6 +1,6 @@
-import sys
 from __future__ import with_statement
 from setuptools import setup
+import sys
 
 # Do not update the version manually - it is managed by `bumpversion`.
 version = '2.0.1rc'
