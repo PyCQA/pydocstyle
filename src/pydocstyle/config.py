@@ -7,10 +7,7 @@ from collections import Set, namedtuple
 from re import compile as re
 
 
-try:  # Python 3.x
-    from ConfigParser import RawConfigParser
-except ImportError:  # Python 2.x
-    from configparser import RawConfigParser
+from configparser import RawConfigParser
 
 
 from .utils import __version__, log
@@ -301,7 +298,7 @@ class ConfigurationParser(object):
         Returns (options, should_inherit).
 
         """
-        parser = RawConfigParser()
+        parser = RawConfigParser(inline_comment_prefixes=('#', ';'))
         options = None
         should_inherit = True
 
@@ -453,6 +450,12 @@ class ConfigurationParser(object):
 
         try:
             for part in code_parts:
+                # Dealing with split-lined configurations; The part might begin
+                # with a whitespace due to the newline character.
+                part = part.strip()
+                if not part:
+                    continue
+
                 codes_to_add = {code for code in codes
                                 if code.startswith(part)}
                 if not codes_to_add:
