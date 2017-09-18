@@ -6,15 +6,15 @@ import sys
 version = '2.0.1rc'
 
 
-REQUIRES = [
-        'snowballstemmer',
-        'six',
-    ]
+requirements = [
+    'snowballstemmer',
+    'six',
+]
 
 
 # Python3 to Python2 backport support.
 if sys.version_info[0] == 2:
-    REQUIRES.append('configparser == 3.5.0')
+    requirements.append('configparser')
 
 
 setup(
@@ -38,7 +38,7 @@ setup(
     packages=('pydocstyle',),
     package_dir={'': 'src'},
     package_data={'pydocstyle': ['data/*.txt']},
-    install_requires=REQUIRES,
+    install_requires=requirements,
     entry_points={
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',

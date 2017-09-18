@@ -278,7 +278,7 @@ def test_sectionless_config_file(env):
 
 
 def test_multiple_lined_config_file(env):
-    """Blah."""
+    """Test that .ini files with multi-lined entries are parsed correctly."""
     with env.open('example.py', 'wt') as example:
         example.write(textwrap.dedent("""\
             class Foo(object):
