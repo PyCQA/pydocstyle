@@ -548,18 +548,9 @@ class ConfigurationParser(object):
         """Return an option parser to parse the command line arguments."""
         from optparse import OptionParser, OptionGroup
 
-        epilog = ('How Error Code Selection Works: '
-                  'There are 3 options that decide which error codes will be '
-                  'tested: --convention, --select and --ignore. Only one '
-                  '(or none) of these three options can be used '
-                  '(when none of them was selected, the default value is '
-                  '`--convention=pep257`).'
-                  'These options select the initial lise of errors to check.')
-
         parser = OptionParser(
             version=__version__,
-            usage='Usage: pydocstyle [options] [<file|dir>...]',
-            epilog='')
+            usage='Usage: pydocstyle [options] [<file|dir>...]')
 
         option = parser.add_option
 
