@@ -303,7 +303,7 @@ class ConfigurationParser(object):
         should_inherit = True
 
         if parser.read(path) and self._get_section_name(parser):
-            all_options = [o for o in self._parser.option_list]
+            all_options = self._parser.option_list[:]
             for group in self._parser.option_groups:
                 all_options.extend(group.option_list)
 
