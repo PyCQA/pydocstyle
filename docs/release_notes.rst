@@ -18,6 +18,8 @@ New Features
 * Specifying an invalid error code prefix (e.g., ``--select=D9``) will print
   a warning message to ``stderr`` (#253, #279).
 * Configuration files now support multiple-lined entries (#250, #281).
+* Improved description of how error selection works in the help section
+  (#231, #283).
 
 Bug Fixes
 
