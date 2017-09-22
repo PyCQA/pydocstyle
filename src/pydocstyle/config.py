@@ -303,8 +303,12 @@ class ConfigurationParser(object):
         should_inherit = True
 
         if parser.read(path) and self._get_section_name(parser):
+            all_options = [o for o in self._parser.option_list]
+            for group in self._parser.option_groups:
+                all_options.extend(group.option_list)
+
             option_list = dict([(o.dest, o.type or o.action)
-                                for o in self._parser.option_list])
+                                for o in all_options])
 
             # First, read the default values
             new_options, _ = self._parse_args([])
