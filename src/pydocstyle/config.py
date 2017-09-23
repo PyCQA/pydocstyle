@@ -303,8 +303,12 @@ class ConfigurationParser(object):
         should_inherit = True
 
         if parser.read(path) and self._get_section_name(parser):
+            all_options = self._parser.option_list[:]
+            for group in self._parser.option_groups:
+                all_options.extend(group.option_list)
+
             option_list = dict([(o.dest, o.type or o.action)
-                                for o in self._parser.option_list])
+                                for o in all_options])
 
             # First, read the default values
             new_options, _ = self._parse_args([])
@@ -542,7 +546,7 @@ class ConfigurationParser(object):
     @classmethod
     def _create_option_parser(cls):
         """Return an option parser to parse the command line arguments."""
-        from optparse import OptionParser
+        from optparse import OptionParser, OptionGroup
 
         parser = OptionParser(
             version=__version__,
@@ -564,27 +568,44 @@ class ConfigurationParser(object):
         option('--config', metavar='<path>', default=None,
                help='use given config file and disable config discovery')
 
+        check_group = OptionGroup(
+            parser,
+            'Error Check Options',
+            'Only one of --select, --ignore or --convention can be '
+            'specified. If none is specified, defaults to '
+            '`--convention=pep257`. These three options select the "basic '
+            'list" of error codes to check. If you wish to change that list '
+            '(for example, if you selected a known convention but wish to '
+            'ignore a specific error from it or add a new one) you can '
+            'use `--add-[ignore/select]` in order to do so.')
+        add_check = check_group.add_option
+
         # Error check options
-        option('--select', metavar='<codes>', default=None,
-               help='choose the basic list of checked errors by '
-                    'specifying which errors to check for (with a list of '
-                    'comma-separated error codes or prefixes). '
-                    'for example: --select=D101,D2')
-        option('--ignore', metavar='<codes>', default=None,
-               help='choose the basic list of checked errors by '
-                    'specifying which errors to ignore (with a list of '
-                    'comma-separated error codes or prefixes). '
-                    'for example: --ignore=D101,D2')
-        option('--convention', metavar='<name>', default=None,
-               help='choose the basic list of checked errors by specifying an '
-                    'existing convention. Possible conventions: {}'
-                    .format(', '.join(conventions)))
-        option('--add-select', metavar='<codes>', default=None,
-               help='amend the list of errors to check for by specifying '
-                    'more error codes to check.')
-        option('--add-ignore', metavar='<codes>', default=None,
-               help='amend the list of errors to check for by specifying '
-                    'more error codes to ignore.')
+        add_check('--select', metavar='<codes>', default=None,
+                  help='choose the basic list of checked errors by '
+                       'specifying which errors to check for (with a list of '
+                       'comma-separated error codes or prefixes). '
+                       'for example: --select=D101,D2')
+        add_check('--ignore', metavar='<codes>', default=None,
+                  help='choose the basic list of checked errors by '
+                       'specifying which errors to ignore out of all of the '
+                       'available error codes (with a list of '
+                       'comma-separated error codes or prefixes). '
+                       'for example: --ignore=D101,D2')
+        add_check('--convention', metavar='<name>', default=None,
+                  help='choose the basic list of checked errors by specifying '
+                       'an existing convention. Possible conventions: {}.'
+                       .format(', '.join(conventions)))
+        add_check('--add-select', metavar='<codes>', default=None,
+                  help='add extra error codes to check to the basic list of '
+                       'errors previously set by --select, --ignore or '
+                       '--convention.')
+        add_check('--add-ignore', metavar='<codes>', default=None,
+                  help='ignore extra error codes by removing them from the '
+                       'basic list previously set by --select, --ignore '
+                       'or --convention.')
+
+        parser.add_option_group(check_group)
 
         # Match clauses
         option('--match', metavar='<pattern>', default=None,
