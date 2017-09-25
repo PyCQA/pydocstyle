@@ -5,12 +5,8 @@ environment:
     - TOXENV: "py34"
     - TOXENV: "py35"
     - TOXENV: "py36"
-    - TOXENV: "pypy"
 
 install:
-    # This takes a long time, so only for pypy env.
-  - if "%TOXENV%"=="pypy" choco install python.pypy
-
   - pip install tox
 
 build: off
