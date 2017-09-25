@@ -1,0 +1,15 @@
+environment:
+  matrix:
+    - TOXENV: "py27"
+    - TOXENV: "py33"
+    - TOXENV: "py34"
+    - TOXENV: "py35"
+    - TOXENV: "py36"
+
+install:
+  - pip install tox
+
+build: off
+
+test_script:
+  - tox -e %TOXENV%
