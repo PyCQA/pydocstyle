@@ -45,7 +45,7 @@ Links
     :target: https://travis-ci.org/PyCQA/pydocstyle
 
 .. image:: https://ci.appveyor.com/api/projects/status/40kkc366bmrrttca/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/PyCQA/pydocstyle/branch/master
+    :target: https://ci.appveyor.com/project/Nurdok/pydocstyle/branch/master
     
 .. image:: https://readthedocs.org/projects/pydocstyle/badge/?version=latest
     :target: https://readthedocs.org/projects/pydocstyle/?badge=latest
