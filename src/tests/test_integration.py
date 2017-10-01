@@ -110,11 +110,9 @@ def install_package(request):
     script.
     """
     cwd = os.path.join(os.path.dirname(__file__), '..', '..')
-    install_cmd = "python setup.py develop"
-    uninstall_cmd = install_cmd + ' --uninstall'
-    subprocess.check_call(shlex.split(install_cmd), cwd=cwd)
+    subprocess.check_call(shlex.split("pip install -e ."), cwd=cwd)
     yield
-    subprocess.check_call(shlex.split(uninstall_cmd), cwd=cwd)
+    subprocess.check_call(shlex.split("pip uninstall ."), cwd=cwd)
 
 
 @pytest.yield_fixture(scope="function")
