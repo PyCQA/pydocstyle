@@ -30,6 +30,7 @@ Bug Fixes
   (#258, #264).
 * Configuration files that were specified by CLI and don't contain a valid
   section name will now issue a warning to ``stderr`` (#276, #280).
+* Removed D107 from the numpy convention (#TBD).
 
 
 2.0.0 - April 18th, 2017

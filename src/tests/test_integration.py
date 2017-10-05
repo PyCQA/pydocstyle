@@ -607,11 +607,14 @@ def test_numpy_convention(env):
                 returns
                  ------
                 """
+                def __init__(self):
+                    pass
         '''))
 
     env.write_config(convention="numpy")
     out, err, code = env.invoke()
     assert code == 1
+    assert 'D107' not in out
     assert 'D213' not in out
     assert 'D215' in out
     assert 'D405' in out

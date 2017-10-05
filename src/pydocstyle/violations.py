@@ -242,5 +242,5 @@ conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
                             'D411'},
-    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402', 'D413'}
+    'numpy': all_errors - {'D107', 'D203', 'D212', 'D213', 'D402', 'D413'}
 })
