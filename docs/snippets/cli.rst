@@ -16,21 +16,6 @@ Usage
       -v, --verbose         print status information
       --count               print total number of errors to stdout
       --config=<path>       use given config file and disable config discovery
-      --select=<codes>      choose the basic list of checked errors by specifying
-                            which errors to check for (with a list of comma-
-                            separated error codes or prefixes). for example:
-                            --select=D101,D2
-      --ignore=<codes>      choose the basic list of checked errors by specifying
-                            which errors to ignore (with a list of comma-separated
-                            error codes or prefixes). for example:
-                            --ignore=D101,D2
-      --convention=<name>   choose the basic list of checked errors by specifying
-                            an existing convention. Possible conventions: pep257,
-                            numpy
-      --add-select=<codes>  amend the list of errors to check for by specifying
-                            more error codes to check.
-      --add-ignore=<codes>  amend the list of errors to check for by specifying
-                            more error codes to ignore.
       --match=<pattern>     check only files that exactly match <pattern> regular
                             expression; default is --match='(?!test_).*\.py' which
                             matches files that don't start with 'test_' but end
@@ -44,6 +29,36 @@ Usage
                             a function with a name fitting the <decorators>
                             regular expression; default is --ignore-decorators=''
                             which does not ignore any decorated functions.
+
+      Error Check Options:
+        Only one of --select, --ignore or --convention can be specified. If
+        none is specified, defaults to `--convention=pep257`. These three
+        options select the "basic list" of error codes to check. If you wish
+        to change that list (for example, if you selected a known convention
+        but wish to ignore a specific error from it or add a new one) you can
+        use `--add-[ignore/select]` in order to do so.
+
+        --select=<codes>    choose the basic list of checked errors by specifying
+                            which errors to check for (with a list of comma-
+                            separated error codes or prefixes). for example:
+                            --select=D101,D2
+        --ignore=<codes>    choose the basic list of checked errors by specifying
+                            which errors to ignore out of all of the available
+                            error codes (with a list of comma-separated error
+                            codes or prefixes). for example: --ignore=D101,D2
+        --convention=<name>
+                            choose the basic list of checked errors by specifying
+                            an existing convention. Possible conventions: pep257,
+                            numpy.
+        --add-select=<codes>
+                            add extra error codes to check to the basic list of
+                            errors previously set by --select, --ignore or
+                            --convention.
+        --add-ignore=<codes>
+                            ignore extra error codes by removing them from the
+                            basic list previously set by --select, --ignore or
+                            --convention.
+
 
 .. note::
 

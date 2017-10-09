@@ -5,8 +5,18 @@ Release Notes
 `Semantic Versioning <http://semver.org/>`_ specification.
 
 
-Current Development Version
----------------------------
+2.1.1 - October 9th, 2017
+-------------------------
+
+Bug Fixes
+
+* Changed wheel configuration to be NOT universal, as #281 added
+  ``configparser`` as a dependency for Python 2.7.
+* Updated usage documentation.
+
+
+2.1.0 - October 8th, 2017
+-------------------------
 
 New Features
 
