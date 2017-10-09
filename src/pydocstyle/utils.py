@@ -8,7 +8,7 @@ except ImportError:
 
 
 # Do not update the version manually - it is managed by `bumpversion`.
-__version__ = '2.1.0'
+__version__ = '2.1.1rc'
 log = logging.getLogger(__name__)
 
 
