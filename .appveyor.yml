@@ -12,6 +12,7 @@ environment:
     #- TOXENV: "py35-install"
     #- TOXENV: "py36-install"
     - TOXENV: "pypy-install"
+    - TOXENV: "docs"
 
 install:
   # This takes a long time, so it's done only for pypy environments.
