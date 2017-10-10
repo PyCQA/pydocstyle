@@ -5,30 +5,33 @@
 
 sudo: false
 language: python
-install:
-  - pip install tox virtualenv virtualenvwrapper
-script:
-  - tox
-  - which python
-  - mktmpenv -p python3.6
-  - which python
-  - python setup.py bdist_wheel --universal
-  - deactivate
-  - which python
-  - pip install dist/pydocstyle-*.whl
+install: pip install tox
+script: tox
 matrix:
   include:
     - python: 2.7
-      env: TOXENV=py27
+      env: TOXENV=py27-tests
     - python: 3.3
-      env: TOXENV=py33
+      env: TOXENV=py33-tests
     - python: 3.4
-      env: TOXENV=py34
+      env: TOXENV=py34-tests
     - python: 3.5
-      env: TOXENV=py35
+      env: TOXENV=py35-tests
     - python: 3.6
-      env: TOXENV=py36
+      env: TOXENV=py36-tests
     - python: pypy
-      env: TOXENV=pypy
+      env: TOXENV=pypy-tests
+    - python: 2.7
+      env: TOXENV=py27-install
+    - python: 3.3
+      env: TOXENV=py33-install
+    - python: 3.4
+      env: TOXENV=py34-install
+    - python: 3.5
+      env: TOXENV=py35-install
+    - python: 3.6
+      env: TOXENV=py36-install
+    - python: pypy
+      env: TOXENV=pypy-install
     - python: 2.7
       env: TOXENV=docs
