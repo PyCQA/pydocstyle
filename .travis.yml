@@ -5,10 +5,11 @@
 
 sudo: false
 language: python
-install: pip install tox
+install: pip install tox wheel
 script:
   - tox
-  - python -V
+  - python setup.py bdist_wheel
+  - pip install dist/*.whl
 matrix:
   include:
     - python: 2.7
