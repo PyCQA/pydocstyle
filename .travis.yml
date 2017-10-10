@@ -7,10 +7,14 @@ sudo: false
 language: python
 install:
   - pip install tox
-  - python3 -m pip install wheel
 script:
   - tox
-  - python3 setup.py bdist_wheel --universal
+  - which python
+  - mktmpenv -p python3.6
+  - which python
+  - python setup.py bdist_wheel --universal
+  - deactivate
+  - which python
   - pip install dist/pydocstyle-*.whl
 matrix:
   include:
