@@ -5,10 +5,12 @@
 
 sudo: false
 language: python
-install: pip install tox wheel
+install:
+  - pip install tox
+  - python3 -m pip install wheel
 script:
   - tox
-  - python setup.py bdist_wheel --universal
+  - python3 setup.py bdist_wheel --universal
   - pip install dist/pydocstyle-*.whl
 matrix:
   include:
