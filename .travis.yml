@@ -6,7 +6,7 @@
 sudo: false
 language: python
 install:
-  - pip install tox
+  - pip install tox virtualenv virtualenvwrapper
 script:
   - tox
   - which python
