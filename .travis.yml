@@ -8,8 +8,8 @@ language: python
 install: pip install tox wheel
 script:
   - tox
-  - python setup.py bdist_wheel
-  - pip install dist/*.whl
+  - python setup.py bdist_wheel --universal
+  - pip install dist/pydocstyle-*.whl
 matrix:
   include:
     - python: 2.7
