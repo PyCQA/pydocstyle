@@ -16,7 +16,7 @@ environment:
 
 install:
   # This takes a long time, so it's done only for pypy environments.
-  - if "%TOXENV%"=="pypy-tests" or "%TOXENV%"=="pypy-install" choco install python.pypy
+  - if "%TOXENV%"=="pypy-tests" || "%TOXENV%"=="pypy-install" choco install python.pypy
 
   - pip install tox
 
