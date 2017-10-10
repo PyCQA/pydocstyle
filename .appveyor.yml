@@ -15,8 +15,10 @@ environment:
     - TOXENV: "docs"
 
 install:
-  # This takes a long time, so it's done only for pypy environments.
-  - if "%TOXENV%"=="pypy-tests" || "%TOXENV%"=="pypy-install" choco install python.pypy
+  # This takes a long time, so it's done only for pypy env.
+  - ps: if($env:TOXENV -eq 'pypy-tests' -or $env:TOXENV -eq 'pypy-install') {
+          choco install python.pypy;
+        }
 
   - pip install tox
 
