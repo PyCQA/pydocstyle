@@ -6,7 +6,9 @@
 sudo: false
 language: python
 install: pip install tox
-script: tox
+script:
+  - tox
+  - python -V
 matrix:
   include:
     - python: 2.7
