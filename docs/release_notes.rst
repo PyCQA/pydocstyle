@@ -10,7 +10,7 @@ Current development version
 New features
 
 * Violations are now reported on the line where the docstring starts, not the
-  line of the ``def``/``class`` it corresponds to.
+  line of the ``def``/``class`` it corresponds to (#238, #83).
 
 
 2.1.1 - October 9th, 2017
