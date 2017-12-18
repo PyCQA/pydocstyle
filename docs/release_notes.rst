@@ -4,8 +4,8 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
-2.2.0 - not yet released
-------------------------
+Current development version
+---------------------------
 
 New features
 
