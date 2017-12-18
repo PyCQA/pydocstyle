@@ -38,7 +38,7 @@ class Error(object):
         self.explanation = explanation
 
     filename = property(lambda self: self.definition.module.name)
-    line = property(lambda self: self.definition.start)
+    line = property(lambda self: self.definition.error_lineno)
 
     @property
     def message(self):

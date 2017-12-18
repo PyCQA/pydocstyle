@@ -36,10 +36,13 @@ def test_function():
     assert function.decorators == []
     assert function.children == []
     assert function.docstring == '"""Do something."""'
+    assert function.docstring.start == 2
+    assert function.docstring.end == 2
     assert function.kind == 'function'
     assert function.parent == module
     assert function.start == 1
     assert function.end == 3
+    assert function.error_lineno == 2
     assert function.source == code.getvalue()
     assert function.is_public
     assert str(function) == 'in public function `do_something`'
@@ -95,6 +98,7 @@ def test_nested_function():
     assert outer_function.parent == module
     assert outer_function.start == 1
     assert outer_function.end == 6
+    assert outer_function.error_lineno == 2
     assert outer_function.source == code.getvalue()
     assert outer_function.is_public
     assert str(outer_function) == 'in public function `outer_function`'
@@ -107,6 +111,7 @@ def test_nested_function():
     assert inner_function.parent == outer_function
     assert inner_function.start == 3
     assert inner_function.end == 5
+    assert inner_function.error_lineno == 4
     assert textwrap.dedent(inner_function.source) == textwrap.dedent("""\
         def inner_function():
             '''This is the inner function.'''
@@ -239,6 +244,7 @@ def test_class():
     assert klass.parent == module
     assert klass.start == 1
     assert klass.end == 3
+    assert klass.error_lineno == 3
     assert klass.source == code.getvalue()
     assert klass.is_public
     assert str(klass) == 'in public class `TestedClass`'
@@ -264,6 +270,7 @@ def test_public_method():
     assert klass.parent == module
     assert klass.start == 1
     assert klass.end == 5
+    assert klass.error_lineno == 1
     assert klass.source == code.getvalue()
     assert klass.is_public
     assert str(klass) == 'in public class `TestedClass`'
@@ -276,6 +283,7 @@ def test_public_method():
     assert method.parent == klass
     assert method.start == 2
     assert method.end == 5
+    assert method.error_lineno == 3
     assert textwrap.dedent(method.source) == textwrap.dedent("""\
         def do_it(param):
             \"""Do the 'it'\"""
@@ -307,6 +315,7 @@ def test_private_method():
     assert klass.parent == module
     assert klass.start == 1
     assert klass.end == 5
+    assert klass.error_lineno == 1
     assert klass.source == code.getvalue()
     assert klass.is_public
     assert str(klass) == 'in public class `TestedClass`'
@@ -319,6 +328,7 @@ def test_private_method():
     assert method.parent == klass
     assert method.start == 2
     assert method.end == 5
+    assert method.error_lineno == 3
     assert textwrap.dedent(method.source) == textwrap.dedent("""\
         def _do_it(param):
             \"""Do the 'it'\"""
@@ -348,6 +358,7 @@ def test_magic_method():
     assert klass.parent == module
     assert klass.start == 1
     assert klass.end == 3
+    assert klass.error_lineno == 1
     assert klass.source == code.getvalue()
     assert klass.is_public
     assert str(klass) == 'in public class `TestedClass`'
@@ -360,6 +371,7 @@ def test_magic_method():
     assert method.parent == klass
     assert method.start == 2
     assert method.end == 3
+    assert method.error_lineno == 2
     assert textwrap.dedent(method.source) == textwrap.dedent("""\
         def __str__(self):
             return "me"
@@ -388,6 +400,7 @@ def test_nested_class():
     assert outer_class.parent == module
     assert outer_class.start == 1
     assert outer_class.end == 4
+    assert outer_class.error_lineno == 2
     assert outer_class.source == code.getvalue()
     assert outer_class.is_public
     assert str(outer_class) == 'in public class `OuterClass`'
@@ -401,6 +414,7 @@ def test_nested_class():
     assert inner_class.parent == outer_class
     assert inner_class.start == 3
     assert inner_class.end == 4
+    assert inner_class.error_lineno == 4
     assert textwrap.dedent(inner_class.source) == textwrap.dedent("""\
         class InnerClass(object):
             "An inner docstring."
