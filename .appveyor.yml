@@ -1,0 +1,28 @@
+environment:
+  matrix:
+    - TOXENV: "py27-tests"
+    - TOXENV: "py33-tests"
+    - TOXENV: "py34-tests"
+    - TOXENV: "py35-tests"
+    - TOXENV: "py36-tests"
+    - TOXENV: "pypy-tests"
+    - TOXENV: "py27-install"
+    - TOXENV: "py33-install"
+    - TOXENV: "py34-install"
+    - TOXENV: "py35-install"
+    - TOXENV: "py36-install"
+    - TOXENV: "pypy-install"
+    - TOXENV: "docs"
+
+install:
+  # This takes a long time, so it's done only for pypy environments.
+  - ps: if($env:TOXENV -eq 'pypy-tests' -or $env:TOXENV -eq 'pypy-install') {
+          choco install python.pypy;
+        }
+
+  - pip install tox
+
+build: off
+
+test_script:
+  - tox -e %TOXENV%

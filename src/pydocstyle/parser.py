@@ -81,6 +81,13 @@ class Definition(Value):
         return chain([self], *self.children)
 
     @property
+    def error_lineno(self):
+        """Get the line number with which to report violations."""
+        if isinstance(self.docstring, Docstring):
+            return self.docstring.start
+        return self.start
+
+    @property
     def _publicity(self):
         return {True: 'public', False: 'private'}[self.is_public]
 
@@ -167,6 +174,11 @@ class Method(Function):
                 self.name not in VARIADIC_MAGIC_METHODS)
 
     @property
+    def is_init(self):
+        """Return True iff this method is `__init__`."""
+        return self.name == '__init__'
+
+    @property
     def is_public(self):
         """Return True iff this method should be considered public."""
         # Check if we are a setter/deleter method, and mark as private if so.
@@ -203,6 +215,21 @@ class Decorator(Value):
     """A decorator for function, method or class."""
 
     _fields = 'name arguments'.split()
+
+
+class Docstring(str):
+    """Represent a docstring.
+
+    This is a string, but has additional start/end attributes representing
+    the start and end of the token.
+
+    """
+    def __new__(cls, v, start, end):
+        return str.__new__(cls, v)
+
+    def __init__(self, v, start, end):
+        self.start = start
+        self.end = end
 
 
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
@@ -329,7 +356,11 @@ class Parser(object):
             self.log.debug("parsing docstring, token is %r (%s)",
                            self.current.kind, self.current.value)
         if self.current.kind == tk.STRING:
-            docstring = self.current.value
+            docstring = Docstring(
+                self.current.value,
+                self.current.start[0],
+                self.current.end[0]
+            )
             self.stream.move()
             return docstring
         return None

@@ -110,11 +110,9 @@ def install_package(request):
     script.
     """
     cwd = os.path.join(os.path.dirname(__file__), '..', '..')
-    install_cmd = "python setup.py develop"
-    uninstall_cmd = install_cmd + ' --uninstall'
-    subprocess.check_call(shlex.split(install_cmd), cwd=cwd)
+    subprocess.check_call(shlex.split("pip install -e ."), cwd=cwd)
     yield
-    subprocess.check_call(shlex.split(uninstall_cmd), cwd=cwd)
+    subprocess.check_call(shlex.split("pip uninstall ."), cwd=cwd)
 
 
 @pytest.yield_fixture(scope="function")
@@ -249,6 +247,55 @@ def test_config_file(env):
     assert code == 0
     assert 'D100' not in err
     assert 'D103' not in err
+
+
+def test_sectionless_config_file(env):
+    """Test that config files without a valid section name issue a warning."""
+    with env.open('config.ini', 'wt') as conf:
+        conf.write('[pdcstl]')
+        config_path = conf.name
+
+    _, err, code = env.invoke('--config={}'.format(config_path))
+    assert code == 0
+    assert 'Configuration file does not contain a pydocstyle section' in err
+
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            def foo():
+                pass
+        """))
+
+    with env.open('tox.ini', 'wt') as conf:
+        conf.write('[pdcstl]\n')
+        conf.write('ignore = D100')
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+    assert 'file does not contain a pydocstyle section' not in err
+
+
+def test_multiple_lined_config_file(env):
+    """Test that .ini files with multi-lined entries are parsed correctly."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            class Foo(object):
+                "Doc string"
+                def foo():
+                    pass
+        """))
+
+    select_string = ('D100,\n'
+                     '  #D103,\n'
+                     ' D204, D300 # Just remember - don\'t check D103!')
+    env.write_config(select=select_string)
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+    assert 'D204' in out
+    assert 'D300' in out
+    assert 'D103' not in out
 
 
 def test_config_path(env):
@@ -414,7 +461,9 @@ def test_bad_wildcard_add_ignore_cli(env):
     assert code == 1
     assert 'D203' in out
     assert 'D300' in out
-    assert 'D3034' not in out
+    assert 'D3004' not in out
+    assert ('Error code passed is not a prefix of any known errors: D3004'
+            in err)
 
 
 def test_conflicting_select_ignore_config(env):
@@ -558,11 +607,14 @@ def test_numpy_convention(env):
                 returns
                  ------
                 """
+                def __init__(self):
+                    pass
         '''))
 
     env.write_config(convention="numpy")
     out, err, code = env.invoke()
     assert code == 1
+    assert 'D107' not in out
     assert 'D213' not in out
     assert 'D215' in out
     assert 'D405' in out

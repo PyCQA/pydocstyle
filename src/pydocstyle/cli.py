@@ -90,5 +90,7 @@ def setup_stream_handlers(conf):
     log.addHandler(stdout_handler)
 
     stderr_handler = logging.StreamHandler(sys.stderr)
+    msg_format = "%(levelname)s: %(message)s"
+    stderr_handler.setFormatter(logging.Formatter(fmt=msg_format))
     stderr_handler.setLevel(logging.WARNING)
     log.addHandler(stderr_handler)

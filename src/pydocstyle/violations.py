@@ -38,7 +38,7 @@ class Error(object):
         self.explanation = explanation
 
     filename = property(lambda self: self.definition.module.name)
-    line = property(lambda self: self.definition.start)
+    line = property(lambda self: self.definition.error_lineno)
 
     @property
     def message(self):
@@ -159,6 +159,7 @@ D103 = D1xx.create_error('D103', 'Missing docstring in public function')
 D104 = D1xx.create_error('D104', 'Missing docstring in public package')
 D105 = D1xx.create_error('D105', 'Missing docstring in magic method')
 D106 = D1xx.create_error('D106', 'Missing docstring in public nested class')
+D107 = D1xx.create_error('D107', 'Missing docstring in __init__')
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error('D200', 'One-line docstring should fit on one line '
@@ -241,5 +242,5 @@ conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
                             'D411'},
-    'numpy': all_errors - {'D203', 'D212', 'D213', 'D402', 'D413'}
+    'numpy': all_errors - {'D107', 'D203', 'D212', 'D213', 'D402', 'D413'}
 })
