@@ -21,8 +21,9 @@ The numpy convention checks for all of the above errors except for
 D107, D203, D212, D213, D402, and D413.
 
 These conventions may be specified using `--convention=<name>` when
-running pydocstyle from the command line, or by specifying the
-convention in a configuration file.
+running pydocstyle from the command line or by specifying the
+convention in a configuration file.  See the :ref:`cli_usage` section
+for more details.
 
 Publicity
 ---------
