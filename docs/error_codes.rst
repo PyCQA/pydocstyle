@@ -6,17 +6,24 @@ Grouping
 
 .. include:: snippets/error_code_table.rst
 
+Default conventions
+-------------------
 
-Default Checks
---------------
+Not all error codes are checked for by default.  There are two
+conventions that may be used by pydocstyle: pep257 and numpy.
 
-Not all error codes are checked for by default. The default behavior is to
-check only error codes that are part of the `PEP257
-<http://www.python.org/dev/peps/pep-0257/>`_ official convention.
+The pep257 convention, which is enabled by default in pydocstyle,
+checks for all of the above errors except for D203, D212, D213, D214,
+D215, D404, D405, D406, D407, D408, D409, D410, and D411 (as specified
+in `PEP257 <http://www.python.org/dev/peps/pep-0257/>`_).
 
-All of the above error codes are checked for by default except for D203,
-D212, D213 and D404.
+The numpy convention checks for all of the above errors except for
+D107, D203, D212, D213, D402, and D413.
 
+These conventions may be specified using `--convention=<name>` when
+running pydocstyle from the command line or by specifying the
+convention in a configuration file.  See the :ref:`cli_usage` section
+for more details.
 
 Publicity
 ---------
