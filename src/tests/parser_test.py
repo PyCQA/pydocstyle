@@ -514,6 +514,21 @@ def test_complex_module():
     assert len(list(module)) == 8
 
 
+def test_module_checks_all():
+    """Test that a complex module is parsed correctly."""
+    parser = Parser()
+    code = CodeSnippet('''\
+        """Module."""
+        __all__ = ['f']
+        def f():
+            """Foo the Bar."""
+            pass
+        assert 'f' in __all__
+    ''')
+
+    parser.parse(code, "filepath")
+
+
 @pytest.mark.parametrize("code", (
     CodeSnippet("""\
         __all__ = ['foo', 'bar']
