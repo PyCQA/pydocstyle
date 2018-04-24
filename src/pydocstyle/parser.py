@@ -231,6 +231,9 @@ class Docstring(str):
         self.start = start
         self.end = end
 
+    def __getnewargs__(self):
+        return (str(self), self.start, self.end)
+
 
 VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
 
