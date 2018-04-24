@@ -1,5 +1,7 @@
 """Command line interface for pydocstyle."""
+import itertools
 import logging
+import multiprocessing
 import sys
 
 from .utils import log
@@ -15,6 +17,14 @@ class ReturnCode(object):
     no_violations_found = 0
     violations_found = 1
     invalid_options = 2
+
+
+# a helper function around `check` for multiprocessing that unpacks
+# the args and consumes the iterable.
+def _check(args):
+    filename, checked_codes, ignore_decorators = args
+    results = list(check((filename,), select=checked_codes, ignore_decorators=ignore_decorators))
+    return results
 
 
 def run_pydocstyle():
@@ -37,12 +47,10 @@ def run_pydocstyle():
     Error.explain = run_conf.explain
     Error.source = run_conf.source
 
-    errors = []
+    pool = multiprocessing.Pool()
+    args = conf.get_files_to_check()
     try:
-        for filename, checked_codes, ignore_decorators in \
-                conf.get_files_to_check():
-            errors.extend(check((filename,), select=checked_codes,
-                                ignore_decorators=ignore_decorators))
+        errors = itertools.chain.from_iterable(pool.map(_check, args))
     except IllegalConfiguration as error:
         # An illegal configuration file was found during file generation.
         log.error(error.args[0])
