@@ -463,7 +463,7 @@ class ConfigurationParser(object):
                 codes_to_add = {code for code in codes
                                 if code.startswith(part)}
                 if not codes_to_add:
-                    log.warn('Error code passed is not a prefix of any known '
+                    log.warning('Error code passed is not a prefix of any known '
                              'errors: %s', part)
                 expanded_codes.update(codes_to_add)
         except TypeError as e:
