@@ -454,30 +454,45 @@ class ConventionChecker(object):
 
             This is another line in the docstring. It describes stuff,
             but we forgot to add a blank line between it and the section name.
-            Returns  <----- A real section name. The previous line ends with
-            -------         a period, therefore it is in a new
+            Parameters  <-- A real section name. The previous line ends with
+            ----------      a period, therefore it is in a new
                             grammatical context.
+            param : int
+            examples : list  <------- Not a section - previous line doesn't end
+                A list of examples.   with punctuation.
+            notes : list  <---------- Not a section - there's text after the
+                A list of notes.      colon.
+
+            Notes:  <--- Suspected as a context because there's a suffix to the
+            -----        section, but it's a colon so it's probably a mistake.
             Bla.
 
             '''
 
         To make sure this is really a section we check these conditions:
-            * There's no suffix to the section name.
-            * The previous line ends with punctuation.
-            * The previous line is empty.
+            * There's no suffix to the section name or it's just a colon AND
+            * The previous line is empty OR it ends with punctuation.
 
         If one of the conditions is true, we will consider the line as
         a section name.
         """
-        section_name_suffix = context.line.lstrip(context.section_name).strip()
+        section_name_suffix = context.line.strip().lstrip(
+            context.section_name.strip()
+        ).strip()
+
+        section_suffix_is_only_colon = (
+            section_name_suffix.startswith(':') and
+            is_blank(section_name_suffix[1:])
+        )
 
         punctuation = [',', ';', '.', '-', '\\', '/', ']', '}', ')']
         prev_line_ends_with_punctuation = \
             any(context.previous_line.strip().endswith(x) for x in punctuation)
 
-        return (is_blank(section_name_suffix) or
-                prev_line_ends_with_punctuation or
-                is_blank(context.previous_line))
+        return ((is_blank(section_name_suffix) or
+                 section_suffix_is_only_colon) and
+                (prev_line_ends_with_punctuation or
+                 is_blank(context.previous_line)))
 
     @classmethod
     def _check_section_underline(cls, section_name, context, indentation):

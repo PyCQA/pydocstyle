@@ -221,8 +221,22 @@ def multiple_sections():
 def false_positive_section_prefix():
     """Toggle the gizmo.
 
-    Arguments
-    ---------
-        attributes_are_fun: attributes for the function.
+    Parameters
+    ----------
+    attributes_are_fun: attributes for the function.
+
+    """
+
+
+@expect(_D213)
+def section_names_as_parameter_names():
+    """Toggle the gizmo.
+
+    Parameters
+    ----------
+    notes : list
+        A list of wonderful notes.
+    examples: list
+        A list of horrible examples.
 
     """
