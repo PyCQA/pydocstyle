@@ -491,13 +491,11 @@ class Parser(object):
                 '\bThe value was {}. The exception was:\n{}'
                     .format(dunder_all_content, e))
 
-        #while self.current.kind == tk.COMMENT:
-            #self.consume(tk.COMMENT)
-
-        #if not self.stream.got_logical_newline:
-            #self.dunder_all = None
-            #self.dunder_all_error = 'Could not evaluate contents of __all__. '
-            #return
+        while not self.current.kind in self.stream.LOGICAL_NEWLINES:
+            if self.current.kind != tk.COMMENT:
+                self.dunder_all = None
+                self.dunder_all_error = 'Could not evaluate contents of __all__. '
+                return
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""
