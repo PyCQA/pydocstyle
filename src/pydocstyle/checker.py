@@ -480,10 +480,7 @@ class ConventionChecker(object):
             context.section_name.strip()
         ).strip()
 
-        section_suffix_is_only_colon = (
-            section_name_suffix.startswith(':') and
-            is_blank(section_name_suffix[1:])
-        )
+        section_suffix_is_only_colon = section_name_suffix == ':'
 
         punctuation = [',', ';', '.', '-', '\\', '/', ']', '}', ')']
         prev_line_ends_with_punctuation = \
