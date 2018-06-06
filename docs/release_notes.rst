@@ -20,6 +20,7 @@ New features
 Bug Fixes
 
 * Fixed a false-positive recognition of section names causing D405 to be thrown
+  (#311, #317).
 
 
 2.1.1 - October 9th, 2017
