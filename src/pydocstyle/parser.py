@@ -1,6 +1,5 @@
 """Python code parser."""
 
-import logging
 import six
 import textwrap
 import tokenize as tk
@@ -38,6 +37,16 @@ class ParseError(Exception):
         return "Cannot parse file."
 
 
+class UnexpectedTokenError(ParseError):
+    def __init__(self, token, expected_kind):
+        self.token = token
+        self.expected_kind = expected_kind
+
+    def __str__(self):
+        return "Unexpected token %s, expected %s" % (
+            self.token, self.expected_kind)
+
+
 def humanize(string):
     return re(r'(.)([A-Z]+)').sub(r'\1 \2', string).lower()
 
@@ -73,7 +82,7 @@ class Definition(Value):
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])
     module = property(lambda self: self.parent.module)
-    all = property(lambda self: self.module.all)
+    dunder_all = property(lambda self: self.module.dunder_all)
     _slice = property(lambda self: slice(self.start - 1, self.end))
     is_class = False
 
@@ -113,11 +122,11 @@ class Module(Definition):
     """A Python source code module."""
 
     _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent', '_all', 'future_imports',
-               'skipped_error_codes')
+               'children', 'parent', '_dunder_all', 'dunder_all_error',
+               'future_imports', 'skipped_error_codes')
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
     module = property(lambda self: self)
-    all = property(lambda self: self._all)
+    dunder_all = property(lambda self: self._dunder_all)
 
     @property
     def is_public(self):
@@ -140,8 +149,8 @@ class Function(Definition):
     @property
     def is_public(self):
         """Return True iff this function should be considered public."""
-        if self.all is not None:
-            return self.name in self.all
+        if self.dunder_all is not None:
+            return self.name in self.dunder_all
         else:
             return not self.name.startswith('_')
 
@@ -301,6 +310,9 @@ class Token(Value):
         super(Token, self).__init__(*args)
         self.kind = TokenKind(self.kind)
 
+    def __str__(self):
+        return "%r (%s)" % (self.kind, self.value)
+
 
 class Parser(object):
     """A Python source code parser."""
@@ -316,7 +328,8 @@ class Parser(object):
             six.raise_from(ParseError(), error)
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
-        self.all = None
+        self.dunder_all = None
+        self.dunder_all_error = None
         self.future_imports = set()
         self._accumulated_decorators = []
         return self.parse_module()
@@ -332,7 +345,8 @@ class Parser(object):
     def consume(self, kind):
         """Consume one token and verify it is of the expected kind."""
         next_token = self.stream.move()
-        assert next_token.kind == kind
+        if next_token.kind != kind:
+            raise UnexpectedTokenError(token=next_token, expected_kind=kind)
 
     def leapfrog(self, kind, value=None):
         """Skip tokens in the stream until a certain token kind is reached.
@@ -349,8 +363,7 @@ class Parser(object):
 
     def parse_docstring(self):
         """Parse a single docstring and return its value."""
-        self.log.debug("parsing docstring, token is %r (%s)",
-                       self.current.kind, self.current.value)
+        self.log.debug("parsing docstring, token is %s", self.current)
         while self.current.kind in (tk.COMMENT, tk.NEWLINE, tk.NL):
             self.stream.move()
             self.log.debug("parsing docstring, token is %r (%s)",
@@ -410,14 +423,14 @@ class Parser(object):
         self._accumulated_decorators.append(
             Decorator(''.join(name), ''.join(arguments)))
 
-    def parse_definitions(self, class_, all=False):
+    def parse_definitions(self, class_, dunder_all=False):
         """Parse multiple definitions and yield them."""
         while self.current is not None:
             self.log.debug("parsing definition list, current token is %r (%s)",
                            self.current.kind, self.current.value)
             self.log.debug('got_newline: %s', self.stream.got_logical_newline)
-            if all and self.current.value == '__all__':
-                self.parse_all()
+            if dunder_all and self.current.value == '__all__':
+                self.parse_dunder_all()
             elif (self.current.kind == tk.OP and
                   self.current.value == '@' and
                   self.stream.got_logical_newline):
@@ -437,51 +450,69 @@ class Parser(object):
             else:
                 self.stream.move()
 
-    def parse_all(self):
+    def parse_dunder_all(self):
         """Parse the __all__ definition in a module."""
         assert self.current.value == '__all__'
         self.consume(tk.NAME)
+        # More than one __all__ definition means we ignore all __all__.
+        if self.dunder_all is not None or self.dunder_all_error is not None:
+            self.dunder_all = None
+            self.dunder_all_error = 'Could not evaluate contents of __all__. '
+            return
         if self.current.value != '=':
-            raise AllError('Could not evaluate contents of __all__. ')
+            self.dunder_all_error = 'Could not evaluate contents of __all__. '
+            return
         self.consume(tk.OP)
         if self.current.value not in '([':
-            raise AllError('Could not evaluate contents of __all__. ')
+            self.dunder_all_error = 'Could not evaluate contents of __all__. '
+            return
         self.consume(tk.OP)
 
-        self.all = []
-        all_content = "("
+        dunder_all_content = "("
         while self.current.kind != tk.OP or self.current.value not in ")]":
             if self.current.kind in (tk.NL, tk.COMMENT):
                 pass
             elif (self.current.kind == tk.STRING or
                     self.current.value == ','):
-                all_content += self.current.value
+                dunder_all_content += self.current.value
             else:
-                raise AllError('Unexpected token kind in  __all__: {!r}. '
-                               .format(self.current.kind))
+                self.dunder_all_error = (
+                    'Unexpected token kind in __all__: {!r}. '
+                        .format(self.current.kind))
+                return
             self.stream.move()
         self.consume(tk.OP)
-        all_content += ")"
+        dunder_all_content += ")"
         try:
-            self.all = eval(all_content, {})
+            self.dunder_all = eval(dunder_all_content, {})
         except BaseException as e:
-            raise AllError('Could not evaluate contents of __all__.'
-                           '\bThe value was {}. The exception was:\n{}'
-                           .format(all_content, e))
+            self.dunder_all_error = (
+                'Could not evaluate contents of __all__.'
+                '\bThe value was {}. The exception was:\n{}'
+                    .format(dunder_all_content, e))
+
+        #while self.current.kind == tk.COMMENT:
+            #self.consume(tk.COMMENT)
+
+        #if not self.stream.got_logical_newline:
+            #self.dunder_all = None
+            #self.dunder_all_error = 'Could not evaluate contents of __all__. '
+            #return
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""
         self.log.debug("parsing module.")
         start = self.line
         docstring = self.parse_docstring()
-        children = list(self.parse_definitions(Module, all=True))
+        children = list(self.parse_definitions(Module, dunder_all=True))
         assert self.current is None, self.current
         end = self.line
         cls = Module
         if self.filename.endswith('__init__.py'):
             cls = Package
         module = cls(self.filename, self.source, start, end,
-                     [], docstring, children, None, self.all, None, '')
+                     [], docstring, children, None, self.dunder_all,
+                     self.dunder_all_error, None, '')
         for child in module.children:
             child.parent = module
         module.future_imports = self.future_imports

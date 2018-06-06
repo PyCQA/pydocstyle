@@ -29,7 +29,7 @@ def test_function():
     """)
     module = parser.parse(code, 'file_path')
     assert module.is_public
-    assert module.all is None
+    assert module.dunder_all is None
 
     function, = module.children
     assert function.name == 'do_something'
@@ -538,7 +538,34 @@ def test_dunder_all(code):
     """Test that __all__ is parsed correctly."""
     parser = Parser()
     module = parser.parse(code, "filepath")
-    assert module.all == ('foo', 'bar')
+    assert module.dunder_all == ('foo', 'bar')
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+        __all__ = ['foo']
+        __all__ += ['bar']
+    """),
+    CodeSnippet("""\
+        __all__ = ['foo'] + ['bar']
+    """),
+    CodeSnippet("""\
+        __all__ = ['foo']
+        __all__.insert('bar')
+    """),
+    CodeSnippet("""\
+        __all__ = foo()
+    """),
+    CodeSnippet("""\
+        __all__ = (*foo, 'bar')
+    """),
+))
+def test_indeterminable_dunder_all(code):
+    """Test that __all__ is ignored if it can't be statically evaluated."""
+    parser = Parser()
+    module = parser.parse(code, "filepath")
+    assert module.dunder_all is None
+    assert module.dunder_all_error
 
 
 @pytest.mark.parametrize("code", (
