@@ -436,7 +436,6 @@ class ConventionChecker(object):
 
         For example, if `line` is "  Hello world!!!", returns "Hello world".
         """
-        result = re("[A-Za-z ]+").match(line.strip())
         if result is not None:
             return result.group()
 
@@ -625,7 +624,7 @@ class ConventionChecker(object):
                                                        'is_last_section'))
 
         # First - create a list of possible contexts. Note that the
-        # `following_linex` member is until the end of the docstring.
+        # `following_lines` member is until the end of the docstring.
         contexts = (SectionContext(self._get_leading_words(lines[i].strip()),
                                    lines[i - 1],
                                    lines[i],

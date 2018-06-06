@@ -215,3 +215,14 @@ def multiple_sections():
     My attention.
 
     """
+
+
+@expect(_D213)
+def false_positive_section_prefix():
+    """Toggle the gizmo.
+
+    Arguments
+    ---------
+        attributes_are_fun: attributes for the function.
+
+    """
