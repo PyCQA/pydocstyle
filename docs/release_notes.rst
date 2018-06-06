@@ -17,6 +17,10 @@ New features
   line of the ``def``/``class`` it corresponds to (#238, #83).
 * Updated description of pep257 and numpy conventions (#300).
 
+Bug Fixes
+
+* Fixed a false-positive recognition of section names causing D405 to be thrown
+
 
 2.1.1 - October 9th, 2017
 -------------------------
