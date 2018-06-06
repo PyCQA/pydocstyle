@@ -11,8 +11,6 @@ matrix:
   include:
     - python: 2.7
       env: TOXENV=py27-tests
-    - python: 3.3
-      env: TOXENV=py33-tests
     - python: 3.4
       env: TOXENV=py34-tests
     - python: 3.5
@@ -23,8 +21,6 @@ matrix:
       env: TOXENV=pypy-tests
     - python: 2.7
       env: TOXENV=py27-install
-    - python: 3.3
-      env: TOXENV=py33-install
     - python: 3.4
       env: TOXENV=py34-install
     - python: 3.5

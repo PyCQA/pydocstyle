@@ -7,6 +7,10 @@ Release Notes
 Current development version
 ---------------------------
 
+Major Updates
+
+* Support for Python 3.3 has been dropped (#315, #316).
+
 New features
 
 * Violations are now reported on the line where the docstring starts, not the

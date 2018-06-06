@@ -112,7 +112,7 @@ def install_package(request):
     cwd = os.path.join(os.path.dirname(__file__), '..', '..')
     subprocess.check_call(shlex.split("pip install -e ."), cwd=cwd)
     yield
-    subprocess.check_call(shlex.split("pip uninstall ."), cwd=cwd)
+    subprocess.check_call(shlex.split("pip uninstall -y pydocstyle"), cwd=cwd)
 
 
 @pytest.yield_fixture(scope="function")
