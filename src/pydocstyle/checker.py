@@ -436,6 +436,7 @@ class ConventionChecker(object):
 
         For example, if `line` is "  Hello world!!!", returns "Hello world".
         """
+        result = re("[\w ]+").match(line.strip())
         if result is not None:
             return result.group()
 
