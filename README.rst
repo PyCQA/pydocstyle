@@ -25,7 +25,7 @@ docstring conventions.
 `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ out of the box, but it
 should not be considered a reference implementation.
 
-**pydocstyle** supports Python 2.7, 3.3, 3.4, 3.5, 3.6 and pypy.
+**pydocstyle** supports Python 2.7, 3.4, 3.5, 3.6 and pypy.
 
 Quick Start
 -----------
