@@ -476,9 +476,8 @@ class ConventionChecker(object):
         If one of the conditions is true, we will consider the line as
         a section name.
         """
-        section_name_suffix = context.line.strip().lstrip(
-            context.section_name.strip()
-        ).strip()
+        section_name_suffix = \
+            context.line.strip().lstrip(context.section_name.strip()).strip()
 
         section_suffix_is_only_colon = section_name_suffix == ':'
 
@@ -486,10 +485,14 @@ class ConventionChecker(object):
         prev_line_ends_with_punctuation = \
             any(context.previous_line.strip().endswith(x) for x in punctuation)
 
-        return ((is_blank(section_name_suffix) or
-                 section_suffix_is_only_colon) and
-                (prev_line_ends_with_punctuation or
-                 is_blank(context.previous_line)))
+        this_line_looks_like_a_section_name = \
+            is_blank(section_name_suffix) or section_suffix_is_only_colon
+        
+        prev_line_looks_like_end_of_paragraph = \
+            prev_line_ends_with_punctuation or is_blank(context.previous_line)
+
+        return (this_line_looks_like_a_section_name and
+                prev_line_looks_like_end_of_paragraph)
 
     @classmethod
     def _check_section_underline(cls, section_name, context, indentation):
