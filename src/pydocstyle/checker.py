@@ -436,7 +436,7 @@ class ConventionChecker(object):
 
         For example, if `line` is "  Hello world!!!", returns "Hello world".
         """
-        result = re("[A-Za-z ]+").match(line.strip())
+        result = re("[\w ]+").match(line.strip())
         if result is not None:
             return result.group()
 
@@ -454,30 +454,45 @@ class ConventionChecker(object):
 
             This is another line in the docstring. It describes stuff,
             but we forgot to add a blank line between it and the section name.
-            Returns  <----- A real section name. The previous line ends with
-            -------         a period, therefore it is in a new
+            Parameters  <-- A real section name. The previous line ends with
+            ----------      a period, therefore it is in a new
                             grammatical context.
+            param : int
+            examples : list  <------- Not a section - previous line doesn't end
+                A list of examples.   with punctuation.
+            notes : list  <---------- Not a section - there's text after the
+                A list of notes.      colon.
+
+            Notes:  <--- Suspected as a context because there's a suffix to the
+            -----        section, but it's a colon so it's probably a mistake.
             Bla.
 
             '''
 
         To make sure this is really a section we check these conditions:
-            * There's no suffix to the section name.
-            * The previous line ends with punctuation.
-            * The previous line is empty.
+            * There's no suffix to the section name or it's just a colon AND
+            * The previous line is empty OR it ends with punctuation.
 
         If one of the conditions is true, we will consider the line as
         a section name.
         """
-        section_name_suffix = context.line.lstrip(context.section_name).strip()
+        section_name_suffix = \
+            context.line.strip().lstrip(context.section_name.strip()).strip()
+
+        section_suffix_is_only_colon = section_name_suffix == ':'
 
         punctuation = [',', ';', '.', '-', '\\', '/', ']', '}', ')']
         prev_line_ends_with_punctuation = \
             any(context.previous_line.strip().endswith(x) for x in punctuation)
 
-        return (is_blank(section_name_suffix) or
-                prev_line_ends_with_punctuation or
-                is_blank(context.previous_line))
+        this_line_looks_like_a_section_name = \
+            is_blank(section_name_suffix) or section_suffix_is_only_colon
+        
+        prev_line_looks_like_end_of_paragraph = \
+            prev_line_ends_with_punctuation or is_blank(context.previous_line)
+
+        return (this_line_looks_like_a_section_name and
+                prev_line_looks_like_end_of_paragraph)
 
     @classmethod
     def _check_section_underline(cls, section_name, context, indentation):
@@ -625,7 +640,7 @@ class ConventionChecker(object):
                                                        'is_last_section'))
 
         # First - create a list of possible contexts. Note that the
-        # `following_linex` member is until the end of the docstring.
+        # `following_lines` member is until the end of the docstring.
         contexts = (SectionContext(self._get_leading_words(lines[i].strip()),
                                    lines[i - 1],
                                    lines[i],
