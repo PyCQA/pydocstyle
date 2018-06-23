@@ -442,6 +442,8 @@ class Parser(object):
         assert self.current.value == '__all__'
         self.consume(tk.NAME)
         if self.current.value != '=':
+            if self.all is not None:
+                return
             raise AllError('Could not evaluate contents of __all__. ')
         self.consume(tk.OP)
         if self.current.value not in '([':
