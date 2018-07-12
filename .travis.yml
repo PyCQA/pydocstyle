@@ -17,6 +17,10 @@ matrix:
       env: TOXENV=py35-tests
     - python: 3.6
       env: TOXENV=py36-tests
+    - python: 3.7
+      dist: xenial
+      sudo: required
+      env: TOXENV=py37-tests
     - python: pypy
       env: TOXENV=pypy-tests
     - python: 2.7
@@ -27,6 +31,10 @@ matrix:
       env: TOXENV=py35-install
     - python: 3.6
       env: TOXENV=py36-install
+    - python: 3.7
+      dist: xenial
+      sudo: required
+      env: TOXENV=py37-install
     - python: pypy
       env: TOXENV=pypy-install
     - python: 2.7

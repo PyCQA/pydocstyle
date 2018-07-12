@@ -16,6 +16,7 @@ New features
 * Violations are now reported on the line where the docstring starts, not the
   line of the ``def``/``class`` it corresponds to (#238, #83).
 * Updated description of pep257 and numpy conventions (#300).
+* Added support for Python 3.7 (#324).
 
 Bug Fixes
 
