@@ -71,7 +71,7 @@ class Error(object):
     def __str__(self):
         self.explanation = '\n'.join(l for l in self.explanation.split('\n')
                                      if not is_blank(l))
-        template = '{filename}:{line} {definition}:\n        {message}'
+        template = '{filename}:{line}: {definition}:\n        {message}'
         if self.source and self.explain:
             template += '\n\n{explanation}\n\n{lines}\n'
         elif self.source and not self.explain:
