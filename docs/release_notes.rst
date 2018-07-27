@@ -22,6 +22,8 @@ Bug Fixes
 
 * Fixed a false-positive recognition of section names causing D405 to be
   reported (#311, #317).
+* Fixed using the module filepath (instead of just the basename) to determine
+  its privateyness causing D100 to be reported incorrectly sometimes. (#326).
 
 
 2.1.1 - October 9th, 2017
