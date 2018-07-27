@@ -1,6 +1,7 @@
 """Python code parser."""
 
 import logging
+import os.path
 import six
 import textwrap
 import tokenize as tk
@@ -121,7 +122,8 @@ class Module(Definition):
 
     @property
     def is_public(self):
-        return not self.name.startswith('_') or self.name.startswith('__')
+        module_name, _ = os.path.splitext(os.path.basename(self.name))
+        return not module_name.startswith('_') or module_name.startswith('__')
 
     def __str__(self):
         return 'at module level'

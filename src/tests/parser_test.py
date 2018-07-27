@@ -485,6 +485,12 @@ def test_module_publicity():
     module = parser.parse(code, "__filepath")
     assert module.is_public
 
+    module = parser.parse(code, "_directory/filepath")
+    assert module.is_public
+
+    module = parser.parse(code, "directory/_filepath")
+    assert not module.is_public
+
 
 def test_complex_module():
     """Test that a complex module is parsed correctly."""
