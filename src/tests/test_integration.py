@@ -117,7 +117,7 @@ def install_package(request):
 
 @pytest.yield_fixture(scope="function")
 def env(request):
-    """Add an testing environment to a test method."""
+    """Add a testing environment to a test method."""
     with SandboxEnv() as test_env:
         yield test_env
 

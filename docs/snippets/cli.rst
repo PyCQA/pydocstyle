@@ -64,9 +64,9 @@ Usage
 
     When using any of the ``--select``, ``--ignore``, ``--add-select``, or
     ``--add-ignore`` command line flags, it is possible to pass a prefix for an
-    error code. It will be expanded so that any code begining with that prefix
+    error code. It will be expanded so that any code beginning with that prefix
     will match. For example, running the command ``pydocstyle --ignore=D4``
-    will ignore all docstring content issues as their error codes begining with
+    will ignore all docstring content issues as their error codes beginning with
     "D4" (i.e. D400, D401, D402, D403, and D404).
 
 Return Code
