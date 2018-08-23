@@ -2,7 +2,7 @@ Thanks for submitting a PR!
 
 Please make sure to check for the following items:
 - [ ] Add unit tests and integration tests where applicable.  
-      If you've added a error code or changed an error code behavior, 
+      If you've added an error code or changed an error code behavior,
       you should probably add or change a test case file under `tests/test_cases/` and add 
       it to the list under `tests/test_definitions.py`.  
       If you've added or changed a command line option,
