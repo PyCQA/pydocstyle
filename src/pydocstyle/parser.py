@@ -439,13 +439,18 @@ class Parser(object):
 
     def parse_all(self):
         """Parse the __all__ definition in a module."""
-        assert self.current.value == '__all__'
+        assert self.current.value == r'__all__'
         self.consume(tk.NAME)
-        if self.current.value != '=':
-            raise AllError('Could not evaluate contents of __all__. ')
+        if self.current.value == r':':  # PEP526-Styled __all__
+            self.consume(tk.OP)
+            if self.current.value != r'list':
+                raise AllError(r'Could not evaluate contents of __all__. ')
+            self.consume(tk.NAME)
+        if self.current.value != r'=':
+            raise AllError(r'Could not evaluate contents of __all__. ')
         self.consume(tk.OP)
-        if self.current.value not in '([':
-            raise AllError('Could not evaluate contents of __all__. ')
+        if self.current.value not in r'([':
+            raise AllError(r'Could not evaluate contents of __all__. ')
         self.consume(tk.OP)
 
         self.all = []
