@@ -446,9 +446,7 @@ class Parser(object):
             if self.current.value != r'list':
                 raise AllError(r'Could not evaluate contents of __all__. ')
             self.consume(tk.NAME)
-            if self.current.value != r'=':
-                raise AllError(r'Could not evaluate contents of __all__. ')
-        elif self.current.value != r'=':
+        if self.current.value != r'=':
             raise AllError(r'Could not evaluate contents of __all__. ')
         self.consume(tk.OP)
         if self.current.value not in r'([':
