@@ -17,7 +17,7 @@ New features
   line of the ``def``/``class`` it corresponds to (#238, #83).
 * Updated description of pep257 and numpy conventions (#300).
 * Added support for Python 3.7 (#324).
-* Added PEP526-Styled `__all__` Support (#331).
+* Added PEP526-Styled ```__all__``` Support (#331).
 
 Bug Fixes
 
