@@ -6,7 +6,9 @@ from .expected import Expectation
 expectation = Expectation()
 expect = expectation.expect
 
-__all__: list = ['public_func']
+__all__: list = [
+    'public_func'
+]
 
 
 @expect("D103: Missing docstring in public function")
