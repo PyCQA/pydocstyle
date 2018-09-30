@@ -17,4 +17,4 @@ def public_func():
 
 
 def private_func():
-pass
+    pass
