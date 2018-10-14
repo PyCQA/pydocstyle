@@ -9,7 +9,7 @@ Current Development Version
 
 Major Updates
 
-* Support for Python 2.x and PyPy has been dropped (#315, #316).
+* Support for Python 2.x and PyPy has been dropped (#340).
 
 3.0.0 - October 14th, 2018
 --------------------------
