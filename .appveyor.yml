@@ -6,18 +6,23 @@ environment:
     - TOXENV: "py36-tests"
     - TOXENV: "py37-tests"
     - TOXENV: "pypy-tests"
+    - TOXENV: "pypy3-tests"
     - TOXENV: "py27-install"
     - TOXENV: "py34-install"
     - TOXENV: "py35-install"
     - TOXENV: "py36-install"
     - TOXENV: "py37-install"
     - TOXENV: "pypy-install"
+    - TOXENV: "pypy3-install"
     - TOXENV: "docs"
 
 install:
   # This takes a long time, so it's done only for pypy environments.
   - ps: if($env:TOXENV -eq 'pypy-tests' -or $env:TOXENV -eq 'pypy-install') {
           choco install python.pypy;
+        }
+        if($env:TOXENV -eq 'pypy3-tests' -or $env:TOXENV -eq 'pypy3-install') {
+          choco install pypy3;
         }
 
   - pip install tox
