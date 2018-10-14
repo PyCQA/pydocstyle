@@ -16,8 +16,6 @@ pydocstyle - docstring style checker
     :target: https://pypi.org/project/pydocstyle
 
 
-(formerly pep257)
-
 **pydocstyle** is a static analysis tool for checking compliance with Python
 docstring conventions.
 
@@ -25,10 +23,7 @@ docstring conventions.
 `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ out of the box, but it
 should not be considered a reference implementation.
 
-**pydocstyle** supports Python 2.7, 3.4, 3.5, 3.6, 3.7, and pypy.
-
-
-.. attention:: Support for Python 2.7 will be removed in the next release.
+**pydocstyle** supports Python 3.4, 3.5, 3.6 and 3.7.
 
 
 Quick Start
