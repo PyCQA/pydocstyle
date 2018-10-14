@@ -11,6 +11,9 @@ should not be considered a reference implementation.
 **pydocstyle** supports Python 2.7, 3.4, 3.5, 3.6, 3.7, and pypy.
 
 
+.. attention:: Support for Python 2.7 will be removed in the next release.
+
+
 .. include:: quickstart.rst
 
 
