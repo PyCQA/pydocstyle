@@ -141,19 +141,16 @@ class ConfigurationParser(object):
         might be raised.
 
         """
-        def _get_matches(config):
+        def _get_matches(conf):
             """Return the `match` and `match_dir` functions for `config`."""
-            match_func = re(config.match + '$').match
-            match_dir_func = re(config.match_dir + '$').match
+            match_func = re(conf.match + '$').match
+            match_dir_func = re(conf.match_dir + '$').match
             return match_func, match_dir_func
 
-        def _get_ignore_decorators(config):
+        def _get_ignore_decorators(conf):
             """Return the `ignore_decorators` as None or regex."""
-            if config.ignore_decorators:  # not None and not ''
-                ignore_decorators = re(config.ignore_decorators)
-            else:
-                ignore_decorators = None
-            return ignore_decorators
+            return (re(conf.ignore_decorators) if conf.ignore_decorators
+                    else None)
 
         for name in self._arguments:
             if os.path.isdir(name):
@@ -163,7 +160,7 @@ class ConfigurationParser(object):
                     ignore_decorators = _get_ignore_decorators(config)
 
                     # Skip any dirs that do not match match_dir
-                    dirs[:] = [dir for dir in dirs if match_dir(dir)]
+                    dirs[:] = [d for d in dirs if match_dir(d)]
 
                     for filename in filenames:
                         if match(filename):
@@ -469,8 +466,9 @@ class ConfigurationParser(object):
                 codes_to_add = {code for code in codes
                                 if code.startswith(part)}
                 if not codes_to_add:
-                    log.warning('Error code passed is not a prefix of any known '
-                             'errors: %s', part)
+                    log.warning(
+                        'Error code passed is not a prefix of any '
+                        'known errors: %s', part)
                 expanded_codes.update(codes_to_add)
         except TypeError as e:
             raise IllegalConfiguration(e)
