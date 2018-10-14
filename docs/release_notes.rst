@@ -24,6 +24,8 @@ Bug Fixes
 
 * Fixed a false-positive recognition of section names causing D405 to be
   reported (#311, #317).
+* Fixed a bug where functions that don't end with a newline will sometimes raise
+  an exception (#321, #336).
 
 
 2.1.1 - October 9th, 2017
