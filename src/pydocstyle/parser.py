@@ -564,9 +564,8 @@ class Parser(object):
                             skipped_error_codes)
         for child in definition.children:
             child.parent = definition
-        self.log.debug("finished parsing %s '%s'. Next token is %r (%s)",
-                       class_.__name__, name, self.current.kind,
-                       self.current.value)
+        self.log.debug("finished parsing %s '%s'. Next token is %r",
+                       class_.__name__, name, self.current)
         return definition
 
     def parse_skip_comment(self):
