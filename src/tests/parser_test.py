@@ -556,6 +556,14 @@ indeterminable_dunder_all_test_cases = [
     CodeSnippet("""\
         __all__ = foo()
     """),
+    CodeSnippet("""\
+        all = ['foo']
+        __all__ = all
+    """),
+    CodeSnippet("""\
+        foo = 'foo'
+        __all__ = [foo]
+    """),
 ]
 if six.PY3 and not six.PY34:
     indeterminable_dunder_all_test_cases += [

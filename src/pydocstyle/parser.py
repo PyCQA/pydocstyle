@@ -43,7 +43,7 @@ class UnexpectedTokenError(ParseError):
         self.expected_kind = expected_kind
 
     def __str__(self):
-        return "Unexpected token %s, expected %s" % (
+        return "Unexpected token {}, expected {}".format(
             self.token, self.expected_kind)
 
 
@@ -311,7 +311,7 @@ class Token(Value):
         self.kind = TokenKind(self.kind)
 
     def __str__(self):
-        return "%r (%s)" % (self.kind, self.value)
+        return "{!r} ({})".format(self.kind, self.value)
 
 
 class Parser(object):
