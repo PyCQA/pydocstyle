@@ -159,7 +159,7 @@ class TestMethod(object):
     def makeMethod(self, name='someMethodName'):
         """Return a simple method instance."""
         children = []
-        all = ['ClassName']
+        dunder_all = ['ClassName']
         source = textwrap.dedent("""\
             class ClassName:
                 def %s(self):
@@ -167,7 +167,7 @@ class TestMethod(object):
 
         module = parser.Module('module_name', source, 0, 1, [],
                                'Docstring for module', [], None,
-                               all, None, '')
+                               dunder_all, None, None, '')
 
         cls = parser.Class('ClassName', source, 0, 1, [],
                            'Docstring for class', children, module, '')

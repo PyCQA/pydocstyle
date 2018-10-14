@@ -541,7 +541,7 @@ def test_dunder_all(code):
     assert module.dunder_all == ('foo', 'bar')
 
 
-@pytest.mark.parametrize("code", (
+indeterminable_dunder_all_test_cases = [
     CodeSnippet("""\
         __all__ = ['foo']
         __all__ += ['bar']
@@ -556,10 +556,16 @@ def test_dunder_all(code):
     CodeSnippet("""\
         __all__ = foo()
     """),
-    CodeSnippet("""\
-        __all__ = (*foo, 'bar')
-    """),
-))
+]
+if six.PY3:
+    indeterminable_dunder_all_test_cases += [
+        CodeSnippet("""\
+                __all__ = (*foo, 'bar')
+            """),
+    ]
+
+
+@pytest.mark.parametrize("code", indeterminable_dunder_all_test_cases)
 def test_indeterminable_dunder_all(code):
     """Test that __all__ is ignored if it can't be statically evaluated."""
     parser = Parser()
