@@ -228,7 +228,7 @@ def around():
 @expect('D210: No whitespaces allowed surrounding docstring text')
 @expect('D213: Multi-line docstring summary should start at the second line')
 def multiline():
-    """ Whitespace at the begining.
+    """ Whitespace at the beginning.
 
     This is the end.
     """
