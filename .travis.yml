@@ -23,6 +23,8 @@ matrix:
       env: TOXENV=py37-tests
     - python: pypy
       env: TOXENV=pypy-tests
+    - python: pypy3
+      env: TOXENV=pypy3-tests
     - python: 2.7
       env: TOXENV=py27-install
     - python: 3.4
@@ -37,5 +39,7 @@ matrix:
       env: TOXENV=py37-install
     - python: pypy
       env: TOXENV=pypy-install
+    - python: pypy3
+      env: TOXENV=pypy3-install
     - python: 2.7
       env: TOXENV=docs
