@@ -149,8 +149,8 @@ class ConfigurationParser(object):
 
         def _get_ignore_decorators(conf):
             """Return the `ignore_decorators` as None or regex."""
-            return re(conf.ignore_decorators) if conf.ignore_decorators \
-                else None
+            return (re(conf.ignore_decorators) if conf.ignore_decorators
+                    else None)
 
         for name in self._arguments:
             if os.path.isdir(name):
@@ -160,7 +160,7 @@ class ConfigurationParser(object):
                     ignore_decorators = _get_ignore_decorators(config)
 
                     # Skip any dirs that do not match match_dir
-                    dirs[:] = [_dir for _dir in dirs if match_dir(_dir)]
+                    dirs[:] = [d for d in dirs if match_dir(d)]
 
                     for filename in filenames:
                         if match(filename):
