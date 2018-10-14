@@ -6,7 +6,7 @@ from collections import namedtuple
 from .utils import is_blank
 
 
-__all__ = ('Error', 'ErrorRegistry')
+__all__ = ('Error', 'ErrorRegistry', 'conventions')
 
 
 ErrorParams = namedtuple('ErrorParams', ['code', 'short_desc', 'context'])
@@ -236,7 +236,9 @@ class AttrDict(dict):
     def __getattr__(self, item):
         return self[item]
 
+
 all_errors = set(ErrorRegistry.get_error_codes())
+
 
 conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
