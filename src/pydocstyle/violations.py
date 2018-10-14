@@ -92,7 +92,7 @@ class Error(object):
 class ErrorRegistry(object):
     """A registry of all error codes, divided to groups."""
 
-    groups = []
+    groups = []  # type: ignore
 
     class ErrorGroup(object):
         """A group of similarly themed errors."""

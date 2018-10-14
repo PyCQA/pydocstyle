@@ -25,7 +25,7 @@ __all__ = ('check', )
 try:
     tokenize_open = tk.open
 except AttributeError:
-    tokenize_open = open
+    tokenize_open = open  # type: ignore
 
 
 def check_for(kind, terminal=False):

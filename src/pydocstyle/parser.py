@@ -121,7 +121,7 @@ class Definition(Value):
 class Module(Definition):
     """A Python source code module."""
 
-    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',  # type: ignore
                'children', 'parent', '_dunder_all', 'dunder_all_error',
                'future_imports', 'skipped_error_codes')
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
