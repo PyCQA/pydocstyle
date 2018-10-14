@@ -72,5 +72,5 @@ Example
     [pydocstyle]
     inherit = false
     ignore = D100,D203,D405
-    match = *.py
+    match = .*\.py
 

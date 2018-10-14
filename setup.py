@@ -3,18 +3,13 @@ from setuptools import setup
 import sys
 
 # Do not update the version manually - it is managed by `bumpversion`.
-version = '2.1.2rc'
+version = '3.0.1rc'
 
 
 requirements = [
     'snowballstemmer',
     'six',
 ]
-
-
-# Python3 to Python2 backport support.
-if sys.version_info[0] == 2:
-    requirements.append('configparser')
 
 
 setup(
@@ -30,8 +25,6 @@ setup(
         'Intended Audience :: Developers',
         'Environment :: Console',
         'Development Status :: 5 - Production/Stable',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
