@@ -9,8 +9,6 @@ install: pip install tox
 script: tox
 matrix:
   include:
-    - python: 2.7
-      env: TOXENV=py27-tests
     - python: 3.4
       env: TOXENV=py34-tests
     - python: 3.5
@@ -23,8 +21,6 @@ matrix:
       env: TOXENV=py37-tests
     - python: pypy
       env: TOXENV=pypy-tests
-    - python: 2.7
-      env: TOXENV=py27-install
     - python: 3.4
       env: TOXENV=py34-install
     - python: 3.5
@@ -37,5 +33,5 @@ matrix:
       env: TOXENV=py37-install
     - python: pypy
       env: TOXENV=pypy-install
-    - python: 2.7
+    - python: 3.7
       env: TOXENV=docs
