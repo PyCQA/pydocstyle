@@ -574,6 +574,13 @@ class ConfigurationParser(object):
         option('--config', metavar='<path>', default=None,
                help='use given config file and disable config discovery')
 
+        parser.add_option_group(OptionGroup(
+            parser,
+            'Note',
+            'When using --match, --match-dir or --ignore-decorators consider '
+            'whether you should use a single quote (\') or a double quote ("), '
+            'depending on your OS, Shell, etc.'))
+
         check_group = OptionGroup(
             parser,
             'Error Check Options',
@@ -632,6 +639,7 @@ class ConfigurationParser(object):
                      "regular expression; default is --ignore-decorators='{0}'"
                      " which does not ignore any decorated functions."
                      .format(cls.DEFAULT_IGNORE_DECORATORS_RE)))
+
         return parser
 
 
