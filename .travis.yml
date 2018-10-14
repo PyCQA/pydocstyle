@@ -19,8 +19,6 @@ matrix:
       dist: xenial
       sudo: required
       env: TOXENV=py37-tests
-    - python: pypy
-      env: TOXENV=pypy-tests
     - python: 3.4
       env: TOXENV=py34-install
     - python: 3.5
@@ -31,7 +29,5 @@ matrix:
       dist: xenial
       sudo: required
       env: TOXENV=py37-install
-    - python: pypy
-      env: TOXENV=pypy-install
-    - python: 3.7
+    - python: 3.6
       env: TOXENV=docs
