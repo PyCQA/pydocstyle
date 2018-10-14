@@ -17,6 +17,8 @@ New features
   line of the ``def``/``class`` it corresponds to (#238, #83).
 * Updated description of pep257 and numpy conventions (#300).
 * Added support for Python 3.7 (#324).
+* ``__all__`` parsing is now done on a best-effort basis - if ``__all__`` can't
+  be statically determined, it will be ignored (#320, #313).
 
 Bug Fixes
 

@@ -17,6 +17,7 @@ sdist
 develop-eggs
 .installed.cfg
 .cache
+.pytest_cache
 MANIFEST
 
 # Installer logs
