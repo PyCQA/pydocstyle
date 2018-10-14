@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Major Updates
+
+* Support for Python 2.x and PyPy has been dropped (#340).
+
 3.0.0 - October 14th, 2018
 --------------------------
 

@@ -12,11 +12,6 @@ requirements = [
 ]
 
 
-# Python3 to Python2 backport support.
-if sys.version_info[0] == 2:
-    requirements.append('configparser')
-
-
 setup(
     name='pydocstyle',
     version=version,
@@ -30,8 +25,6 @@ setup(
         'Intended Audience :: Developers',
         'Environment :: Console',
         'Development Status :: 5 - Production/Stable',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
