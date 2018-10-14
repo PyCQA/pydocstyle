@@ -36,5 +36,5 @@ def test_complex_file(test_case):
                          ignore_decorators=re.compile('wraps')))
     for error in results:
         assert isinstance(error, Error)
-    results = set([(e.definition.name, e.message) for e in results])
+    results = {(e.definition.name, e.message) for e in results}
     assert case_module.expectation.expected == results

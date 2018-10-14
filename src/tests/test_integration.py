@@ -22,7 +22,7 @@ from pydocstyle import checker, violations
 __all__ = ()
 
 
-class SandboxEnv(object):
+class SandboxEnv:
     """An isolated environment where pydocstyle can be run.
 
     Since running pydocstyle as a script is affected by local config files,

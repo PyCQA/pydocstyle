@@ -26,7 +26,7 @@ def check_initialized(method):
     return _decorator
 
 
-class ConfigurationParser(object):
+class ConfigurationParser:
     """Responsible for parsing configuration from files and CLI.
 
     There are 2 types of configurations: Run configurations and Check
@@ -307,8 +307,8 @@ class ConfigurationParser(object):
             for group in self._parser.option_groups:
                 all_options.extend(group.option_list)
 
-            option_list = dict([(o.dest, o.type or o.action)
-                                for o in all_options])
+            option_list = {o.dest: o.type or o.action
+                                for o in all_options}
 
             # First, read the default values
             new_options, _ = self._parse_args([])
@@ -373,8 +373,8 @@ class ConfigurationParser(object):
     @staticmethod
     def _create_run_config(options):
         """Create a `RunConfiguration` object from `options`."""
-        values = dict([(opt, getattr(options, opt)) for opt in
-                       RunConfiguration._fields])
+        values = {opt: getattr(options, opt) for opt in
+                       RunConfiguration._fields}
         return RunConfiguration(**values)
 
     @classmethod
@@ -393,7 +393,7 @@ class ConfigurationParser(object):
 
         kwargs = dict(checked_codes=checked_codes)
         for key in ('match', 'match_dir', 'ignore_decorators'):
-            kwargs[key] = getattr(cls, 'DEFAULT_{0}_RE'.format(key.upper())) \
+            kwargs[key] = getattr(cls, 'DEFAULT_{}_RE'.format(key.upper())) \
                 if getattr(options, key) is None and use_defaults \
                 else getattr(options, key)
         return CheckConfiguration(**kwargs)
@@ -631,7 +631,7 @@ class ConfigurationParser(object):
         option('--ignore-decorators', metavar='<decorators>', default=None,
                help=("ignore any functions or methods that are decorated "
                      "by a function with a name fitting the <decorators> "
-                     "regular expression; default is --ignore-decorators='{0}'"
+                     "regular expression; default is --ignore-decorators='{}'"
                      " which does not ignore any decorated functions."
                      .format(cls.DEFAULT_IGNORE_DECORATORS_RE)))
 
