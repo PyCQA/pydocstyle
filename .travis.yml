@@ -11,26 +11,30 @@ matrix:
   include:
     - python: 2.7
       env: TOXENV=py27-tests
-    - python: 3.3
-      env: TOXENV=py33-tests
     - python: 3.4
       env: TOXENV=py34-tests
     - python: 3.5
       env: TOXENV=py35-tests
     - python: 3.6
       env: TOXENV=py36-tests
+    - python: 3.7
+      dist: xenial
+      sudo: required
+      env: TOXENV=py37-tests
     - python: pypy
       env: TOXENV=pypy-tests
     - python: 2.7
       env: TOXENV=py27-install
-    - python: 3.3
-      env: TOXENV=py33-install
     - python: 3.4
       env: TOXENV=py34-install
     - python: 3.5
       env: TOXENV=py35-install
     - python: 3.6
       env: TOXENV=py36-install
+    - python: 3.7
+      dist: xenial
+      sudo: required
+      env: TOXENV=py37-install
     - python: pypy
       env: TOXENV=pypy-install
     - python: 2.7

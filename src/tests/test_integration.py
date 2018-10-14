@@ -112,12 +112,12 @@ def install_package(request):
     cwd = os.path.join(os.path.dirname(__file__), '..', '..')
     subprocess.check_call(shlex.split("pip install -e ."), cwd=cwd)
     yield
-    subprocess.check_call(shlex.split("pip uninstall ."), cwd=cwd)
+    subprocess.check_call(shlex.split("pip uninstall -y pydocstyle"), cwd=cwd)
 
 
 @pytest.yield_fixture(scope="function")
 def env(request):
-    """Add an testing environment to a test method."""
+    """Add a testing environment to a test method."""
     with SandboxEnv() as test_env:
         yield test_env
 

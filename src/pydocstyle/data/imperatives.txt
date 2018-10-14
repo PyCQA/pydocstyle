@@ -102,7 +102,6 @@ implement
 import
 indicate
 init
-initalise
 initialise
 initialize
 input

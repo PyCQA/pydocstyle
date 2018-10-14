@@ -7,11 +7,21 @@ Release Notes
 Current development version
 ---------------------------
 
+Major Updates
+
+* Support for Python 3.3 has been dropped (#315, #316).
+
 New features
 
 * Violations are now reported on the line where the docstring starts, not the
   line of the ``def``/``class`` it corresponds to (#238, #83).
 * Updated description of pep257 and numpy conventions (#300).
+* Added support for Python 3.7 (#324).
+
+Bug Fixes
+
+* Fixed a false-positive recognition of section names causing D405 to be
+  reported (#311, #317).
 
 
 2.1.1 - October 9th, 2017

@@ -3,7 +3,7 @@
 import copy
 import itertools
 import os
-from collections import Set, namedtuple
+from collections import namedtuple
 from re import compile as re
 
 
@@ -12,6 +12,12 @@ from configparser import RawConfigParser
 
 from .utils import __version__, log
 from .violations import ErrorRegistry, conventions
+
+try:
+    from collections.abc import Set
+except ImportError:
+    # python 2.7
+    from collections import Set
 
 
 def check_initialized(method):
