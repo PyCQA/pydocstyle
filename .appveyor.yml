@@ -10,6 +10,9 @@ environment:
     - TOXENV: "py37-install"
     - TOXENV: "docs"
 
+install:
+  - pip install tox
+
 build: off
 
 test_script:
