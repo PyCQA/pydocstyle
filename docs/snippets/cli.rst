@@ -30,6 +30,11 @@ Usage
                             regular expression; default is --ignore-decorators=''
                             which does not ignore any decorated functions.
 
+      Note:
+        When using --match, --match-dir or --ignore-decorators consider
+        whether you should use a single quote (') or a double quote ("),
+        depending on your OS, Shell, etc.
+
       Error Check Options:
         Only one of --select, --ignore or --convention can be specified. If
         none is specified, defaults to `--convention=pep257`. These three
