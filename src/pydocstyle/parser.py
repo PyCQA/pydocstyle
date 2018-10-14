@@ -1,31 +1,12 @@
 """Python code parser."""
 
-import six
 import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
 from re import compile as re
+from io import StringIO
+
 from .utils import log
-
-try:
-    from StringIO import StringIO
-except ImportError:  # Python 3.0 and later
-    from io import StringIO
-
-try:
-    next
-except NameError:  # Python 2.5 and earlier
-    nothing = object()
-
-    def next(obj, default=nothing):
-        if default == nothing:
-            return obj.next()
-        else:
-            try:
-                return obj.next()
-            except StopIteration:
-                return default
-
 
 __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
            'NestedFunction', 'Method', 'Class', 'NestedClass', 'AllError',
@@ -325,7 +306,7 @@ class Parser(object):
         try:
             compile(src, filename, 'exec')
         except SyntaxError as error:
-            six.raise_from(ParseError(), error)
+            raise ParseError() from error
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.dunder_all = None
