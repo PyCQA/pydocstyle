@@ -28,7 +28,7 @@ def check_for(kind, terminal=False):
     return decorator
 
 
-class ConventionChecker(object):
+class ConventionChecker:
     """Checker for PEP 257 and numpy conventions.
 
     D10x: Missing docstrings

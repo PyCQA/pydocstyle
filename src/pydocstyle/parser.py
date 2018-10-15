@@ -32,7 +32,7 @@ def humanize(string):
     return re(r'(.)([A-Z]+)').sub(r'\1 \2', string).lower()
 
 
-class Value(object):
+class Value:
     """A generic object with a list of preset fields."""
 
     def __init__(self, *args):
@@ -240,7 +240,7 @@ class AllError(Exception):
                 """))
 
 
-class TokenStream(object):
+class TokenStream:
     # A logical newline is where a new expression or statement begins. When
     # there is a physical new line, but not a logical one, for example:
     # (x +
@@ -288,14 +288,14 @@ class Token(Value):
     _fields = 'kind value start end source'.split()
 
     def __init__(self, *args):
-        super(Token, self).__init__(*args)
+        super().__init__(*args)
         self.kind = TokenKind(self.kind)
 
     def __str__(self):
         return "{!r} ({})".format(self.kind, self.value)
 
 
-class Parser(object):
+class Parser:
     """A Python source code parser."""
 
     def parse(self, filelike, filename):

@@ -12,7 +12,7 @@ from pydocstyle import parser, checker
 __all__ = ()
 
 
-class TestParser(object):
+class TestParser:
     """Check parsing of Python source code."""
 
     def test_parse_class_single_decorator(self):
@@ -150,7 +150,7 @@ class TestParser(object):
         assert '' == decorators[0].arguments
 
 
-class TestMethod(object):
+class TestMethod:
     """Unit test for Method class."""
 
     def makeMethod(self, name='someMethodName'):
