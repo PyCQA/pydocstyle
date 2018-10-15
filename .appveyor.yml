@@ -8,7 +8,7 @@ environment:
     - TOXENV: "py35-install"
     - TOXENV: "py36-install"
     - TOXENV: "py37-install"
-    - TOXENV: "docs"
+    - TOXENV: "py36-docs"
 
 install:
   - pip install tox

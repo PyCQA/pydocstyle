@@ -1,10 +1,6 @@
 """General shared utilities."""
 import logging
-from itertools import tee
-try:
-    from itertools import zip_longest
-except ImportError:
-    from itertools import izip_longest as zip_longest
+from itertools import tee, zip_longest
 
 
 # Do not update the version manually - it is managed by `bumpversion`.

@@ -5,10 +5,7 @@ import itertools
 import os
 from collections import namedtuple
 from re import compile as re
-
-
 from configparser import RawConfigParser
-
 
 from .utils import __version__, log
 from .violations import ErrorRegistry, conventions
