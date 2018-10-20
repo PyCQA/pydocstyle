@@ -1,9 +1,12 @@
 """Docstring violation definition."""
+
 from itertools import dropwhile
 from functools import partial
 from collections import namedtuple
+from typing import Iterable, Optional, List, Callable, Any
 
 from .utils import is_blank
+from .parser import Definition
 
 
 __all__ = ('Error', 'ErrorRegistry', 'conventions')
@@ -19,7 +22,13 @@ class Error:
     explain = False
     source = False
 
-    def __init__(self, code, short_desc, context, *parameters):
+    def __init__(
+            self,
+            code: str,
+            short_desc: str,
+            context: str,
+            *parameters: Iterable[str]
+    ) -> None:
         """Initialize the object.
 
         `parameters` are specific to the created error.
@@ -29,10 +38,10 @@ class Error:
         self.short_desc = short_desc
         self.context = context
         self.parameters = parameters
-        self.definition = None
-        self.explanation = None
+        self.definition = None  # type: Optional[Definition]
+        self.explanation = None  # type: Optional[str]
 
-    def set_context(self, definition, explanation):
+    def set_context(self, definition: Definition, explanation: str) -> None:
         """Set the source code context for this error."""
         self.definition = definition
         self.explanation = explanation
@@ -41,7 +50,7 @@ class Error:
     line = property(lambda self: self.definition.error_lineno)
 
     @property
-    def message(self):
+    def message(self) -> str:
         """Return the message to print to the user."""
         ret = '{}: {}'.format(self.code, self.short_desc)
         if self.context is not None:
@@ -50,11 +59,13 @@ class Error:
         return ret
 
     @property
-    def lines(self):
+    def lines(self) -> str:
         """Return the source code lines for this error."""
+        if self.definition is None:
+            return ''
         source = ''
         lines = self.definition.source
-        offset = self.definition.start
+        offset = self.definition.start  # type: ignore
         lines_stripped = list(reversed(list(dropwhile(is_blank,
                                                       reversed(lines)))))
         numbers_width = len(str(offset + len(lines_stripped)))
@@ -68,9 +79,10 @@ class Error:
                 break
         return source
 
-    def __str__(self):
-        self.explanation = '\n'.join(l for l in self.explanation.split('\n')
-                                     if not is_blank(l))
+    def __str__(self) -> str:
+        if self.explanation:
+            self.explanation = '\n'.join(l for l in self.explanation.split('\n')
+                                         if not is_blank(l))
         template = '{filename}:{line} {definition}:\n        {message}'
         if self.source and self.explain:
             template += '\n\n{explanation}\n\n{lines}\n'
@@ -82,10 +94,10 @@ class Error:
                                ['filename', 'line', 'definition', 'message',
                                 'explanation', 'lines']})
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __lt__(self, other):
+    def __lt__(self, other: 'Error') -> bool:
         return (self.filename, self.line) < (other.filename, other.line)
 
 
@@ -97,7 +109,7 @@ class ErrorRegistry:
     class ErrorGroup:
         """A group of similarly themed errors."""
 
-        def __init__(self, prefix, name):
+        def __init__(self, prefix: str, name: str) -> None:
             """Initialize the object.
 
             `Prefix` should be the common prefix for errors in this group,
@@ -107,9 +119,14 @@ class ErrorRegistry:
             """
             self.prefix = prefix
             self.name = name
-            self.errors = []
+            self.errors = []  # type: List[ErrorParams]
 
-        def create_error(self, error_code, error_desc, error_context=None):
+        def create_error(
+                self,
+                error_code: str,
+                error_desc: str,
+                error_context: Optional[str]=None,
+        ) -> Callable[[Iterable[str]], Error]:
             """Create an error, register it to this group and return it."""
             # TODO: check prefix
 
@@ -119,21 +136,21 @@ class ErrorRegistry:
             return factory
 
     @classmethod
-    def create_group(cls, prefix, name):
+    def create_group(cls, prefix: str, name: str) -> ErrorGroup:
         """Create a new error group and return it."""
         group = cls.ErrorGroup(prefix, name)
         cls.groups.append(group)
         return group
 
     @classmethod
-    def get_error_codes(cls):
+    def get_error_codes(cls) -> Iterable[str]:
         """Yield all registered codes."""
         for group in cls.groups:
             for error in group.errors:
                 yield error.code
 
     @classmethod
-    def to_rst(cls):
+    def to_rst(cls) -> str:
         """Output the registry as reStructuredText, for documentation."""
         sep_line = '+' + 6 * '-' + '+' + '-' * 71 + '+\n'
         blank_line = '|' + 78 * ' ' + '|\n'
@@ -233,7 +250,7 @@ D414 = D4xx.create_error('D414', 'Section has no content', '{0!r}')
 
 
 class AttrDict(dict):
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
         return self[item]
 
 
