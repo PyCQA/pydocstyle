@@ -1,23 +1,23 @@
 """General shared utilities."""
 import logging
-from itertools import tee
-try:
-    from itertools import zip_longest
-except ImportError:
-    from itertools import izip_longest as zip_longest
+from typing import Iterable, Any, Tuple
+from itertools import tee, zip_longest
 
 
 # Do not update the version manually - it is managed by `bumpversion`.
-__version__ = '2.1.2rc'
+__version__ = '3.0.1rc'
 log = logging.getLogger(__name__)
 
 
-def is_blank(string):
+def is_blank(string: str) -> bool:
     """Return True iff the string contains only whitespaces."""
     return not string.strip()
 
 
-def pairwise(iterable, default_value):
+def pairwise(
+    iterable: Iterable,
+    default_value: Any,
+) -> Iterable[Tuple[Any, Any]]:
     """Return pairs of items from `iterable`.
 
     pairwise([1, 2, 3], default_value=None) -> (1, 2) (2, 3), (3, None)

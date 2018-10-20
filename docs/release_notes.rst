@@ -4,19 +4,26 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
-Current development version
+Current Development Version
 ---------------------------
 
 Major Updates
 
+* Support for Python 2.x and PyPy has been dropped (#340).
+
+3.0.0 - October 14th, 2018
+--------------------------
+
+Major Updates
+
 * Support for Python 3.3 has been dropped (#315, #316).
+* Added support for Python 3.7 (#324).
 
 New features
 
 * Violations are now reported on the line where the docstring starts, not the
   line of the ``def``/``class`` it corresponds to (#238, #83).
 * Updated description of pep257 and numpy conventions (#300).
-* Added support for Python 3.7 (#324).
 * ``__all__`` parsing is now done on a best-effort basis - if ``__all__`` can't
   be statically determined, it will be ignored (#320, #313).
 
@@ -24,8 +31,8 @@ Bug Fixes
 
 * Fixed a false-positive recognition of section names causing D405 to be
   reported (#311, #317).
-* Fixed a bug where functions that don't end with a newline will sometimes raise
-  an exception (#321, #336).
+* Fixed a bug where functions that don't end with a newline will sometimes
+  raise an exception (#321, #336).
 
 
 2.1.1 - October 9th, 2017

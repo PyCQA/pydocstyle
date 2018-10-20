@@ -1,31 +1,12 @@
 """Python code parser."""
 
-import six
 import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
 from re import compile as re
+from io import StringIO
+
 from .utils import log
-
-try:
-    from StringIO import StringIO
-except ImportError:  # Python 3.0 and later
-    from io import StringIO
-
-try:
-    next
-except NameError:  # Python 2.5 and earlier
-    nothing = object()
-
-    def next(obj, default=nothing):
-        if default == nothing:
-            return obj.next()
-        else:
-            try:
-                return obj.next()
-            except StopIteration:
-                return default
-
 
 __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
            'NestedFunction', 'Method', 'Class', 'NestedClass', 'AllError',
@@ -51,7 +32,7 @@ def humanize(string):
     return re(r'(.)([A-Z]+)').sub(r'\1 \2', string).lower()
 
 
-class Value(object):
+class Value:
     """A generic object with a list of preset fields."""
 
     def __init__(self, *args):
@@ -121,7 +102,7 @@ class Definition(Value):
 class Module(Definition):
     """A Python source code module."""
 
-    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
+    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',  # type: ignore
                'children', 'parent', '_dunder_all', 'dunder_all_error',
                'future_imports', 'skipped_error_codes')
     _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
@@ -259,7 +240,7 @@ class AllError(Exception):
                 """))
 
 
-class TokenStream(object):
+class TokenStream:
     # A logical newline is where a new expression or statement begins. When
     # there is a physical new line, but not a logical one, for example:
     # (x +
@@ -307,14 +288,14 @@ class Token(Value):
     _fields = 'kind value start end source'.split()
 
     def __init__(self, *args):
-        super(Token, self).__init__(*args)
+        super().__init__(*args)
         self.kind = TokenKind(self.kind)
 
     def __str__(self):
         return "{!r} ({})".format(self.kind, self.value)
 
 
-class Parser(object):
+class Parser:
     """A Python source code parser."""
 
     def parse(self, filelike, filename):
@@ -325,7 +306,7 @@ class Parser(object):
         try:
             compile(src, filename, 'exec')
         except SyntaxError as error:
-            six.raise_from(ParseError(), error)
+            raise ParseError() from error
         self.stream = TokenStream(StringIO(src))
         self.filename = filename
         self.dunder_all = None

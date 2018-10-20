@@ -20,14 +20,6 @@ from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 __all__ = ('check', )
 
 
-# If possible (python >= 3.2) use tokenize.open to open files, so PEP 263
-# encoding markers are interpreted.
-try:
-    tokenize_open = tk.open
-except AttributeError:
-    tokenize_open = open
-
-
 def check_for(kind, terminal=False):
     def decorator(f):
         f._check_for = kind
@@ -36,7 +28,7 @@ def check_for(kind, terminal=False):
     return decorator
 
 
-class ConventionChecker(object):
+class ConventionChecker:
     """Checker for PEP 257 and numpy conventions.
 
     D10x: Missing docstrings
@@ -712,7 +704,7 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
     for filename in filenames:
         log.info('Checking file %s.', filename)
         try:
-            with tokenize_open(filename) as file:
+            with tk.open(filename) as file:
                 source = file.read()
             for error in ConventionChecker().check_source(source, filename,
                                                           ignore_decorators):

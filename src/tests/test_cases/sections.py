@@ -48,7 +48,7 @@ def no_underline():
 
 @expect(_D213)
 @expect("D407: Missing dashed underline after section ('Returns')")
-def no_underline():
+def no_underline_and_no_description():
     """Toggle the gizmo.
 
     Returns
