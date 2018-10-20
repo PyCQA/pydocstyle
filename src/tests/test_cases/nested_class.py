@@ -8,26 +8,26 @@ expect = expectation.expect
 expect('PublicClass', 'D101: Missing docstring in public class')
 
 
-class PublicClass(object):
+class PublicClass:
 
     expect('PublicNestedClass',
            'D106: Missing docstring in public nested class')
 
-    class PublicNestedClass(object):
+    class PublicNestedClass:
 
         expect('PublicNestedClassInPublicNestedClass',
                'D106: Missing docstring in public nested class')
 
-        class PublicNestedClassInPublicNestedClass(object):
+        class PublicNestedClassInPublicNestedClass:
             pass
 
-        class _PrivateNestedClassInPublicNestedClass(object):
+        class _PrivateNestedClassInPublicNestedClass:
             pass
 
-    class _PrivateNestedClass(object):
+    class _PrivateNestedClass:
 
-        class PublicNestedClassInPrivateNestedClass(object):
+        class PublicNestedClassInPrivateNestedClass:
             pass
 
-        class _PrivateNestedClassInPrivateNestedClass(object):
+        class _PrivateNestedClassInPrivateNestedClass:
             pass

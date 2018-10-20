@@ -1,4 +1,4 @@
-class Expectation(object):
+class Expectation:
     """Hold expectation for pep257 violations in tests."""
 
     def __init__(self):

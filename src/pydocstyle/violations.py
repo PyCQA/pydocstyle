@@ -12,7 +12,7 @@ __all__ = ('Error', 'ErrorRegistry', 'conventions')
 ErrorParams = namedtuple('ErrorParams', ['code', 'short_desc', 'context'])
 
 
-class Error(object):
+class Error:
     """Error in docstring style."""
 
     # Options that define how errors are printed:
@@ -78,9 +78,9 @@ class Error(object):
             template += '\n\n{lines}\n'
         elif self.explain and not self.source:
             template += '\n\n{explanation}\n\n'
-        return template.format(**dict((name, getattr(self, name)) for name in
+        return template.format(**{name: getattr(self, name) for name in
                                ['filename', 'line', 'definition', 'message',
-                                'explanation', 'lines']))
+                                'explanation', 'lines']})
 
     def __repr__(self):
         return str(self)
@@ -89,12 +89,12 @@ class Error(object):
         return (self.filename, self.line) < (other.filename, other.line)
 
 
-class ErrorRegistry(object):
+class ErrorRegistry:
     """A registry of all error codes, divided to groups."""
 
     groups = []  # type: ignore
 
-    class ErrorGroup(object):
+    class ErrorGroup:
         """A group of similarly themed errors."""
 
         def __init__(self, prefix, name):

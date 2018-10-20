@@ -11,7 +11,7 @@ from .checker import check
 __all__ = ('main', )
 
 
-class ReturnCode(object):
+class ReturnCode:
     no_violations_found = 0
     violations_found = 1
     invalid_options = 2

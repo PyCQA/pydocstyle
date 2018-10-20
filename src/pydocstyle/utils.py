@@ -1,15 +1,11 @@
 """General shared utilities."""
 import logging
-from itertools import tee
 from typing import Iterable, Any, Tuple
-try:
-    from itertools import zip_longest
-except ImportError:
-    from itertools import izip_longest as zip_longest  # type: ignore
+from itertools import tee, zip_longest
 
 
 # Do not update the version manually - it is managed by `bumpversion`.
-__version__: str = '3.0.1rc'
+__version__ = '3.0.1rc'
 log = logging.getLogger(__name__)
 
 

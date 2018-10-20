@@ -2,11 +2,8 @@
 
 Use tox or py.test to run the test suite.
 """
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 
+import io
 import textwrap
 
 from pydocstyle import parser, checker
@@ -15,7 +12,7 @@ from pydocstyle import parser, checker
 __all__ = ()
 
 
-class TestParser(object):
+class TestParser:
     """Check parsing of Python source code."""
 
     def test_parse_class_single_decorator(self):
@@ -25,7 +22,7 @@ class TestParser(object):
             class Foo:
                 pass
         """)
-        module = checker.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(io.StringIO(code), 'dummy.py')
         decorators = module.children[0].decorators
 
         assert 1 == len(decorators)
@@ -45,7 +42,7 @@ class TestParser(object):
                 pass
         """)
 
-        module = checker.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(io.StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.decorators
 
@@ -67,7 +64,7 @@ class TestParser(object):
                 class NestedClass:
                     pass
         """)
-        module = checker.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(io.StringIO(code), 'dummy.py')
         nested_class = module.children[0].children[0]
         decorators = nested_class.decorators
 
@@ -84,7 +81,7 @@ class TestParser(object):
                     pass
         """)
 
-        module = checker.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(io.StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].decorators
 
@@ -106,7 +103,7 @@ class TestParser(object):
                     pass
         """)
 
-        module = checker.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(io.StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].decorators
 
@@ -126,7 +123,7 @@ class TestParser(object):
                 pass
         """)
 
-        module = checker.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(io.StringIO(code), 'dummy.py')
         decorators = module.children[0].decorators
 
         assert 1 == len(decorators)
@@ -144,7 +141,7 @@ class TestParser(object):
                         pass
         """)
 
-        module = checker.parse(StringIO(code), 'dummy.py')
+        module = checker.parse(io.StringIO(code), 'dummy.py')
         defined_class = module.children[0]
         decorators = defined_class.children[0].children[0].decorators
 
@@ -153,7 +150,7 @@ class TestParser(object):
         assert '' == decorators[0].arguments
 
 
-class TestMethod(object):
+class TestMethod:
     """Unit test for Method class."""
 
     def makeMethod(self, name='someMethodName'):

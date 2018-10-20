@@ -8,7 +8,6 @@ version = '3.0.1rc'
 
 requirements = [
     'snowballstemmer',
-    'six',
 ]
 
 

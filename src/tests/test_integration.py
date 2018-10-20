@@ -22,7 +22,7 @@ from pydocstyle import checker, violations
 __all__ = ()
 
 
-class SandboxEnv(object):
+class SandboxEnv:
     """An isolated environment where pydocstyle can be run.
 
     Since running pydocstyle as a script is affected by local config files,
@@ -173,7 +173,7 @@ def test_ignore_list():
     mock_open = mock.mock_open(read_data=function_to_check)
     from pydocstyle import checker
     with mock.patch.object(
-            checker, 'tokenize_open', mock_open, create=True):
+            checker.tk, 'open', mock_open, create=True):
         errors = tuple(checker.check(['filepath']))
         error_codes = {error.code for error in errors}
         assert error_codes == expected_error_codes
@@ -181,7 +181,7 @@ def test_ignore_list():
     # We need to recreate the mock, otherwise the read file is empty
     mock_open = mock.mock_open(read_data=function_to_check)
     with mock.patch.object(
-            checker, 'tokenize_open', mock_open, create=True):
+            checker.tk, 'open', mock_open, create=True):
         ignored = {'D100', 'D202', 'D213'}
         errors = tuple(checker.check(['filepath'], ignore=ignored))
         error_codes = {error.code for error in errors}

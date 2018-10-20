@@ -1,13 +1,15 @@
 """Parser tests."""
 
+import io
 import six
 import sys
 import pytest
 import textwrap
+
 from pydocstyle.parser import Parser, ParseError
 
 
-class CodeSnippet(six.StringIO):
+class CodeSnippet(io.StringIO):
     """A code snippet.
 
     Automatically wraps snippet as a file-like object and handles line wraps.
@@ -16,7 +18,7 @@ class CodeSnippet(six.StringIO):
 
     def __init__(self, code_string):
         """Initialize the object."""
-        six.StringIO.__init__(self, textwrap.dedent(code_string))
+        io.StringIO.__init__(self, textwrap.dedent(code_string))
 
 
 def test_function():
@@ -423,7 +425,6 @@ def test_nested_class():
     assert str(inner_class) == 'in public nested class `InnerClass`'
 
 
-@pytest.mark.skipif(six.PY2, reason='`raise from` is invalid in Python 2.x')
 def test_raise_from():
     """Make sure 'raise x from y' doesn't trip the parser."""
     parser = Parser()
@@ -431,8 +432,6 @@ def test_raise_from():
     parser.parse(code, 'file_path')
 
 
-@pytest.mark.skipif(six.PY2, reason='Matrix multiplication operator is '
-                                    'invalid in Python 2.x')
 def test_simple_matrix_multiplication():
     """Make sure 'a @ b' doesn't trip the parser."""
     if sys.version_info.minor < 5:
@@ -445,8 +444,6 @@ def test_simple_matrix_multiplication():
     parser.parse(code, 'file_path')
 
 
-@pytest.mark.skipif(six.PY2, reason='Matrix multiplication operator is '
-                                    'invalid in Python 2.x')
 def test_matrix_multiplication_with_decorators():
     """Make sure 'a @ b' doesn't trip the parser."""
     if sys.version_info.minor < 5:
