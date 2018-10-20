@@ -20,10 +20,10 @@ class class_:
         """"""
 
     @expect('D102: Missing docstring in public method')
-    def method():
+    def method(self=None):
         pass
 
-    def _ok_since_private():
+    def _ok_since_private(self=None):
         pass
 
     @expect('D102: Missing docstring in public method')

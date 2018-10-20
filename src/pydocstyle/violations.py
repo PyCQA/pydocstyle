@@ -92,7 +92,7 @@ class Error:
 class ErrorRegistry:
     """A registry of all error codes, divided to groups."""
 
-    groups = []
+    groups = []  # type: ignore
 
     class ErrorGroup:
         """A group of similarly themed errors."""

@@ -49,7 +49,7 @@ def run_pydocstyle():
         return ReturnCode.invalid_options
 
     count = 0
-    for error in errors:
+    for error in errors:  # type: ignore
         if hasattr(error, 'code'):
             sys.stdout.write('%s\n' % error)
         count += 1
