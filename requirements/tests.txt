@@ -4,3 +4,4 @@ mock==2.0.0
 pathlib
 mypy==0.630
 six
+typing
