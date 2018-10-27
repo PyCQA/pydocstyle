@@ -7,6 +7,7 @@ therefore we load them at import time, rather than on-demand.
 import re
 import pkgutil
 import snowballstemmer
+from typing import Iterator
 
 
 #: Regular expression for stripping comments from the wordlists
@@ -16,7 +17,7 @@ COMMENT_RE = re.compile(r'\s*#.*')
 stem = snowballstemmer.stemmer('english').stemWord
 
 
-def load_wordlist(name):
+def load_wordlist(name: str) -> Iterator[str]:
     """Iterate over lines of a wordlist data file.
 
     `name` should be the name of a package data file within the data/
@@ -25,11 +26,13 @@ def load_wordlist(name):
     Whitespace and #-prefixed comments are stripped from each line.
 
     """
-    text = pkgutil.get_data('pydocstyle', 'data/' + name).decode('utf8')
-    for line in text.splitlines():
-        line = COMMENT_RE.sub('', line).strip()
-        if line:
-            yield line
+    data = pkgutil.get_data('pydocstyle', 'data/' + name)
+    if data is not None:
+        text = data.decode('utf8')
+        for line in text.splitlines():
+            line = COMMENT_RE.sub('', line).strip()
+            if line:
+                yield line
 
 
 #: A dict mapping stemmed verbs to the imperative form
