@@ -1,5 +1,0 @@
--   id: pydocstyle
-    name: Verifying PEP257 Compliance
-    entry: pydocstyle
-    language: python
-    files: \.py$

@@ -2,4 +2,4 @@
     name: Verifying PEP257 Compliance
     entry: pydocstyle
     language: python
-    files: \.py$
+    types: [python]
