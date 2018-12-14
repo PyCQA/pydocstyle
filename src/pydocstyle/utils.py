@@ -126,5 +126,4 @@ def parse_unified_diff(diff: str = None) -> DefaultDict:
 
     # We have now parsed our diff into a dictionary that looks like:
     #    {'file.py': set(range(10, 16), range(18, 20)), ...}
-    __import__('wdb').set_trace()
     return parsed_paths
