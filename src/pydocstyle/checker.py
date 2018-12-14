@@ -13,7 +13,7 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO,
                      ParseError)
-from .utils import log, is_blank, pairwise
+from .utils import log, is_blank, pairwise, parse_unified_diff
 from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
 
@@ -479,7 +479,7 @@ class ConventionChecker:
 
         this_line_looks_like_a_section_name = \
             is_blank(section_name_suffix) or section_suffix_is_only_colon
-        
+
         prev_line_looks_like_end_of_paragraph = \
             prev_line_ends_with_punctuation or is_blank(context.previous_line)
 
@@ -661,7 +661,8 @@ class ConventionChecker:
 parse = Parser()
 
 
-def check(filenames, select=None, ignore=None, ignore_decorators=None):
+def check(filenames, select=None, ignore=None, ignore_decorators=None,
+          line_numbers=None):
     """Generate docstring errors that exist in `filenames` iterable.
 
     By default, the PEP-257 convention is checked. To specifically define the
@@ -706,11 +707,12 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
         try:
             with tk.open(filename) as file:
                 source = file.read()
-            for error in ConventionChecker().check_source(source, filename,
-                                                          ignore_decorators):
+            for error in ConventionChecker().check_source(
+                    source, filename, ignore_decorators):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
-                    yield error
+                    if not line_numbers or error.line in line_numbers:
+                        yield error
         except (EnvironmentError, AllError, ParseError) as error:
             log.warning('Error in file %s: %s', filename, error)
             yield error

@@ -7,7 +7,7 @@ from collections import namedtuple
 from re import compile as re
 from configparser import RawConfigParser
 
-from .utils import __version__, log
+from .utils import __version__, log, parse_unified_diff
 from .violations import ErrorRegistry, conventions
 
 try:
@@ -36,7 +36,7 @@ class ConfigurationParser:
     ------------------
     Responsible for deciding things that are related to the user interface and
     configuration discovery, e.g. verbosity, debug options, etc.
-    All run configurations default to `False` or `None` and are decided only 
+    All run configurations default to `False` or `None` and are decided only
     by CLI.
 
     Check Configurations:
@@ -153,6 +153,7 @@ class ConfigurationParser:
             if os.path.isdir(name):
                 for root, dirs, filenames in os.walk(name):
                     config = self._get_config(os.path.abspath(root))
+                    parsed_diff = parse_unified_diff() if self._options.diff else {}
                     match, match_dir = _get_matches(config)
                     ignore_decorators = _get_ignore_decorators(config)
 
@@ -160,29 +161,32 @@ class ConfigurationParser:
                     dirs[:] = [d for d in dirs if match_dir(d)]
 
                     for filename in filenames:
+                        if self._options.diff and filename not in parsed_diff.keys():
+                            continue
                         if match(filename):
                             full_path = os.path.join(root, filename)
                             yield (full_path, list(config.checked_codes),
-                                   ignore_decorators)
+                                   ignore_decorators, parsed_diff.get(filename))
             else:
                 config = self._get_config(os.path.abspath(name))
                 match, _ = _get_matches(config)
                 ignore_decorators = _get_ignore_decorators(config)
                 if match(name):
-                    yield (name, list(config.checked_codes), ignore_decorators)
+                    yield (name, list(config.checked_codes),
+                           ignore_decorators, {})
 
     # --------------------------- Private Methods -----------------------------
 
     def _get_config_by_discovery(self, node):
         """Get a configuration for checking `node` by config discovery.
-        
+
         Config discovery happens when no explicit config file is specified. The
         file system is searched for config files starting from the directory
         containing the file being checked, and up until the root directory of
         the project.
-        
+
         See `_get_config` for further details.
-        
+
         """
         path = self._get_node_dir(node)
 
@@ -396,6 +400,7 @@ class ConfigurationParser:
             kwargs[key] = getattr(cls, 'DEFAULT_{}_RE'.format(key.upper())) \
                 if getattr(options, key) is None and use_defaults \
                 else getattr(options, key)
+
         return CheckConfiguration(**kwargs)
 
     @classmethod
@@ -568,6 +573,9 @@ class ConfigurationParser:
                help='print total number of errors to stdout')
         option('--config', metavar='<path>', default=None,
                help='use given config file and disable config discovery')
+        option('--diff', action='store_true', default=False,
+               help='Report changes only within line number ranges in the '
+               'unified diff provided on standard in by the user.')
 
         parser.add_option_group(OptionGroup(
             parser,
