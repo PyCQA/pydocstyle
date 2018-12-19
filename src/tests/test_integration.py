@@ -91,6 +91,15 @@ class SandboxEnv:
                            err=err.decode('utf-8'),
                            code=p.returncode)
 
+    def invoke_shell_cmd(self, cmd):
+        """Run any shell command."""
+        p = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        return self.Result(out=out.decode('utf-8'),
+                           err=err.decode('utf-8'),
+                           code=p.returncode)
+
     def __enter__(self):
         self.tempdir = tempfile.mkdtemp()
         # Make sure we won't be affected by other config files
@@ -1064,3 +1073,39 @@ def test_syntax_error_multiple_files(env):
     assert code == 1
     assert 'first.py: Cannot parse file' in err
     assert 'second.py: Cannot parse file' in err
+
+
+def test_diff(env):
+    """Test if --diff option works properly."""
+    with env.open('test.py', 'w') as example:
+        example.write(textwrap.dedent('''\
+            class MyClass(object):
+                """Docstring for MyClass."""
+
+                def function_a(self):
+                    """Docstring for function_a."""
+                    pass
+
+                def function_b(self):
+                    pass
+        '''))
+    with env.open('test.diff', 'w') as example:
+        example.write(textwrap.dedent('''\
+diff -r 748a121d221f test.py
+--- a/test.py   Wed Dec 19 23:23:05 2018 +0100
++++ b/test.py   Wed Dec 19 23:37:33 2018 +0100
+@@ -4,3 +4,6 @@
+     def function_a(self):
+         """Docstring for function_a."""
+         pass
++
++    def function_b(self):
++        pass
+        '''.replace('   ', '\t')))
+
+    out, err, code = env.invoke_shell_cmd(
+        'cd {} && cat test.diff | {} --diff'.format(
+            env.tempdir, env.script_name))
+
+    assert 'D100' not in out
+    assert 'D102' in out
