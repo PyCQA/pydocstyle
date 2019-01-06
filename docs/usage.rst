@@ -26,6 +26,6 @@ In-file configuration
 
 
 Usage with the `pre-commit`_ git hooks framework
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------
 
 .. include:: snippets/pre_commit.rst
