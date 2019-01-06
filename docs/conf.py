@@ -14,11 +14,11 @@
 
 import sys
 import os
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+import pydocstyle
 
 # -- General configuration ------------------------------------------------
 
@@ -56,7 +56,7 @@ copyright = '2016, Amir Rachum'
 # built documents.
 #
 # The short X.Y version.
-version = '1.0.0'
+version = pydocstyle.__version__
 # The full version, including alpha/beta/rc tags.
 release = '1.0.0'
 

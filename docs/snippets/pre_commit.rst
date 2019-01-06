@@ -1,10 +1,10 @@
 **pydocstyle** can be included as a hook for `pre-commit`_.  The easiest way to get
 started is to add this configuration to your ``.pre-commit-config.yaml``:
 
-.. code-block:: yaml
+.. parsed-literal::
 
     -   repo: https://github.com/pycqa/pydocstyle
-        rev: ''  # pick a git hash / tag to point to
+        rev: \ |version| \  # pick a git hash / tag to point to
         hooks:
         -   id: pydocstyle
 
