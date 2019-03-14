@@ -530,12 +530,56 @@ def test_complex_module():
                    'bar'
         ]
     """),
+    CodeSnippet("""\
+        __all__ = 'foo', 'bar'
+    """),
+    CodeSnippet("""\
+        __all__ = 'foo', 'bar',
+    """),
+    CodeSnippet(
+        """__all__ = 'foo', 'bar'"""
+    ),
+    CodeSnippet("""\
+        __all__ = 'foo', \
+                  'bar'
+    """),
+    CodeSnippet("""\
+        foo = 1
+        __all__ = 'foo', 'bar'
+    """),
+    CodeSnippet("""\
+        __all__ = 'foo', 'bar'
+        foo = 1
+    """),
 ))
 def test_dunder_all(code):
     """Test that __all__ is parsed correctly."""
     parser = Parser()
     module = parser.parse(code, "filepath")
     assert module.dunder_all == ('foo', 'bar')
+
+
+def test_dunder_all_without_parentheses():
+    """Test that __all__ is parsed correctly."""
+    parser = Parser()
+    code = CodeSnippet("""\
+        __all__ = 'foo',
+    """)
+    module = parser.parse(code, "filepath")
+    assert module.dunder_all == ('foo', )
+
+    code = CodeSnippet("""\
+        __all__ = 'foo'
+    """)
+    module = parser.parse(code, "filepath")
+    assert module.dunder_all is None
+    assert module.dunder_all_error
+
+    code = CodeSnippet("""\
+        __all__ = ('foo', )
+    """)
+    module = parser.parse(code, "filepath")
+    assert module.dunder_all == ('foo', )
 
 
 indeterminable_dunder_all_test_cases = [
