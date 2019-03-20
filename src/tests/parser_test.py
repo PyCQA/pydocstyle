@@ -559,8 +559,8 @@ def test_dunder_all(code):
     assert module.dunder_all == ('foo', 'bar')
 
 
-def test_dunder_all_without_parentheses():
-    """Test that __all__ is parsed correctly."""
+def test_single_value_dunder_all():
+    """Test that single value __all__ is parsed correctly."""
     parser = Parser()
     code = CodeSnippet("""\
         __all__ = 'foo',
