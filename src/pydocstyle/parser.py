@@ -481,7 +481,8 @@ class Parser:
                 '\bThe value was {}. The exception was:\n{}'
                     .format(dunder_all_content, e))
 
-        while self.current.kind not in self.stream.LOGICAL_NEWLINES and self.current.kind != tk.ENDMARKER:
+        while (self.current.kind not in self.stream.LOGICAL_NEWLINES and
+               self.current.kind != tk.ENDMARKER):
             if self.current.kind != tk.COMMENT:
                 self.dunder_all = None
                 self.dunder_all_error = 'Could not evaluate contents of __all__. '
