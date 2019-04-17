@@ -13,6 +13,10 @@ Major Updates
 * Added pre-commit hook (#346)
 * Fix parsing tuple syntax ``__all__`` (#355, #352).
 
+Bug Fixes
+
+* Treat "package" as an imperative verb for D401 (#356).
+
 3.0.0 - October 14th, 2018
 --------------------------
 
