@@ -164,17 +164,19 @@ def test_ignore_list():
     """Test that `ignore`d errors are not reported in the API."""
     function_to_check = textwrap.dedent('''
         def function_with_bad_docstring(foo):
-            """ does spacinwithout a period in the end
-            no blank line after one-liner is bad. Also this - """
+            """ does spacinwithout a period in the end no
+            blank line after one-liner is bad. Also this - """
             return foo
     ''')
     expected_error_codes = {'D100', 'D400', 'D401', 'D205', 'D209', 'D210',
-                            'D403'}
+                            'D403', 'D415', 'D213'}
     mock_open = mock.mock_open(read_data=function_to_check)
     from pydocstyle import checker
     with mock.patch.object(
             checker.tk, 'open', mock_open, create=True):
-        errors = tuple(checker.check(['filepath']))
+        # Passing a blank ignore here explicitly otherwise
+        # checkers takes the pep257 ignores by default.
+        errors = tuple(checker.check(['filepath'], ignore={}))
         error_codes = {error.code for error in errors}
         assert error_codes == expected_error_codes
 

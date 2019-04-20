@@ -7,6 +7,7 @@ expect = expectation.expect
 
 
 _D213 = 'D213: Multi-line docstring summary should start at the second line'
+_D400 = "D400: First line should end with a period (not '!')"
 
 
 @expect(_D213)
@@ -177,6 +178,8 @@ def ignore_non_actual_section():
 @expect("D401: First line should be in imperative mood "
         "('Return', not 'Returns')")
 @expect("D400: First line should end with a period (not 's')")
+@expect("D415: First line should end with a period, question "
+        "mark, or exclamation point (not 's')")
 @expect("D205: 1 blank line required between summary line and description "
         "(found 0)")
 def section_name_in_first_line():

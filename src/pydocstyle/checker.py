@@ -29,7 +29,7 @@ def check_for(kind, terminal=False):
 
 
 class ConventionChecker:
-    """Checker for PEP 257 and numpy conventions.
+    """Checker for PEP 257, numpy and google conventions.
 
     D10x: Missing docstrings
     D20x: Whitespace issues
@@ -335,6 +335,13 @@ class ConventionChecker:
                     ('u', 'ur')):
                 return violations.D302()
 
+    @staticmethod
+    def _check_ends_with(docstring, chars, violation):
+        if docstring:
+            summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
+            if not summary_line.endswith(chars):
+                return violation(summary_line[-1])
+
     @check_for(Definition)
     def check_ends_with_period(self, definition, docstring):
         """D400: First line should end with a period.
@@ -342,10 +349,17 @@ class ConventionChecker:
         The [first line of a] docstring is a phrase ending in a period.
 
         """
-        if docstring:
-            summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
-            if not summary_line.endswith('.'):
-                return violations.D400(summary_line[-1])
+        return self._check_ends_with(docstring, '.', violations.D400)
+
+    @check_for(Definition)
+    def check_ends_with_punctuation(self, definition, docstring):
+        """D415: should end with proper punctuation.
+
+        The [first line of a] docstring is a phrase ending in a period,
+        question mark, or exclamation point
+
+        """
+        return self._check_ends_with(docstring, ('.', '!', '?'), violations.D415)
 
     @check_for(Function)
     def check_imperative_mood(self, function, docstring):  # def context
@@ -479,7 +493,7 @@ class ConventionChecker:
 
         this_line_looks_like_a_section_name = \
             is_blank(section_name_suffix) or section_suffix_is_only_colon
-        
+
         prev_line_looks_like_end_of_paragraph = \
             prev_line_ends_with_punctuation or is_blank(context.previous_line)
 
