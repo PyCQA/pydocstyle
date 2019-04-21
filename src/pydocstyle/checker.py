@@ -4,7 +4,7 @@ import ast
 import string
 import sys
 import tokenize as tk
-from itertools import takewhile
+from itertools import takewhile, chain
 from re import compile as re
 from collections import namedtuple
 
@@ -668,6 +668,26 @@ class ConventionChecker:
         if suffix:
             yield violations.D406(capitalized_section, context.line.strip())
 
+    @staticmethod
+    def _check_args_section(docstring, definition, context):
+        """D417: `Args` section checks.
+
+        Check for a valid `Args` or `Argument` section. Checks that:
+            * The section documents all function arguments (D417)
+                except `self` or `cls` if it is a method.
+
+        """
+        if definition.kind == 'function':
+            function_pos_args = get_function_args(definition.source)
+            docstring_args = set()
+            for line in context.following_lines:
+                match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
+                if match:
+                    docstring_args.add(match.group(1))
+            missing_args = function_pos_args - docstring_args
+            if missing_args:
+                yield violations.D417(", ".join(missing_args), definition.name)
+
     @classmethod
     def _check_google_section(cls, docstring, definition, context):
         """D416: Google-style section name checks.
@@ -689,6 +709,9 @@ class ConventionChecker:
         suffix = context.line.strip().lstrip(context.section_name)
         if suffix != ":":
             yield violations.D416(capitalized_section + ":", context.line.strip())
+
+        if capitalized_section in ("Args", "Arguments"):
+            yield from cls._check_args_section(docstring, definition, context)
 
 
     @staticmethod
@@ -804,7 +827,6 @@ class ConventionChecker:
         lines = docstring.split("\n")
         if len(lines) < 2:
             return
-
         yield from self._check_numpy_sections(lines, definition, docstring)
         yield from self._check_google_sections(lines, definition, docstring)
 
@@ -887,3 +909,11 @@ def get_leading_words(line):
     result = re("[\w ]+").match(line.strip())
     if result is not None:
         return result.group()
+
+
+def get_function_args(function_string):
+    """Return the function arguments given the source-code string."""
+    function_arg_node = ast.parse(function_string).body[0].args
+    arg_nodes = function_arg_node.args
+    kwonly_arg_nodes = function_arg_node.kwonlyargs
+    return set(arg_node.arg for arg_node in chain(arg_nodes, kwonly_arg_nodes))

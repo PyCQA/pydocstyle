@@ -664,6 +664,7 @@ def test_google_convention(env):
     assert 'D412' in out
     assert 'D413' in out
     assert 'D414' in out
+    assert 'D417' in out
 
 
 def test_config_file_inheritance(env):

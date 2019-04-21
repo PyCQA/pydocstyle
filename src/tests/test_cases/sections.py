@@ -272,3 +272,16 @@ def missing_colon_google_style_section():  # noqa: D406, D407
         note: A random string.
 
     """
+
+
+@expect(_D213)
+@expect("D417: Missing arguments in the function docstring "
+        "(argument(s) 'y' missing in function "
+        "'test_missing_args' docstring)")
+def test_missing_args(x=1, y=2):  # noqa: D407, D407
+    """Toggle the gizmo.
+
+    Args:
+        x (int): The greatest integer.
+
+    """
