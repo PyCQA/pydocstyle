@@ -47,7 +47,7 @@ docs/_*
 # virtualenv
 venv/
 .venvs/
-.venv
+.venv/
 
 # generated rst
 docs/snippets/error_code_table.rst
