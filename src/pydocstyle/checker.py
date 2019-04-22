@@ -1,6 +1,7 @@
 """Parsed source code checkers for docstring violations."""
 
 import tokenize as tk
+import warnings
 
 from pydocstyle import violations
 from pydocstyle.checkers import get_checkers
@@ -9,11 +10,15 @@ from pydocstyle.parser import Parser, StringIO, ParseError, AllError
 from pydocstyle.utils import log
 
 
-__all__ = ('check', )
+__all__ = ('check', 'check_source')
 
 
 class ConventionChecker:
-    """Checker for PEP 257 and numpy conventions.
+    """Deprecated: Checker for PEP 257 and numpy conventions.
+
+    Deprecated class. Use `pydocstyle.check_source` instead.
+    >>> from pydocstyle import check_source
+    >>> check_source(source, filename, ignore_decorators=None)
 
     D10x: Missing docstrings
     D20x: Whitespace issues
@@ -22,11 +27,18 @@ class ConventionChecker:
 
     """
 
+    def __init__(self):
+        warnings.warn("`ConventionChecker` is deprecated. "
+                      "Use the `pydocstyle.check_source` instead", DeprecationWarning)
+
     def check_source(self, source, filename, ignore_decorators=None):
+        warnings.warn("`ConventionChecker.check_source` is deprecated. "
+                      "Use `pydocstyle.check_source` instead", DeprecationWarning)
         yield from check_source(source, filename, ignore_decorators=ignore_decorators)
 
     @property
     def checks(self):
+        warnings.warn("`ConventionChecker.checks` is deprecated.", DeprecationWarning)
         return _get_checks()
 
 

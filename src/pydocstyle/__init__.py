@@ -1,4 +1,4 @@
-from pydocstyle.checker import check
+from pydocstyle.checker import check, check_source
 from pydocstyle.violations import Error, conventions
 from pydocstyle.utils import __version__
 
