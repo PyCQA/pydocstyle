@@ -6,7 +6,7 @@ from itertools import chain, dropwhile
 from re import compile as re
 from io import StringIO
 
-from .utils import log
+from pydocstyle.utils import log
 
 __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
            'NestedFunction', 'Method', 'Class', 'NestedClass', 'AllError',

@@ -1,7 +1,7 @@
-from .checker import check
-from .violations import Error, conventions
-from .utils import __version__
+from pydocstyle.checker import check
+from pydocstyle.violations import Error, conventions
+from pydocstyle.utils import __version__
 
 # Temporary hotfix for flake8-docstrings
-from .checker import ConventionChecker
-from .parser import AllError
+from pydocstyle.checker import ConventionChecker
+from pydocstyle.parser import AllError

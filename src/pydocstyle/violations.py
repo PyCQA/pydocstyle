@@ -5,8 +5,8 @@ from functools import partial
 from collections import namedtuple
 from typing import Iterable, Optional, List, Callable, Any
 
-from .utils import is_blank
-from .parser import Definition
+from pydocstyle.utils import is_blank
+from pydocstyle.parser import Definition
 
 
 __all__ = ('Error', 'ErrorRegistry', 'conventions')
