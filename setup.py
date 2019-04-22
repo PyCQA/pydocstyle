@@ -1,5 +1,5 @@
 from __future__ import with_statement
-from setuptools import setup
+from setuptools import setup, find_packages
 import sys
 
 # Do not update the version manually - it is managed by `bumpversion`.
@@ -33,7 +33,7 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     keywords='pydocstyle, PEP 257, pep257, PEP 8, pep8, docstrings',
-    packages=('pydocstyle',),
+    packages=find_packages('src', exclude=["tests", "tests.*"]),
     package_dir={'': 'src'},
     package_data={'pydocstyle': ['data/*.txt']},
     install_requires=requirements,
