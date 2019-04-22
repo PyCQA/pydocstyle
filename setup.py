@@ -41,5 +41,10 @@ setup(
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',
         ],
+        'pydocstyle_styles': [
+            'pydocstyle.base = pydocstyle.checkers.style.base',
+            'pydocstyle.numpy = pydocstyle.checkers.style.numpy',
+            'pydocstyle.other = pydocstyle.checkers.style.other',
+        ]
     },
 )
