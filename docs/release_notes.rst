@@ -20,6 +20,10 @@ Bug Fixes
 
 * Remove D413 from the pep257 convention (#404).
 * Replace `semicolon` with `colon` in D416 messages. (#409)
+* D301 (Use r""" if any backslashes in a docstring) does not trigger on
+  backslashes for line continuation or unicode literals ``\u...`` and
+  ``\N...`` anymore. These are considered intended elements of the docstring
+  and thus should not be escaped by using a raw docstring (#365).
 
 4.0.1 - August 14th, 2019
 -------------------------
@@ -34,6 +38,7 @@ Bug Fixes
   the violation code table (#396).
 * Fixed IndentationError when parsing function arguments (#392).
 
+  
 4.0.0 - July 6th, 2019
 ----------------------
 
