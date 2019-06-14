@@ -134,9 +134,8 @@ def no_blank_line_before_section():  # noqa: D416
 def section_overindented():  # noqa: D416
     """Toggle the gizmo.
 
-        Returns
-    -------
-    A value of some sort.
+    Returns:
+        A value of some sort.
 
     """
 
@@ -146,9 +145,8 @@ def section_overindented():  # noqa: D416
 def section_underline_overindented():  # noqa: D416
     """Toggle the gizmo.
 
-    Returns
-        -------
-    A value of some sort.
+    Returns:
+        A value of some sort.
 
     """
 
@@ -160,8 +158,8 @@ def section_underline_overindented():  # noqa: D416
 def section_underline_overindented_and_contentless():  # noqa: D416
     """Toggle the gizmo.
 
-    Returns
-        -------
+    Returns:
+        None
     """
 
 
@@ -171,6 +169,8 @@ def ignore_non_actual_section():  # noqa: D416
 
     This is the function's description, which will also specify what it
     returns
+    Returns:
+        None
 
     """
 
@@ -184,9 +184,9 @@ def ignore_non_actual_section():  # noqa: D416
 @expect("D205: 1 blank line required between summary line and description "
         "(found 0)")
 def section_name_in_first_line():  # noqa: D416
-    """Returns
-    -------
-    A value of some sort.
+    """
+    Returns:
+        A value of some sort.
 
     """
 
@@ -212,11 +212,10 @@ def multiple_sections():  # noqa: D416
     This is the function's description, which will also specify what it
     returns.
 
-    Returns
-    ------
-    Many many wonderful things.
+    Returns:
+        Many many wonderful things.
     Raises:
-    My attention.
+        My attention.
 
     """
 
@@ -225,9 +224,8 @@ def multiple_sections():  # noqa: D416
 def false_positive_section_prefix():  # noqa: D416
     """Toggle the gizmo.
 
-    Parameters
-    ----------
-    attributes_are_fun: attributes for the function.
+    Args:
+        attributes_are_fun: attributes for the function.
 
     """
 
@@ -235,13 +233,12 @@ def false_positive_section_prefix():  # noqa: D416
 @expect(_D213)
 def section_names_as_parameter_names():  # noqa: D416
     """Toggle the gizmo.
-
-    Parameters
-    ----------
-    notes : list
-        A list of wonderful notes.
-    examples: list
-        A list of horrible examples.
+        
+    Args:
+        notes (List[str]): list
+                A list of wonderful notes.
+        examples: list
+                A list of horrible examples.
 
     """
 
@@ -252,7 +249,7 @@ def valid_google_style_section():  # noqa: D406, D407
     """Toggle the gizmo.
 
     Args:
-        note: A random string.
+        note (str): A random string.
 
     Returns:
 
@@ -268,8 +265,8 @@ def valid_google_style_section():  # noqa: D406, D407
 def missing_colon_google_style_section():  # noqa: D406, D407
     """Toggle the gizmo.
 
-    Args
-        note: A random string.
+    Args:
+        note (str): A random string.
 
     """
 
