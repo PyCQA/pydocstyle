@@ -3,7 +3,7 @@ from setuptools import setup
 import sys
 
 # Do not update the version manually - it is managed by `bumpversion`.
-version = '3.0.1rc'
+version = '4.0.0rc'
 
 
 requirements = [
