@@ -5,7 +5,7 @@ from itertools import tee, zip_longest
 
 
 # Do not update the version manually - it is managed by `bumpversion`.
-__version__ = '4.0.0rc'
+__version__ = '4.0.0'
 log = logging.getLogger(__name__)
 
 
