@@ -4,14 +4,22 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
-Current Development Version
+4.0.0 - July 6th, 2019
 ---------------------------
 
 Major Updates
 
 * Support for Python 2.x and PyPy has been dropped (#340).
+* Added initial support for Google convention (#357).
+
+New Features
+
 * Added pre-commit hook (#346)
+
+Bug Fixes
+
 * Fix parsing tuple syntax ``__all__`` (#355, #352).
+
 
 3.0.0 - October 14th, 2018
 --------------------------
