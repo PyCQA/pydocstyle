@@ -247,7 +247,12 @@ D412 = D4xx.create_error('D412', 'No blank lines allowed between a section '
 D413 = D4xx.create_error('D413', 'Missing blank line after last section',
                          '{0!r}')
 D414 = D4xx.create_error('D414', 'Section has no content', '{0!r}')
-
+D415 = D4xx.create_error('D415', 'First line should end with a period, question '
+                                 'mark, or exclamation point', 'not {0!r}')
+D416 = D4xx.create_error('D416', 'Section name should end with a semicolon',
+                         '{0!r}, not {1!r}')
+D417 = D4xx.create_error('D417', 'Missing arguments in the function docstring',
+                         'argument(s) {0!r} missing in function {1!r} docstring')
 
 class AttrDict(dict):
     def __getattr__(self, item: str) -> Any:
@@ -260,6 +265,9 @@ all_errors = set(ErrorRegistry.get_error_codes())
 conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
-                            'D411'},
-    'numpy': all_errors - {'D107', 'D203', 'D212', 'D213', 'D402', 'D413'}
+                            'D411', 'D415', 'D416', 'D417'},
+    'numpy': all_errors - {'D107', 'D203', 'D212', 'D213', 'D402', 'D413',
+                           'D415', 'D416', 'D417'},
+    'google': all_errors - {'D203', 'D204', 'D213', 'D215', 'D400', 'D401',
+                            'D404', 'D406', 'D407', 'D408', 'D409'}
 })

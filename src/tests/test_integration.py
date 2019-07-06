@@ -169,12 +169,14 @@ def test_ignore_list():
             return foo
     ''')
     expected_error_codes = {'D100', 'D400', 'D401', 'D205', 'D209', 'D210',
-                            'D403'}
+                            'D403', 'D415', 'D213'}
     mock_open = mock.mock_open(read_data=function_to_check)
     from pydocstyle import checker
     with mock.patch.object(
             checker.tk, 'open', mock_open, create=True):
-        errors = tuple(checker.check(['filepath']))
+        # Passing a blank ignore here explicitly otherwise
+        # checkers takes the pep257 ignores by default.
+        errors = tuple(checker.check(['filepath'], ignore={}))
         error_codes = {error.code for error in errors}
         assert error_codes == expected_error_codes
 
@@ -622,6 +624,47 @@ def test_numpy_convention(env):
     assert 'D414' in out
     assert 'D410' not in out
     assert 'D413' not in out
+
+
+def test_google_convention(env):
+    """Test that the 'google' convention options has the correct errors."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''
+            def func(num1, num2, num_three=0):
+                """Docstring for this function.
+
+                Args:
+                    num1 (int): Number 1.
+                    num2: Number 2.
+                """
+
+
+            class Foo(object):
+                """Docstring for this class.
+
+                Attributes:
+
+                    test: Test
+
+                returns:
+                """
+                def __init__(self):
+                    pass
+        '''))
+
+    env.write_config(convention="google")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D107' in out
+    assert 'D213' not in out
+    assert 'D215' not in out
+    assert 'D405' in out
+    assert 'D409' not in out
+    assert 'D410' not in out
+    assert 'D412' in out
+    assert 'D413' in out
+    assert 'D414' in out
+    assert 'D417' in out
 
 
 def test_config_file_inheritance(env):
