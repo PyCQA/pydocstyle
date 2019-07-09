@@ -32,6 +32,7 @@ setup(
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
     ],
+    python_requires='>=3.4',
     keywords='pydocstyle, PEP 257, pep257, PEP 8, pep8, docstrings',
     packages=('pydocstyle',),
     package_dir={'': 'src'},
