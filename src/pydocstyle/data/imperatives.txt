@@ -104,6 +104,7 @@ indicate
 init
 initialise
 initialize
+initiate
 input
 insert
 instantiate
