@@ -7,7 +7,7 @@ therefore we load them at import time, rather than on-demand.
 import re
 import pkgutil
 import snowballstemmer
-from typing import Iterator
+from typing import Iterator, Dict, Set
 
 
 #: Regular expression for stripping comments from the wordlists
@@ -36,7 +36,14 @@ def load_wordlist(name: str) -> Iterator[str]:
 
 
 #: A dict mapping stemmed verbs to the imperative form
-IMPERATIVE_VERBS = {stem(v): v for v in load_wordlist('imperatives.txt')}
+def make_imperative_verbs_dict(wordlist: Iterator[str]) -> Dict[str, Set[str]]:
+    imperative_verbs = {}  # type: Dict[str, Set[str]]
+    for word in wordlist:
+        imperative_verbs.setdefault(stem(word), set()).add(word)
+    return imperative_verbs
+
+
+IMPERATIVE_VERBS = make_imperative_verbs_dict(load_wordlist('imperatives.txt'))
 
 #: Words that are forbidden to appear as the first word in a docstring
 IMPERATIVE_BLACKLIST = set(load_wordlist('imperatives_blacklist.txt'))
