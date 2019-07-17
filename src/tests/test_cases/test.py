@@ -385,6 +385,22 @@ def docstring_ignore_some_violations_but_catch_D401():  # noqa: E501,D400,D415
     pass
 
 
+@expect(
+    "D401: First line should be in imperative mood "
+    "('Initiate', not 'Initiates')"
+)
+def docstring_initiates():
+    """Initiates the process."""
+
+
+@expect(
+    "D401: First line should be in imperative mood "
+    "('Initialize', not 'Initializes')"
+)
+def docstring_initializes():
+    """Initializes the process."""
+
+
 @wraps(docstring_bad_ignore_one)
 def bad_decorated_function():
     """Bad (E501) but decorated"""

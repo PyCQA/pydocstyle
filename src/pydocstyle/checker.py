@@ -13,7 +13,7 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO,
                      ParseError)
-from .utils import log, is_blank, pairwise
+from .utils import log, is_blank, pairwise, common_prefix_length
 from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
 
@@ -448,8 +448,12 @@ class ConventionChecker:
                     return
 
                 if correct_forms and check_word not in correct_forms:
+                    best = max(
+                        correct_forms,
+                        key=lambda f: common_prefix_length(check_word, f)
+                    )
                     return violations.D401(
-                        next(iter(correct_forms)).capitalize(),
+                        best.capitalize(),
                         first_word
                     )
 
