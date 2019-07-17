@@ -15,6 +15,8 @@ Major Updates
 New Features
 
 * Add flag to disable `# noqa` comment processing in API (#485).
+* New error code D303 is emitted when an f-string is found in place of a
+  docstring.
 
 Bug Fixes
 

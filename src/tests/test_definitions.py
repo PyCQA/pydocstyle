@@ -1,5 +1,6 @@
 """Old parser tests."""
 
+import sys
 import os
 import re
 import pytest
@@ -24,7 +25,21 @@ from pydocstyle.checker import check
     'canonical_numpy_examples',
     'canonical_pep257_examples',
 ])
-def test_complex_file(test_case):
+def test_all_interpreters(test_case):
+    """Complex test cases that run under all interpreters."""
+    run_case(test_case)
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 6),
+    reason="f-string support needed"
+)
+def test_fstrings():
+    """Run the f-string test case under Python 3.6+ only."""
+    run_case('fstrings')
+
+
+def run_case(test_case):
     """Run domain-specific tests from test.py file."""
     case_module = __import__(f'test_cases.{test_case}',
                              globals=globals(),

@@ -46,6 +46,24 @@ def check_for(kind, terminal=False):
     return decorator
 
 
+
+FSTRING_RE = re(r'^[rR]?[fF]')
+
+
+def is_fstring(docstring):
+    r"""Return True if docstring is an f-string.
+
+    >>> is_fstring('rf"abc"')
+    True
+    >>> is_fstring('F"abc"')
+    True
+    >>> is_fstring("u'''abc'''")
+    False
+    """
+    return FSTRING_RE.match(str(docstring))
+
+
+
 class ConventionChecker:
     """Checker for PEP 257, NumPy and Google conventions.
 
@@ -181,6 +199,17 @@ class ConventionChecker:
         return sorted(all, key=lambda this_check: not this_check._terminal)
 
     @check_for(Definition, terminal=True)
+    def check_docstring_fstring(self, definition, docstring):
+        """D303: Docstrings may not be f-strings.
+
+        f-strings are not treated as string literals, but they look similar
+        and users may attempt to use them as docstrings. This is an
+        outright mistake so we issue a specific error code.
+        """
+        if is_fstring(docstring):
+            return violations.D303()
+
+    @check_for(Definition, terminal=True)
     def check_docstring_missing(self, definition, docstring):
         """D10{0,1,2,3}: Public definitions should have docstrings.
 
@@ -194,6 +223,9 @@ class ConventionChecker:
               with a single underscore.
 
         """
+        if is_fstring(docstring):
+            return  # checked above in check_docstring_fstring
+
         if (
             not docstring
             and definition.is_public
