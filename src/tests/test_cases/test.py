@@ -389,7 +389,7 @@ def docstring_ignore_some_violations_but_catch_D401():  # noqa: E501,D400,D415
 
 @expect(
     "D401: First line should be in imperative mood "
-    "('Initiate', not 'Initiates')"
+    "(perhaps 'Initiate', not 'Initiates')"
 )
 def docstring_initiates():
     """Initiates the process."""
@@ -397,7 +397,7 @@ def docstring_initiates():
 
 @expect(
     "D401: First line should be in imperative mood "
-    "('Initialize', not 'Initializes')"
+    "(perhaps 'Initialize', not 'Initializes')"
 )
 def docstring_initializes():
     """Initializes the process."""
