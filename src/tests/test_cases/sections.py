@@ -177,7 +177,7 @@ def ignore_non_actual_section():  # noqa: D416
 
 @expect(_D213)
 @expect("D401: First line should be in imperative mood "
-        "('Return', not 'Returns')")
+        "(perhaps 'Return', not 'Returns')")
 @expect("D400: First line should end with a period (not 's')")
 @expect("D415: First line should end with a period, question "
         "mark, or exclamation point (not 's')")

@@ -219,7 +219,7 @@ D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
 D400 = D4xx.create_error('D400', 'First line should end with a period',
                          'not {0!r}')
 D401 = D4xx.create_error('D401', 'First line should be in imperative mood',
-                         "'{0}', not '{1}'")
+                         "perhaps '{0}', not '{1}'")
 D401b = D4xx.create_error('D401', 'First line should be in imperative mood; '
                           'try rephrasing', "found '{0}'")
 D402 = D4xx.create_error('D402', 'First line should not be the function\'s '
