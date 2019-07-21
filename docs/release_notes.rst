@@ -4,6 +4,14 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+New Features
+
+* Extend support for detecting missing arguments in Google style
+  docstrings to method calls (#384).
+
 4.0.1 - August 14th, 2019
 -------------------------
 

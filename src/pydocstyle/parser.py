@@ -181,6 +181,13 @@ class Method(Function):
                           self.is_magic)
         return self.parent.is_public and name_is_public
 
+    @property
+    def is_static(self):
+        for decorator in self.decorators:
+            if decorator.name == "staticmethod":
+                return True
+        return False
+
 
 class Class(Definition):
     """A Python source code class."""

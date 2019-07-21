@@ -252,8 +252,8 @@ D415 = D4xx.create_error('D415', 'First line should end with a period, question 
                                  'mark, or exclamation point', 'not {0!r}')
 D416 = D4xx.create_error('D416', 'Section name should end with a semicolon',
                          '{0!r}, not {1!r}')
-D417 = D4xx.create_error('D417', 'Missing arguments in the function docstring',
-                         'argument(s) {0!r} missing in function {1!r} docstring')
+D417 = D4xx.create_error('D417', 'Missing arguments in the docstring',
+                         'argument(s) {0!r} missing in {1!r} docstring')
 
 class AttrDict(dict):
     def __getattr__(self, item: str) -> Any:

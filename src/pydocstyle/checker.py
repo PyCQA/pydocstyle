@@ -682,16 +682,21 @@ class ConventionChecker:
                 except `self` or `cls` if it is a method.
 
         """
-        if definition.kind == 'function':
-            function_pos_args = get_function_args(definition.source)
-            docstring_args = set()
-            for line in context.following_lines:
-                match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
-                if match:
-                    docstring_args.add(match.group(1))
-            missing_args = function_pos_args - docstring_args
-            if missing_args:
-                yield violations.D417(", ".join(missing_args), definition.name)
+        docstring_args = set()
+        for line in context.following_lines:
+            match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
+            if match:
+                docstring_args.add(match.group(1))
+        function_args = get_function_args(definition.source)
+        # If the method isn't static, then we skip the first
+        # positional argument as it is `cls` or `self`
+        if definition.kind == 'method' and not definition.is_static:
+            function_args = function_args[1:]
+        missing_args = set(function_args) - docstring_args
+        if missing_args:
+            yield violations.D417(", ".join(sorted(missing_args)),
+                                  definition.name)
+
 
     @classmethod
     def _check_google_section(cls, docstring, definition, context):
@@ -921,4 +926,4 @@ def get_function_args(function_string):
     function_arg_node = ast.parse(textwrap.dedent(function_string)).body[0].args
     arg_nodes = function_arg_node.args
     kwonly_arg_nodes = function_arg_node.kwonlyargs
-    return set(arg_node.arg for arg_node in chain(arg_nodes, kwonly_arg_nodes))
+    return [arg_node.arg for arg_node in chain(arg_nodes, kwonly_arg_nodes)]
