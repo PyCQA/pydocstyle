@@ -9,7 +9,7 @@ Current Development Version
 
 Bug Fixes
 
-* Updated usage documentation to include google convention.
+* Updated usage documentation to include google convention (#386).
 
 
 4.0.0 - July 6th, 2019
