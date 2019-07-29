@@ -4,6 +4,14 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Updated usage documentation to include google convention.
+
+
 4.0.0 - July 6th, 2019
 ---------------------------
 
