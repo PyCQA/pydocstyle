@@ -42,5 +42,8 @@ setup(
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',
         ],
+        'flake8.extension': [
+            'D = pydocstyle.flake8_plugin:Checker',
+        ],
     },
 )
