@@ -101,7 +101,7 @@ class ConfigurationParser:
         options, _ = self._parse_args([])
         return self._create_run_config(options)
 
-    def parse(self):
+    def parse(self, args=None, values=None):
         """Parse the configuration.
 
         If one of `BASE_ERROR_SELECTION_OPTIONS` was selected, overrides all
@@ -109,7 +109,7 @@ class ConfigurationParser:
         configurations from the configuration files.
 
         """
-        self._options, self._arguments = self._parse_args()
+        self._options, self._arguments = self._parse_args(args, values)
         self._arguments = self._arguments or ['.']
 
         if not self._validate_options(self._options):
