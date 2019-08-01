@@ -690,7 +690,6 @@ class ConventionChecker:
             if match:
                 docstring_args.add(match.group(1))
         missing_args = function_pos_args - docstring_args
-        print(missing_args)
         if missing_args:
             yield violations.D417(", ".join(missing_args), definition.name)
 
