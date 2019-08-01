@@ -66,6 +66,7 @@ class Definition(Value):
     dunder_all = property(lambda self: self.module.dunder_all)
     _slice = property(lambda self: slice(self.start - 1, self.end))
     is_class = False
+    is_nested = False
 
     def __iter__(self):
         return chain([self], *self.children)
@@ -151,6 +152,7 @@ class NestedFunction(Function):
     """A Python source code nested function."""
 
     is_public = False
+    is_nested = True
 
 
 class Method(Function):
@@ -192,6 +194,8 @@ class Class(Definition):
 
 class NestedClass(Class):
     """A Python source code nested class."""
+
+    is_nested = True
 
     @property
     def is_public(self):

@@ -681,7 +681,7 @@ class ConventionChecker:
         if definition.kind != 'function':
             return
         source = definition.source
-        if definition._human == 'nested function':
+        if definition.is_nested:
             source = textwrap.dedent(source)
         function_pos_args = get_function_args(source)
         docstring_args = set()
