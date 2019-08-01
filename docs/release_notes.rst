@@ -4,6 +4,18 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Major Updates
+
+New Features
+
+Bug Fixes
+
+* fix parser dead loop when meet comment after ``__all__`` (#391, #366).
+
+
 4.0.0 - July 6th, 2019
 ---------------------------
 
