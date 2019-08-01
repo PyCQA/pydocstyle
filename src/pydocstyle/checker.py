@@ -3,6 +3,7 @@
 import ast
 import string
 import sys
+import textwrap
 import tokenize as tk
 from itertools import takewhile, chain
 from re import compile as re
@@ -677,16 +678,21 @@ class ConventionChecker:
                 except `self` or `cls` if it is a method.
 
         """
-        if definition.kind == 'function':
-            function_pos_args = get_function_args(definition.source)
-            docstring_args = set()
-            for line in context.following_lines:
-                match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
-                if match:
-                    docstring_args.add(match.group(1))
-            missing_args = function_pos_args - docstring_args
-            if missing_args:
-                yield violations.D417(", ".join(missing_args), definition.name)
+        if definition.kind != 'function':
+            return
+        source = definition.source
+        if definition._human == 'nested function':
+            source = textwrap.dedent(source)
+        function_pos_args = get_function_args(source)
+        docstring_args = set()
+        for line in context.following_lines:
+            match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
+            if match:
+                docstring_args.add(match.group(1))
+        missing_args = function_pos_args - docstring_args
+        print(missing_args)
+        if missing_args:
+            yield violations.D417(", ".join(missing_args), definition.name)
 
     @classmethod
     def _check_google_section(cls, docstring, definition, context):

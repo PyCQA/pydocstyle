@@ -11,6 +11,7 @@ from pydocstyle.checker import check
     'test',
     'unicode_literals',
     'nested_class',
+    'nested_function',
     'capitalization',
     'comment_after_def_bug',
     'multi_line_summary_start',
