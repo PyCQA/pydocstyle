@@ -4,6 +4,18 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Major Updates
+
+New Features
+
+Bug Fixes
+
+* Fix check nested function (#390, #370).
+
+
 4.0.0 - July 6th, 2019
 ---------------------------
 
