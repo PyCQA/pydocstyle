@@ -16,7 +16,8 @@ def docstring_bad_ignore_one():  # noqa: D400,D401,D415
     pass
 
 
-@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
+@expect("D401: First line should be in imperative mood "
+        "(perhaps 'Run', not 'Runs')")
 def docstring_ignore_some_violations_but_catch_D401():  # noqa: E501,D400,D415
     """Runs something"""
     pass

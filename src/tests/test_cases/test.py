@@ -287,8 +287,8 @@ def lwnlkjl():
     """Summary"""
 
 
-@expect("D401: First line should be in imperative mood ('Return', not "
-        "'Returns')")
+@expect("D401: First line should be in imperative mood "
+        "(perhaps 'Return', not 'Returns')")
 def liouiwnlkjl():
     """Returns foo."""
 
@@ -361,7 +361,8 @@ def outer_function():
 
 
 @expect("D400: First line should end with a period (not 'g')")
-@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
+@expect("D401: First line should be in imperative mood "
+        "(perhaps 'Run', not 'Runs')")
 @expect("D415: First line should end with a period, question mark, "
         "or exclamation point (not 'g')")
 def docstring_bad():
@@ -379,10 +380,27 @@ def docstring_bad_ignore_one():  # noqa: D400,D401,D415
     pass
 
 
-@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
+@expect("D401: First line should be in imperative mood "
+        "(perhaps 'Run', not 'Runs')")
 def docstring_ignore_some_violations_but_catch_D401():  # noqa: E501,D400,D415
     """Runs something"""
     pass
+
+
+@expect(
+    "D401: First line should be in imperative mood "
+    "(perhaps 'Initiate', not 'Initiates')"
+)
+def docstring_initiates():
+    """Initiates the process."""
+
+
+@expect(
+    "D401: First line should be in imperative mood "
+    "(perhaps 'Initialize', not 'Initializes')"
+)
+def docstring_initializes():
+    """Initializes the process."""
 
 
 @wraps(docstring_bad_ignore_one)

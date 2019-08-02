@@ -4,6 +4,14 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* D401: Fixed a false positive where one stem had multiple imperative forms,
+  e.g., init and initialize / initiate (#382).
+
 4.0.0 - July 6th, 2019
 ---------------------------
 
