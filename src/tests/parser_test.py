@@ -551,6 +551,9 @@ def test_complex_module():
         __all__ = 'foo', 'bar'
         foo = 1
     """),
+    CodeSnippet("""\
+        __all__ = ['foo', 'bar']  # never freeze
+    """),
 ))
 def test_dunder_all(code):
     """Test that __all__ is parsed correctly."""
