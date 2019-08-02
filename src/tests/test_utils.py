@@ -9,15 +9,20 @@ __all__ = ()
 
 
 def test_common_prefix():
-    """We can find the common prefix of two strings."""
+    """Test common prefix length of two strings."""
     assert utils.common_prefix_length('abcd', 'abce') == 3
 
 
 def test_no_common_prefix():
-    """If two strings have no common prefix, return the empty string."""
+    """Test common prefix length of two strings that have no common prefix."""
     assert utils.common_prefix_length('abcd', 'cdef') == 0
 
 
 def test_differ_length():
-    """We can find a common prefix of two strings differing in length."""
+    """Test common prefix length of two strings differing in length."""
     assert utils.common_prefix_length('abcd', 'ab') == 2
+
+
+def test_empty_string():
+    """Test common prefix length of two strings, one of them empty."""
+    assert utils.common_prefix_length('abcd', '') == 0

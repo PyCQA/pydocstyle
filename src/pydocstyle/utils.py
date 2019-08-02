@@ -37,4 +37,4 @@ def common_prefix_length(a: str, b: str) -> int:
     for common, (ca, cb) in enumerate(zip(a, b)):
         if ca != cb:
             return common
-    return common + 1
+    return min(len(a), len(b))
