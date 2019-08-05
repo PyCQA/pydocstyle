@@ -31,6 +31,9 @@ Bug Fixes
 * Fix decorator parsing (#411).
 * Google-style sections no longer cause false errors when used with
   Numpy-style sections (#388, #424).
+* D202: Allow a blank line after function docstring when followed by
+  declaration of an inner function or class (#395, #426).
+
 
 4.0.1 - August 14th, 2019
 -------------------------
@@ -44,7 +47,6 @@ Bug Fixes
 * Fixed RST error in table which resulted in the online documentation missing
   the violation code table (#396).
 * Fixed IndentationError when parsing function arguments (#392).
-
 
 4.0.0 - July 6th, 2019
 ----------------------
