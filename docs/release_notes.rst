@@ -13,6 +13,8 @@ Bug Fixes
   e.g., init and initialize / initiate (#382).
 * Fix parser hanging when there's a comment directly after ``__all__``
   (#391, #366).
+* D202: Allow a blank line after function docstring when the function begins with
+  an inner function (#361).
 
 4.0.0 - July 6th, 2019
 ---------------------------

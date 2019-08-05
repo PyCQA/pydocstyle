@@ -199,7 +199,9 @@ class ConventionChecker:
             if blanks_before_count != 0:
                 yield violations.D201(blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 0:
-                yield violations.D202(blanks_after_count)
+                def_follows = after.split("\n")[2].lstrip().startswith('def')
+                if not (blanks_after_count == 1 and def_follows):
+                    yield violations.D202(blanks_after_count)
 
     @check_for(Class)
     def check_blank_before_after_class(self, class_, docstring):
