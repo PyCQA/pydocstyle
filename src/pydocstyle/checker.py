@@ -14,7 +14,7 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO,
                      ParseError)
-from .utils import log, is_blank, pairwise
+from .utils import log, is_blank, pairwise, common_prefix_length
 from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
 
@@ -441,16 +441,20 @@ class ConventionChecker:
                     return violations.D401b(first_word)
 
                 try:
-                    correct_form = IMPERATIVE_VERBS.get(stem(check_word))
+                    correct_forms = IMPERATIVE_VERBS.get(stem(check_word))
                 except UnicodeDecodeError:
                     # This is raised when the docstring contains unicode
                     # characters in the first word, but is not a unicode
                     # string. In which case D302 will be reported. Ignoring.
                     return
 
-                if correct_form and correct_form != check_word:
+                if correct_forms and check_word not in correct_forms:
+                    best = max(
+                        correct_forms,
+                        key=lambda f: common_prefix_length(check_word, f)
+                    )
                     return violations.D401(
-                        correct_form.capitalize(),
+                        best.capitalize(),
                         first_word
                     )
 

@@ -491,6 +491,7 @@ class Parser:
                 self.dunder_all = None
                 self.dunder_all_error = 'Could not evaluate contents of __all__. '
                 return
+            self.stream.move()
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""

@@ -7,14 +7,13 @@ Release Notes
 Current Development Version
 ---------------------------
 
-Major Updates
-
-New Features
-
 Bug Fixes
 
+* D401: Fixed a false positive where one stem had multiple imperative forms,
+  e.g., init and initialize / initiate (#382).
+* Fix parser hanging when there's a comment directly after ``__all__``
+  (#391, #366).
 * Fix check nested function (#390, #370).
-
 
 4.0.0 - July 6th, 2019
 ---------------------------
