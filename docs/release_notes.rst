@@ -9,6 +9,7 @@ Current Development Version
 
 Bug Fixes
 
+* Update convention support documentation (#393)
 * D401: Fixed a false positive where one stem had multiple imperative forms,
   e.g., init and initialize / initiate (#382).
 * Fix parser hanging when there's a comment directly after ``__all__``
