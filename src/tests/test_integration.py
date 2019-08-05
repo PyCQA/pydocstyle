@@ -1110,7 +1110,7 @@ def test_syntax_error_multiple_files(env):
 
 
 def test_indented_function(env):
-    """Test that nested functions do not cause IndentationError """
+    """Test that nested functions do not cause IndentationError."""
     env.write_config(ignore='D')
     with env.open("test.py", 'wt') as fobj:
         fobj.write(textwrap.dedent('''\
