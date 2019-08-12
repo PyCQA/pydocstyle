@@ -7,6 +7,10 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
+* Add ``all`` convention to expose all error codes (#398).
+
 Bug Fixes
 
 * D401: Fixed a false positive where one stem had multiple imperative forms,
