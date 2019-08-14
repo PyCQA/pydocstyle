@@ -7,11 +7,31 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Bug Fixes
+
+* D401: Fixed a false positive where one stem had multiple imperative forms,
+  e.g., init and initialize / initiate (#382).
+* Fix parser hanging when there's a comment directly after ``__all__``
+  (#391, #366).
+* Fixed IndentationError when parsing function arguments (#392).
+* Invalid escape sequence fixes (#353).
+
+4.0.0 - July 6th, 2019
+---------------------------
+
 Major Updates
 
 * Support for Python 2.x and PyPy has been dropped (#340).
+* Added initial support for Google convention (#357).
+
+New Features
+
 * Added pre-commit hook (#346)
-* Invalid escape sequence fixes (#353)
+
+Bug Fixes
+
+* Fix parsing tuple syntax ``__all__`` (#355, #352).
+
 
 3.0.0 - October 14th, 2018
 --------------------------

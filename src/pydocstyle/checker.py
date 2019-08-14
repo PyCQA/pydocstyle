@@ -3,8 +3,9 @@
 import ast
 import string
 import sys
+import textwrap
 import tokenize as tk
-from itertools import takewhile
+from itertools import takewhile, chain
 from re import compile as re
 from collections import namedtuple
 
@@ -13,7 +14,7 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO,
                      ParseError)
-from .utils import log, is_blank, pairwise
+from .utils import log, is_blank, pairwise, common_prefix_length
 from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
 
@@ -29,7 +30,7 @@ def check_for(kind, terminal=False):
 
 
 class ConventionChecker:
-    """Checker for PEP 257 and numpy conventions.
+    """Checker for PEP 257, NumPy and Google conventions.
 
     D10x: Missing docstrings
     D20x: Whitespace issues
@@ -38,19 +39,72 @@ class ConventionChecker:
 
     """
 
-    SECTION_NAMES = ['Short Summary',
-                     'Extended Summary',
-                     'Parameters',
-                     'Returns',
-                     'Yields',
-                     'Other Parameters',
-                     'Raises',
-                     'See Also',
-                     'Notes',
-                     'References',
-                     'Examples',
-                     'Attributes',
-                     'Methods']
+    NUMPY_SECTION_NAMES = (
+        'Short Summary',
+        'Extended Summary',
+        'Parameters',
+        'Returns',
+        'Yields',
+        'Other Parameters',
+        'Raises',
+        'See Also',
+        'Notes',
+        'References',
+        'Examples',
+        'Attributes',
+        'Methods'
+    )
+
+    GOOGLE_SECTION_NAMES = (
+        'Args',
+        'Arguments',
+        'Attention',
+        'Attributes',
+        'Caution',
+        'Danger',
+        'Error',
+        'Example',
+        'Examples',
+        'Hint',
+        'Important',
+        'Keyword Args',
+        'Keyword Arguments',
+        'Methods',
+        'Note',
+        'Notes',
+        'Other Parameters',
+        'Parameters',
+        'Return',
+        'Returns',
+        'Raises',
+        'References',
+        'See Also',
+        'Tip',
+        'Todo',
+        'Warning',
+        'Warnings',
+        'Warns',
+        'Yield',
+        'Yields',
+    )
+
+    # Examples that will be matched -
+    # "     random: Test" where random will be captured as the param
+    # " random         : test" where random will be captured as the param
+    # "  random_t (Test) : test  " where random_t will be captured as the param
+    GOOGLE_ARGS_REGEX = re(
+                        # Matches anything that fulfills all the following conditions:
+        r"^\s*"         # Begins with 0 or more whitespace characters
+        r"(\w+)"        # Followed by 1 or more unicode chars, numbers or underscores
+                        # The above is captured as the first group as this is the paramater name.
+        r"\s*"          # Followed by 0 or more whitespace characters
+        r"\(?(.*?)\)?"  # Matches patterns contained within round brackets.
+                        # The `(.*?)` is the second capturing group which matches any sequence of
+                        # characters in a non-greedy way (denoted by the `*?`)
+        r"\s*"          # Followed by 0 or more whitespace chars
+        r":"            # Followed by a colon
+        ".+"            # Followed by 1 or more characters - which is the docstring for the parameter
+    )
 
     def check_source(self, source, filename, ignore_decorators=None):
         module = parse(StringIO(source), filename)
@@ -335,6 +389,20 @@ class ConventionChecker:
                     ('u', 'ur')):
                 return violations.D302()
 
+    @staticmethod
+    def _check_ends_with(docstring, chars, violation):
+        """First line ends with one of `chars`.
+
+        First line of the docstring should end with one of the characters in `chars`.
+        `chars` supports either a `str` or an `Iterable[str]`. If the condition is
+        evaluated to be false, it raises `violation`.
+
+        """
+        if docstring:
+            summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
+            if not summary_line.endswith(chars):
+                return violation(summary_line[-1])
+
     @check_for(Definition)
     def check_ends_with_period(self, definition, docstring):
         """D400: First line should end with a period.
@@ -342,10 +410,17 @@ class ConventionChecker:
         The [first line of a] docstring is a phrase ending in a period.
 
         """
-        if docstring:
-            summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
-            if not summary_line.endswith('.'):
-                return violations.D400(summary_line[-1])
+        return self._check_ends_with(docstring, '.', violations.D400)
+
+    @check_for(Definition)
+    def check_ends_with_punctuation(self, definition, docstring):
+        """D415: should end with proper punctuation.
+
+        The [first line of a] docstring is a phrase ending in a period,
+        question mark, or exclamation point
+
+        """
+        return self._check_ends_with(docstring, ('.', '!', '?'), violations.D415)
 
     @check_for(Function)
     def check_imperative_mood(self, function, docstring):  # def context
@@ -366,16 +441,20 @@ class ConventionChecker:
                     return violations.D401b(first_word)
 
                 try:
-                    correct_form = IMPERATIVE_VERBS.get(stem(check_word))
+                    correct_forms = IMPERATIVE_VERBS.get(stem(check_word))
                 except UnicodeDecodeError:
                     # This is raised when the docstring contains unicode
                     # characters in the first word, but is not a unicode
                     # string. In which case D302 will be reported. Ignoring.
                     return
 
-                if correct_form and correct_form != check_word:
+                if correct_forms and check_word not in correct_forms:
+                    best = max(
+                        correct_forms,
+                        key=lambda f: common_prefix_length(check_word, f)
+                    )
                     return violations.D401(
-                        correct_form.capitalize(),
+                        best.capitalize(),
                         first_word
                     )
 
@@ -423,17 +502,7 @@ class ConventionChecker:
                 return violations.D404()
 
     @staticmethod
-    def _get_leading_words(line):
-        """Return any leading set of words from `line`.
-
-        For example, if `line` is "  Hello world!!!", returns "Hello world".
-        """
-        result = re(r"[\w ]+").match(line.strip())
-        if result is not None:
-            return result.group()
-
-    @staticmethod
-    def _is_a_docstring_section(context):
+    def _is_docstring_section(context):
         """Check if the suspected context is really a section header.
 
         Lets have a look at the following example docstring:
@@ -479,7 +548,7 @@ class ConventionChecker:
 
         this_line_looks_like_a_section_name = \
             is_blank(section_name_suffix) or section_suffix_is_only_colon
-        
+
         prev_line_looks_like_end_of_paragraph = \
             prev_line_ends_with_punctuation or is_blank(context.previous_line)
 
@@ -487,8 +556,8 @@ class ConventionChecker:
                 prev_line_looks_like_end_of_paragraph)
 
     @classmethod
-    def _check_section_underline(cls, section_name, context, indentation):
-        """D4{07,08,09,12}, D215: Section underline checks.
+    def _check_blanks_and_section_underline(cls, section_name, context, indentation):
+        """D4{07,08,09,12,14}, D215: Section underline checks.
 
         Check for correct formatting for docstring sections. Checks that:
             * The line that follows the section name contains
@@ -497,6 +566,7 @@ class ConventionChecker:
               name (D409).
             * The section's content does not begin in the line that follows
               the section header (D412).
+            * The section has no content (D414).
             * The indentation of the dashed line is equal to the docstring's
               indentation (D215).
         """
@@ -509,6 +579,7 @@ class ConventionChecker:
         else:
             # There are only blank lines after the header.
             yield violations.D407(section_name)
+            yield violations.D414(section_name)
             return
 
         non_empty_line = context.following_lines[blank_lines_after_header]
@@ -547,31 +618,26 @@ class ConventionChecker:
                 yield violations.D414(section_name)
 
     @classmethod
-    def _check_section(cls, docstring, definition, context):
-        """D4{05,06,10,11,13}, D214: Section name checks.
+    def _check_common_section(cls, docstring, definition, context, valid_section_names):
+        """D4{05,10,11,13}, D214: Section name checks.
 
         Check for valid section names. Checks that:
             * The section name is properly capitalized (D405).
             * The section is not over-indented (D214).
-            * The section name has no superfluous suffix to it (D406).
             * There's a blank line after the section (D410, D413).
             * There's a blank line before the section (D411).
 
-        Also yields all the errors from `_check_section_underline`.
+        Also yields all the errors from `_check_blanks_and_section_underline`.
         """
-        capitalized_section = context.section_name.title()
         indentation = cls._get_docstring_indent(definition, docstring)
+        capitalized_section = context.section_name.title()
 
-        if (context.section_name not in cls.SECTION_NAMES and
-                capitalized_section in cls.SECTION_NAMES):
+        if (context.section_name not in valid_section_names and
+                capitalized_section in valid_section_names):
             yield violations.D405(capitalized_section, context.section_name)
 
         if leading_space(context.line) > indentation:
             yield violations.D214(capitalized_section)
-
-        suffix = context.line.strip().lstrip(context.section_name)
-        if suffix:
-            yield violations.D406(capitalized_section, context.line.strip())
 
         if (not context.following_lines or
                 not is_blank(context.following_lines[-1])):
@@ -583,41 +649,95 @@ class ConventionChecker:
         if not is_blank(context.previous_line):
             yield violations.D411(capitalized_section)
 
-        for err in cls._check_section_underline(capitalized_section,
-                                                context,
-                                                indentation):
-            yield err
+        yield from cls._check_blanks_and_section_underline(capitalized_section,
+                                        context,
+                                        indentation)
 
-    @check_for(Definition)
-    def check_docstring_sections(self, definition, docstring):
-        """D21{4,5}, D4{05,06,07,08,09,10}: Docstring sections checks.
+    @classmethod
+    def _check_numpy_section(cls, docstring, definition, context):
+        """D406: NumPy-style section name checks.
 
-        Check the general format of a sectioned docstring:
-            '''This is my one-liner.
+        Check for valid section names. Checks that:
+            * The section name has no superfluous suffix to it (D406).
 
-            Short Summary
-            -------------
-            This is my summary.
-
-            Returns
-            -------
-            None.
-
-            '''
-
-        Section names appear in `SECTION_NAMES`.
+        Additionally, also yield all violations from `_check_common_section`
+        which are style-agnostic section checks.
         """
-        if not docstring:
-            return
+        indentation = cls._get_docstring_indent(definition, docstring)
+        capitalized_section = context.section_name.title()
+        yield from cls._check_common_section(docstring,
+                                             definition,
+                                             context,
+                                             cls.NUMPY_SECTION_NAMES)
+        suffix = context.line.strip().lstrip(context.section_name)
+        if suffix:
+            yield violations.D406(capitalized_section, context.line.strip())
 
-        lines = docstring.split("\n")
-        if len(lines) < 2:
-            return
+    @staticmethod
+    def _check_args_section(docstring, definition, context):
+        """D417: `Args` section checks.
 
-        lower_section_names = [s.lower() for s in self.SECTION_NAMES]
+        Check for a valid `Args` or `Argument` section. Checks that:
+            * The section documents all function arguments (D417)
+                except `self` or `cls` if it is a method.
+
+        """
+        if definition.kind == 'function':
+            function_pos_args = get_function_args(definition.source)
+            docstring_args = set()
+            for line in context.following_lines:
+                match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
+                if match:
+                    docstring_args.add(match.group(1))
+            missing_args = function_pos_args - docstring_args
+            if missing_args:
+                yield violations.D417(", ".join(missing_args), definition.name)
+
+    @classmethod
+    def _check_google_section(cls, docstring, definition, context):
+        """D416: Google-style section name checks.
+
+        Check for valid section names. Checks that:
+            * The section does not contain any blank line between its name
+              and content (D412).
+            * The section is not empty (D414).
+            * The section name has semicolon as a suffix (D416).
+
+        Additionally, also yield all violations from `_check_common_section`
+        which are style-agnostic section checks.
+        """
+        capitalized_section = context.section_name.title()
+        yield from cls._check_common_section(docstring,
+                                             definition,
+                                             context,
+                                             cls.GOOGLE_SECTION_NAMES)
+        suffix = context.line.strip().lstrip(context.section_name)
+        if suffix != ":":
+            yield violations.D416(capitalized_section + ":", context.line.strip())
+
+        if capitalized_section in ("Args", "Arguments"):
+            yield from cls._check_args_section(docstring, definition, context)
+
+
+    @staticmethod
+    def _get_section_contexts(lines, valid_section_names):
+        """Generate `SectionContext` objects for valid sections.
+
+        Given a list of `valid_section_names`, generate an
+        `Iterable[SectionContext]` which provides:
+            * Section Name
+            * String value of the previous line
+            * The section line
+            * Following lines till the next section
+            * Line index of the beginning of the section in the docstring
+            * Boolean indicating whether the section is the last section.
+        for each valid section.
+
+        """
+        lower_section_names = [s.lower() for s in valid_section_names]
 
         def _suspected_as_section(_line):
-            result = self._get_leading_words(_line.lower())
+            result = get_leading_words(_line.lower())
             return result in lower_section_names
 
         # Finding our suspects.
@@ -633,7 +753,7 @@ class ConventionChecker:
 
         # First - create a list of possible contexts. Note that the
         # `following_lines` member is until the end of the docstring.
-        contexts = (SectionContext(self._get_leading_words(lines[i].strip()),
+        contexts = (SectionContext(get_leading_words(lines[i].strip()),
                                    lines[i - 1],
                                    lines[i],
                                    lines[i + 1:],
@@ -641,21 +761,79 @@ class ConventionChecker:
                                    False)
                     for i in suspected_section_indices)
 
+
         # Now that we have manageable objects - rule out false positives.
-        contexts = (c for c in contexts if self._is_a_docstring_section(c))
+        contexts = (c for c in contexts if ConventionChecker._is_docstring_section(c))
 
         # Now we shall trim the `following lines` field to only reach the
         # next section name.
         for a, b in pairwise(contexts, None):
             end = -1 if b is None else b.original_index
-            new_ctx = SectionContext(a.section_name,
+            yield SectionContext(a.section_name,
                                      a.previous_line,
                                      a.line,
                                      lines[a.original_index + 1:end],
                                      a.original_index,
                                      b is None)
-            for err in self._check_section(docstring, definition, new_ctx):
-                yield err
+
+
+    def _check_numpy_sections(self, lines, definition, docstring):
+        """NumPy-style docstring sections checks.
+
+        Check the general format of a sectioned docstring:
+            '''This is my one-liner.
+
+            Short Summary
+            -------------
+            This is my summary.
+
+            Returns
+            -------
+            None.
+
+            '''
+
+        Section names appear in `NUMPY_SECTION_NAMES`.
+        Yields all violation from `_check_numpy_section` for each valid
+        Numpy-style section.
+        """
+        for ctx in self._get_section_contexts(lines,
+                                              self.NUMPY_SECTION_NAMES):
+            yield from self._check_numpy_section(docstring, definition, ctx)
+
+    def _check_google_sections(self, lines, definition, docstring):
+        """Google-style docstring section checks.
+
+        Check the general format of a sectioned docstring:
+            '''This is my one-liner.
+
+            Note:
+                This is my summary.
+
+            Returns:
+                None.
+
+            '''
+
+        Section names appear in `GOOGLE_SECTION_NAMES`.
+        Yields all violation from `_check_google_section` for each valid
+        Google-style section.
+        """
+        for ctx in self._get_section_contexts(lines,
+                                              self.GOOGLE_SECTION_NAMES):
+            yield from self._check_google_section(docstring, definition, ctx)
+
+    @check_for(Definition)
+    def check_docstring_sections(self, definition, docstring):
+        """Check for docstring sections."""
+        if not docstring:
+            return
+
+        lines = docstring.split("\n")
+        if len(lines) < 2:
+            return
+        yield from self._check_numpy_sections(lines, definition, docstring)
+        yield from self._check_google_sections(lines, definition, docstring)
 
 
 parse = Parser()
@@ -719,8 +897,28 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
 
 
 def is_ascii(string):
+    """Return a boolean indicating if `string` only has ascii characters."""
     return all(ord(char) < 128 for char in string)
 
 
 def leading_space(string):
+    """Return any leading space from `string`."""
     return re(r'\s*').match(string).group()
+
+
+def get_leading_words(line):
+    """Return any leading set of words from `line`.
+
+    For example, if `line` is "  Hello world!!!", returns "Hello world".
+    """
+    result = re(r"[\w ]+").match(line.strip())
+    if result is not None:
+        return result.group()
+
+
+def get_function_args(function_string):
+    """Return the function arguments given the source-code string."""
+    function_arg_node = ast.parse(textwrap.dedent(function_string)).body[0].args
+    arg_nodes = function_arg_node.args
+    kwonly_arg_nodes = function_arg_node.kwonlyargs
+    return set(arg_node.arg for arg_node in chain(arg_nodes, kwonly_arg_nodes))

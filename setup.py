@@ -3,7 +3,7 @@ from setuptools import setup
 import sys
 
 # Do not update the version manually - it is managed by `bumpversion`.
-version = '3.0.1rc'
+version = '4.0.1rc'
 
 
 requirements = [
@@ -32,6 +32,7 @@ setup(
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
     ],
+    python_requires='>=3.4',
     keywords='pydocstyle, PEP 257, pep257, PEP 8, pep8, docstrings',
     packages=('pydocstyle',),
     package_dir={'': 'src'},
