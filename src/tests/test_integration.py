@@ -1107,3 +1107,22 @@ def test_syntax_error_multiple_files(env):
     assert code == 1
     assert 'first.py: Cannot parse file' in err
     assert 'second.py: Cannot parse file' in err
+
+
+def test_indented_function(env):
+    """Test that nested functions do not cause IndentationError."""
+    env.write_config(ignore='D')
+    with env.open("test.py", 'wt') as fobj:
+        fobj.write(textwrap.dedent('''\
+            def foo():
+                def bar(a):
+                    """A docstring
+
+                    Args:
+                        a : An argument.
+                    """
+                    pass
+        '''))
+    out, err, code = env.invoke(args="-v")
+    assert code == 0
+    assert "IndentationError: unexpected indent" not in err

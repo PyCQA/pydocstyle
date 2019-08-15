@@ -15,6 +15,7 @@ Bug Fixes
   (#391, #366).
 * Fixed RST error in table which resulted in the online documentation missing
   the violation code table (#396).
+* Fixed IndentationError when parsing function arguments (#392).
 
 4.0.0 - July 6th, 2019
 ---------------------------
