@@ -152,18 +152,19 @@ class ErrorRegistry:
     @classmethod
     def to_rst(cls) -> str:
         """Output the registry as reStructuredText, for documentation."""
-        sep_line = '+' + 6 * '-' + '+' + '-' * 71 + '+\n'
-        blank_line = '|' + 78 * ' ' + '|\n'
+        max_len = max(len(error.short_desc) for group in cls.groups for  error in group.errors)
+        sep_line = '+' + 6 * '-' + '+' + '-' * (max_len + 2) + '+\n'
+        blank_line = '|' + (max_len + 9) * ' ' + '|\n'
         table = ''
         for group in cls.groups:
             table += sep_line
             table += blank_line
-            table += '|' + '**{}**'.format(group.name).center(78) + '|\n'
+            table += '|' + '**{}**'.format(group.name).center(max_len + 9) + '|\n'
             table += blank_line
             for error in group.errors:
                 table += sep_line
                 table += ('|' + error.code.center(6) + '| ' +
-                          error.short_desc.ljust(70) + '|\n')
+                          error.short_desc.ljust(max_len + 1) + '|\n')
         table += sep_line
         return table
 
