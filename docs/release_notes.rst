@@ -4,8 +4,8 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
-Current Development Version
----------------------------
+4.0.1 - August 14th, 2019
+-------------------------
 
 Bug Fixes
 
@@ -18,7 +18,7 @@ Bug Fixes
 * Fixed IndentationError when parsing function arguments (#392).
 
 4.0.0 - July 6th, 2019
----------------------------
+----------------------
 
 Major Updates
 
