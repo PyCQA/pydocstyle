@@ -1,7 +1,6 @@
 """Parser tests."""
 
 import io
-import six
 import sys
 import pytest
 import textwrap
@@ -434,8 +433,6 @@ def test_raise_from():
 
 def test_simple_matrix_multiplication():
     """Make sure 'a @ b' doesn't trip the parser."""
-    if sys.version_info.minor < 5:
-        return
     parser = Parser()
     code = CodeSnippet("""
         def foo():
@@ -446,8 +443,6 @@ def test_simple_matrix_multiplication():
 
 def test_matrix_multiplication_with_decorators():
     """Make sure 'a @ b' doesn't trip the parser."""
-    if sys.version_info.minor < 5:
-        return
     parser = Parser()
     code = CodeSnippet("""
         def foo():
@@ -608,13 +603,10 @@ indeterminable_dunder_all_test_cases = [
         foo = 'foo'
         __all__ = [foo]
     """),
+    CodeSnippet("""\
+        __all__ = (*foo, 'bar')
+    """),
 ]
-if six.PY3 and not six.PY34:
-    indeterminable_dunder_all_test_cases += [
-        CodeSnippet("""\
-                __all__ = (*foo, 'bar')
-            """),
-    ]
 
 
 @pytest.mark.parametrize("code", indeterminable_dunder_all_test_cases)

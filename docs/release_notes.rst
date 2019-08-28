@@ -4,6 +4,14 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Major Updates
+
+* Support for Python 3.4 has been dropped (#402).
+
+
 4.0.1 - August 14th, 2019
 -------------------------
 
