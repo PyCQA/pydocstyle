@@ -8,7 +8,7 @@ docstring conventions.
 `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ out of the box, but it
 should not be considered a reference implementation.
 
-**pydocstyle** supports Python 3.4, 3.5, 3.6, 3.7, and pypy.
+**pydocstyle** supports Python 3.4, 3.5, 3.6, and 3.7.
 
 
 .. include:: quickstart.rst
