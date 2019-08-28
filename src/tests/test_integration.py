@@ -7,7 +7,6 @@ from collections import namedtuple
 
 import os
 import sys
-import mock
 import shlex
 import shutil
 import pytest
@@ -15,6 +14,8 @@ import pathlib
 import tempfile
 import textwrap
 import subprocess
+
+from unittest import mock
 
 from pydocstyle import checker, violations
 
