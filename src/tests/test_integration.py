@@ -198,9 +198,6 @@ def test_run_as_named_module():
         python -m pydocstyle
 
     """
-    # Running a package with "-m" is not supported in Python 2.6
-    if sys.version_info[0:2] == (2, 6):
-        return
     # Add --match='' so that no files are actually checked (to make sure that
     # the return code is 0 and to reduce execution time).
     cmd = shlex.split("python -m pydocstyle --match=''")
@@ -490,30 +487,6 @@ def test_conflicting_ignore_convention_config(env):
     _, err, code = env.invoke()
     assert code == 2
     assert 'mutually exclusive' in err
-
-
-def test_unicode_raw(env):
-    """Test acceptance of unicode raw docstrings for python 2.x."""
-    if sys.version_info[0] >= 3:
-        return  # ur"" is a syntax error in python 3.x
-
-    # This is all to avoid a syntax error for python 3.2
-    from codecs import unicode_escape_decode
-
-    def u(x):
-        return unicode_escape_decode(x)[0]
-
-    with env.open('example.py', 'wt') as example:
-        example.write(textwrap.dedent(u('''\
-            # -*- coding: utf-8 -*-
-            def foo():
-                ur"""Check unicode: \u2611 and raw: \\\\\\\\."""
-        ''').encode('utf-8')))
-    env.write_config(ignore='D100', verbose=True)
-    out, err, code = env.invoke()
-    assert code == 0, err
-    assert 'D301' not in out
-    assert 'D302' not in out
 
 
 def test_missing_docstring_in_package(env):
