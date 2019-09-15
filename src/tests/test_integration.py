@@ -80,9 +80,10 @@ class SandboxEnv:
         run_target = self.tempdir if target is None else \
             os.path.join(self.tempdir, target)
 
-        cmd = shlex.split("{} {} {}"
-                          .format(self.script_name, run_target, args),
-                          posix=False)
+        cmd = shlex.split(
+            ('"{}" -m {} {} {}' if sys.platform == "nt" else '{} -m {} {} {}')
+            .format(sys.executable, self.script_name, run_target, args),
+            posix=False)
         p = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
@@ -203,7 +204,7 @@ def test_run_as_named_module():
         return
     # Add --match='' so that no files are actually checked (to make sure that
     # the return code is 0 and to reduce execution time).
-    cmd = shlex.split("python -m pydocstyle --match=''")
+    cmd = shlex.split("\"{}\" -m pydocstyle --match=''".format(sys.executable))
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
