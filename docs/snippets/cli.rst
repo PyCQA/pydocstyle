@@ -54,7 +54,7 @@ Usage
         --convention=<name>
                             choose the basic list of checked errors by specifying
                             an existing convention. Possible conventions: pep257,
-                            numpy.
+                            numpy, google.
         --add-select=<codes>
                             add extra error codes to check to the basic list of
                             errors previously set by --select, --ignore or
