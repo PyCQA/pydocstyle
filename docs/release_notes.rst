@@ -11,6 +11,10 @@ Major Updates
 
 * Support for Python 3.4 has been dropped (#402).
 
+New Features
+
+* Extend support for detecting missing arguments in Google style
+  docstrings to method calls (#384).
 
 4.0.1 - August 14th, 2019
 -------------------------
