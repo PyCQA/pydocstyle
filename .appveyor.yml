@@ -1,10 +1,8 @@
 environment:
   matrix:
-    - TOXENV: "py34-tests"
     - TOXENV: "py35-tests"
     - TOXENV: "py36-tests"
     - TOXENV: "py37-tests"
-    - TOXENV: "py34-install"
     - TOXENV: "py35-install"
     - TOXENV: "py36-install"
     - TOXENV: "py37-install"

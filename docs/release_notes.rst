@@ -7,6 +7,10 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Major Updates
+
+* Support for Python 3.4 has been dropped (#402).
+
 New Features
 
 * Extend support for detecting missing arguments in Google style
