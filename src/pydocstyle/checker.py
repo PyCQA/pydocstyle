@@ -695,11 +695,9 @@ class ConventionChecker:
             # All parameter definitions in the Numpy parameters
             # section must be at the same indent level as the section
             # name.
-
             # Also, we ensure that the following line is indented,
             # and has some string, to ensure that the parameter actually
             # has a description.
-
             # This means, this is a parameter doc with some description
             if ((leading_space(current_line) == section_level_indent)
                 and (len(leading_space(next_line)) > len(leading_space(current_line)))
