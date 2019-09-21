@@ -561,6 +561,19 @@ def test_pep257_convention(env):
                 """Docstring for this class"""
                 def foo():
                     pass
+
+
+            # Original PEP-257 example from -
+            # https://www.python.org/dev/peps/pep-0257/
+            def complex(real=0.0, imag=0.0):
+                """Form a complex number.
+
+                Keyword arguments:
+                real -- the real part (default 0.0)
+                imag -- the imaginary part (default 0.0)
+                """
+                if imag == 0.0 and real == 0.0:
+                    return complex_zero
         '''))
 
     env.write_config(convention="pep257")
@@ -571,6 +584,7 @@ def test_pep257_convention(env):
     assert 'D203' not in out
     assert 'D212' not in out
     assert 'D213' not in out
+    assert 'D413' not in out
 
 
 def test_numpy_convention(env):

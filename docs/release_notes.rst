@@ -16,6 +16,10 @@ New Features
 * Extend support for detecting missing arguments in Google style
   docstrings to method calls (#384).
 
+Bug Fixes
+
+* Remove D413 from the pep257 convention (#404).
+
 4.0.1 - August 14th, 2019
 -------------------------
 

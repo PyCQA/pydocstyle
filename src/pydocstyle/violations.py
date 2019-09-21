@@ -266,7 +266,7 @@ all_errors = set(ErrorRegistry.get_error_codes())
 conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
-                            'D411', 'D415', 'D416', 'D417'},
+                            'D411', 'D413', 'D415', 'D416', 'D417'},
     'numpy': all_errors - {'D107', 'D203', 'D212', 'D213', 'D402', 'D413',
                            'D415', 'D416', 'D417'},
     'google': all_errors - {'D203', 'D204', 'D213', 'D215', 'D400', 'D401',
