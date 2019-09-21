@@ -12,8 +12,9 @@ __all__ = ()
 
 def main() -> None:
     from pydocstyle import cli
+
     cli.main()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

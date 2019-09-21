@@ -5,12 +5,24 @@ import tokenize as tk
 from itertools import chain, dropwhile
 from re import compile as re
 from io import StringIO
+from typing import Tuple
 
 from .utils import log
 
-__all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
-           'NestedFunction', 'Method', 'Class', 'NestedClass', 'AllError',
-           'StringIO', 'ParseError')
+__all__ = (
+    "Parser",
+    "Definition",
+    "Module",
+    "Package",
+    "Function",
+    "NestedFunction",
+    "Method",
+    "Class",
+    "NestedClass",
+    "AllError",
+    "StringIO",
+    "ParseError",
+)
 
 
 class ParseError(Exception):
@@ -25,11 +37,12 @@ class UnexpectedTokenError(ParseError):
 
     def __str__(self):
         return "Unexpected token {}, expected {}".format(
-            self.token, self.expected_kind)
+            self.token, self.expected_kind
+        )
 
 
 def humanize(string):
-    return re(r'(.)([A-Z]+)').sub(r'\1 \2', string).lower()
+    return re(r"(.)([A-Z]+)").sub(r"\1 \2", string).lower()
 
 
 class Value:
@@ -37,9 +50,14 @@ class Value:
 
     def __init__(self, *args):
         if len(self._fields) != len(args):
-            raise ValueError('got {} arguments for {} fields for {}: {}'
-                             .format(len(args), len(self._fields),
-                                     self.__class__.__name__, self._fields))
+            raise ValueError(
+                "got {} arguments for {} fields for {}: {}".format(
+                    len(args),
+                    len(self._fields),
+                    self.__class__.__name__,
+                    self._fields,
+                )
+            )
         vars(self).update(zip(self._fields, args))
 
     def __hash__(self):
@@ -49,16 +67,27 @@ class Value:
         return other and vars(self) == vars(other)
 
     def __repr__(self):
-        kwargs = ', '.join('{}={!r}'.format(field, getattr(self, field))
-                           for field in self._fields)
-        return '{}({})'.format(self.__class__.__name__, kwargs)
+        kwargs = ", ".join(
+            "{}={!r}".format(field, getattr(self, field))
+            for field in self._fields
+        )
+        return "{}({})".format(self.__class__.__name__, kwargs)
 
 
 class Definition(Value):
     """A Python source code definition (could be class, function, etc)."""
 
-    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',
-               'children', 'parent', 'skipped_error_codes')
+    _fields = (
+        "name",
+        "_source",
+        "start",
+        "end",
+        "decorators",
+        "docstring",
+        "children",
+        "parent",
+        "skipped_error_codes",
+    )  # type: Tuple[str, ...]
 
     _human = property(lambda self: humanize(type(self).__name__))
     kind = property(lambda self: self._human.split()[-1])
@@ -79,7 +108,7 @@ class Definition(Value):
 
     @property
     def _publicity(self):
-        return {True: 'public', False: 'private'}[self.is_public]
+        return {True: "public", False: "private"}[self.is_public]
 
     @property
     def source(self):
@@ -87,34 +116,45 @@ class Definition(Value):
         full_src = self._source[self._slice]
 
         def is_empty_or_comment(line):
-            return line.strip() == '' or line.strip().startswith('#')
+            return line.strip() == "" or line.strip().startswith("#")
 
         filtered_src = dropwhile(is_empty_or_comment, reversed(full_src))
-        return ''.join(reversed(list(filtered_src)))
+        return "".join(reversed(list(filtered_src)))
 
     def __str__(self):
-        out = 'in {} {} `{}`'.format(self._publicity, self._human, self.name)
+        out = "in {} {} `{}`".format(self._publicity, self._human, self.name)
         if self.skipped_error_codes:
-            out += ' (skipping {})'.format(self.skipped_error_codes)
+            out += " (skipping {})".format(self.skipped_error_codes)
         return out
 
 
 class Module(Definition):
     """A Python source code module."""
 
-    _fields = ('name', '_source', 'start', 'end', 'decorators', 'docstring',  # type: ignore
-               'children', 'parent', '_dunder_all', 'dunder_all_error',
-               'future_imports', 'skipped_error_codes')
-    _nest = staticmethod(lambda s: {'def': Function, 'class': Class}[s])
+    _fields = (
+        "name",
+        "_source",
+        "start",
+        "end",
+        "decorators",
+        "docstring",
+        "children",
+        "parent",
+        "_dunder_all",
+        "dunder_all_error",
+        "future_imports",
+        "skipped_error_codes",
+    )
+    _nest = staticmethod(lambda s: {"def": Function, "class": Class}[s])
     module = property(lambda self: self)
     dunder_all = property(lambda self: self._dunder_all)
 
     @property
     def is_public(self):
-        return not self.name.startswith('_') or self.name.startswith('__')
+        return not self.name.startswith("_") or self.name.startswith("__")
 
     def __str__(self):
-        return 'at module level'
+        return "at module level"
 
 
 class Package(Module):
@@ -124,8 +164,9 @@ class Package(Module):
 class Function(Definition):
     """A Python source code function."""
 
-    _nest = staticmethod(lambda s: {'def': NestedFunction,
-                                    'class': NestedClass}[s])
+    _nest = staticmethod(
+        lambda s: {"def": NestedFunction, "class": NestedClass}[s]
+    )
 
     @property
     def is_public(self):
@@ -133,7 +174,7 @@ class Function(Definition):
         if self.dunder_all is not None:
             return self.name in self.dunder_all
         else:
-            return not self.name.startswith('_')
+            return not self.name.startswith("_")
 
     @property
     def is_test(self):
@@ -144,7 +185,7 @@ class Function(Definition):
         a highly redundant "Test that ...".
 
         """
-        return self.name.startswith('test') or self.name == 'runTest'
+        return self.name.startswith("test") or self.name == "runTest"
 
 
 class NestedFunction(Function):
@@ -159,14 +200,16 @@ class Method(Function):
     @property
     def is_magic(self):
         """Return True iff this method is a magic method (e.g., `__str__`)."""
-        return (self.name.startswith('__') and
-                self.name.endswith('__') and
-                self.name not in VARIADIC_MAGIC_METHODS)
+        return (
+            self.name.startswith("__")
+            and self.name.endswith("__")
+            and self.name not in VARIADIC_MAGIC_METHODS
+        )
 
     @property
     def is_init(self):
         """Return True iff this method is `__init__`."""
-        return self.name == '__init__'
+        return self.name == "__init__"
 
     @property
     def is_public(self):
@@ -176,9 +219,11 @@ class Method(Function):
             # Given 'foo', match 'foo.bar' but not 'foobar' or 'sfoo'
             if re(r"^{}\.".format(self.name)).match(decorator.name):
                 return False
-        name_is_public = (not self.name.startswith('_') or
-                          self.name in VARIADIC_MAGIC_METHODS or
-                          self.is_magic)
+        name_is_public = (
+            not self.name.startswith("_")
+            or self.name in VARIADIC_MAGIC_METHODS
+            or self.is_magic
+        )
         return self.parent.is_public and name_is_public
 
     @property
@@ -192,7 +237,7 @@ class Method(Function):
 class Class(Definition):
     """A Python source code class."""
 
-    _nest = staticmethod(lambda s: {'def': Method, 'class': NestedClass}[s])
+    _nest = staticmethod(lambda s: {"def": Method, "class": NestedClass}[s])
     is_public = Function.is_public
     is_class = True
 
@@ -203,15 +248,17 @@ class NestedClass(Class):
     @property
     def is_public(self):
         """Return True iff this class should be considered public."""
-        return (not self.name.startswith('_') and
-                self.parent.is_class and
-                self.parent.is_public)
+        return (
+            not self.name.startswith("_")
+            and self.parent.is_class
+            and self.parent.is_public
+        )
 
 
 class Decorator(Value):
     """A decorator for function, method or class."""
 
-    _fields = 'name arguments'.split()
+    _fields = "name arguments".split()
 
 
 class Docstring(str):
@@ -221,6 +268,7 @@ class Docstring(str):
     the start and end of the token.
 
     """
+
     def __new__(cls, v, start, end):
         return str.__new__(cls, v)
 
@@ -229,7 +277,7 @@ class Docstring(str):
         self.end = end
 
 
-VARIADIC_MAGIC_METHODS = ('__init__', '__call__', '__new__')
+VARIADIC_MAGIC_METHODS = ("__init__", "__call__", "__new__")
 
 
 class AllError(Exception):
@@ -238,13 +286,18 @@ class AllError(Exception):
     def __init__(self, message):
         """Initialize the error with a more specific message."""
         Exception.__init__(
-            self, message + textwrap.dedent("""
+            self,
+            message
+            + textwrap.dedent(
+                """
                 That means pydocstyle cannot decide which definitions are
                 public. Variable __all__ should be present at most once in
                 each file, in form
                 `__all__ = ('a_public_function', 'APublicClass', ...)`.
                 More info on __all__: http://stackoverflow.com/q/44834/. ')
-                """))
+                """
+            ),
+        )
 
 
 class TokenStream:
@@ -267,14 +320,14 @@ class TokenStream:
         current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
-        self.got_logical_newline = (previous.kind in self.LOGICAL_NEWLINES)
+        self.got_logical_newline = previous.kind in self.LOGICAL_NEWLINES
         return previous
 
     def _next_from_generator(self):
         try:
             return next(self._generator, None)
         except (SyntaxError, tk.TokenError):
-            self.log.warning('error generating tokens', exc_info=True)
+            self.log.warning("error generating tokens", exc_info=True)
             return None
 
     def __iter__(self):
@@ -292,7 +345,7 @@ class TokenKind(int):
 
 
 class Token(Value):
-    _fields = 'kind value start end source'.split()
+    _fields = "kind value start end source".split()
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -309,9 +362,9 @@ class Parser:
         """Parse the given file-like object and return its Module object."""
         self.log = log
         self.source = filelike.readlines()
-        src = ''.join(self.source)
+        src = "".join(self.source)
         try:
-            compile(src, filename, 'exec')
+            compile(src, filename, "exec")
         except SyntaxError as error:
             raise ParseError() from error
         self.stream = TokenStream(StringIO(src))
@@ -343,8 +396,9 @@ class Parser:
         be skipped.
         """
         while self.current is not None:
-            if (self.current.kind == kind and
-                    (value is None or self.current.value == value)):
+            if self.current.kind == kind and (
+                value is None or self.current.value == value
+            ):
                 self.consume(kind)
                 return
             self.stream.move()
@@ -354,13 +408,14 @@ class Parser:
         self.log.debug("parsing docstring, token is %s", self.current)
         while self.current.kind in (tk.COMMENT, tk.NEWLINE, tk.NL):
             self.stream.move()
-            self.log.debug("parsing docstring, token is %r (%s)",
-                           self.current.kind, self.current.value)
+            self.log.debug(
+                "parsing docstring, token is %r (%s)",
+                self.current.kind,
+                self.current.value,
+            )
         if self.current.kind == tk.STRING:
             docstring = Docstring(
-                self.current.value,
-                self.current.start[0],
-                self.current.end[0]
+                self.current.value, self.current.start[0], self.current.end[0]
             )
             self.stream.move()
             return docstring
@@ -377,23 +432,29 @@ class Parser:
         at_arguments = False
 
         while self.current is not None:
-            self.log.debug("parsing decorators, current token is %r (%s)",
-                           self.current.kind, self.current.value)
-            if (self.current.kind == tk.NAME and
-                    self.current.value in ['def', 'class']):
+            self.log.debug(
+                "parsing decorators, current token is %r (%s)",
+                self.current.kind,
+                self.current.value,
+            )
+            if self.current.kind == tk.NAME and self.current.value in [
+                "def",
+                "class",
+            ]:
                 # Done with decorators - found function or class proper
                 break
-            elif self.current.kind == tk.OP and self.current.value == '@':
+            elif self.current.kind == tk.OP and self.current.value == "@":
                 # New decorator found. Store the decorator accumulated so far:
                 self._accumulated_decorators.append(
-                    Decorator(''.join(name), ''.join(arguments)))
+                    Decorator("".join(name), "".join(arguments))
+                )
                 # Now reset to begin accumulating the new decorator:
                 name = []
                 arguments = []
                 at_arguments = False
-            elif self.current.kind == tk.OP and self.current.value == '(':
+            elif self.current.kind == tk.OP and self.current.value == "(":
                 at_arguments = True
-            elif self.current.kind == tk.OP and self.current.value == ')':
+            elif self.current.kind == tk.OP and self.current.value == ")":
                 # Ignore close parenthesis
                 pass
             elif self.current.kind == tk.NEWLINE or self.current.kind == tk.NL:
@@ -409,22 +470,28 @@ class Parser:
 
         # Add decorator accumulated so far
         self._accumulated_decorators.append(
-            Decorator(''.join(name), ''.join(arguments)))
+            Decorator("".join(name), "".join(arguments))
+        )
 
     def parse_definitions(self, class_, dunder_all=False):
         """Parse multiple definitions and yield them."""
         while self.current is not None:
-            self.log.debug("parsing definition list, current token is %r (%s)",
-                           self.current.kind, self.current.value)
-            self.log.debug('got_newline: %s', self.stream.got_logical_newline)
-            if dunder_all and self.current.value == '__all__':
+            self.log.debug(
+                "parsing definition list, current token is %r (%s)",
+                self.current.kind,
+                self.current.value,
+            )
+            self.log.debug("got_newline: %s", self.stream.got_logical_newline)
+            if dunder_all and self.current.value == "__all__":
                 self.parse_dunder_all()
-            elif (self.current.kind == tk.OP and
-                  self.current.value == '@' and
-                  self.stream.got_logical_newline):
+            elif (
+                self.current.kind == tk.OP
+                and self.current.value == "@"
+                and self.stream.got_logical_newline
+            ):
                 self.consume(tk.OP)
                 self.parse_decorators()
-            elif self.current.value in ['def', 'class']:
+            elif self.current.value in ["def", "class"]:
                 yield self.parse_definition(class_._nest(self.current.value))
             elif self.current.kind == tk.INDENT:
                 self.consume(tk.INDENT)
@@ -433,27 +500,27 @@ class Parser:
             elif self.current.kind == tk.DEDENT:
                 self.consume(tk.DEDENT)
                 return
-            elif self.current.value == 'from':
+            elif self.current.value == "from":
                 self.parse_from_import_statement()
             else:
                 self.stream.move()
 
     def parse_dunder_all(self):
         """Parse the __all__ definition in a module."""
-        assert self.current.value == '__all__'
+        assert self.current.value == "__all__"
         self.consume(tk.NAME)
         # More than one __all__ definition means we ignore all __all__.
         if self.dunder_all is not None or self.dunder_all_error is not None:
             self.dunder_all = None
-            self.dunder_all_error = 'Could not evaluate contents of __all__. '
+            self.dunder_all_error = "Could not evaluate contents of __all__. "
             return
-        if self.current.value != '=':
-            self.dunder_all_error = 'Could not evaluate contents of __all__. '
+        if self.current.value != "=":
+            self.dunder_all_error = "Could not evaluate contents of __all__. "
             return
         self.consume(tk.OP)
 
         is_surrounded = False
-        if self.current.value in '([':
+        if self.current.value in "([":
             is_surrounded = True
             self.consume(tk.OP)
 
@@ -465,18 +532,21 @@ class Parser:
                 break
             if self.current.kind in (tk.NL, tk.COMMENT):
                 pass
-            elif (self.current.kind == tk.STRING or self.current.value == ','):
+            elif self.current.kind == tk.STRING or self.current.value == ",":
                 dunder_all_content += self.current.value
             else:
-                self.dunder_all_error = 'Could not evaluate contents of __all__.'
+                self.dunder_all_error = (
+                    "Could not evaluate contents of __all__."
+                )
                 return
             self.stream.move()
         if is_surrounded:
             self.consume(tk.OP)
-        if not is_surrounded and ',' not in dunder_all_content:
+        if not is_surrounded and "," not in dunder_all_content:
             self.dunder_all_error = (
-                'Unexpected token kind in __all__: {!r}. '
-                    .format(self.current.kind))
+                "Unexpected token kind in"
+                " __all__: {!r}. ".format(self.current.kind)
+            )
             return
         dunder_all_content += ")"
 
@@ -484,15 +554,21 @@ class Parser:
             self.dunder_all = eval(dunder_all_content, {})
         except BaseException as e:
             self.dunder_all_error = (
-                'Could not evaluate contents of __all__.'
-                '\bThe value was {}. The exception was:\n{}'
-                    .format(dunder_all_content, e))
+                "Could not evaluate contents of __all__."
+                "\bThe value was {}. The exception was:\n{}".format(
+                    dunder_all_content, e
+                )
+            )
 
-        while (self.current.kind not in self.stream.LOGICAL_NEWLINES and
-               self.current.kind != tk.ENDMARKER):
+        while (
+            self.current.kind not in self.stream.LOGICAL_NEWLINES
+            and self.current.kind != tk.ENDMARKER
+        ):
             if self.current.kind != tk.COMMENT:
                 self.dunder_all = None
-                self.dunder_all_error = 'Could not evaluate contents of __all__. '
+                self.dunder_all_error = (
+                    "Could not evaluate contents of __all__. "
+                )
                 return
             self.stream.move()
 
@@ -505,11 +581,22 @@ class Parser:
         assert self.current is None, self.current
         end = self.line
         cls = Module
-        if self.filename.endswith('__init__.py'):
+        if self.filename.endswith("__init__.py"):
             cls = Package
-        module = cls(self.filename, self.source, start, end,
-                     [], docstring, children, None, self.dunder_all,
-                     self.dunder_all_error, None, '')
+        module = cls(
+            self.filename,
+            self.source,
+            start,
+            end,
+            [],
+            docstring,
+            children,
+            None,
+            self.dunder_all,
+            self.dunder_all_error,
+            None,
+            "",
+        )
         for child in module.children:
             child.parent = module
         module.future_imports = self.future_imports
@@ -523,18 +610,18 @@ class Parser:
         name = self.current.value
         self.log.debug("parsing %s '%s'", class_.__name__, name)
         self.stream.move()
-        if self.current.kind == tk.OP and self.current.value == '(':
+        if self.current.kind == tk.OP and self.current.value == "(":
             parenthesis_level = 0
             while True:
                 if self.current.kind == tk.OP:
-                    if self.current.value == '(':
+                    if self.current.value == "(":
                         parenthesis_level += 1
-                    elif self.current.value == ')':
+                    elif self.current.value == ")":
                         parenthesis_level -= 1
                         if parenthesis_level == 0:
                             break
                 self.stream.move()
-        if self.current.kind != tk.OP or self.current.value != ':':
+        if self.current.kind != tk.OP or self.current.value != ":":
             self.leapfrog(tk.OP, value=":")
         else:
             self.consume(tk.OP)
@@ -548,46 +635,64 @@ class Parser:
             self._accumulated_decorators = []
             self.log.debug("parsing nested definitions.")
             children = list(self.parse_definitions(class_))
-            self.log.debug("finished parsing nested definitions for '%s'",
-                           name)
+            self.log.debug(
+                "finished parsing nested definitions for '%s'", name
+            )
             end = self.line - 1
         else:  # one-liner definition
-            skipped_error_codes = ''
+            skipped_error_codes = ""
             docstring = self.parse_docstring()
             decorators = []  # TODO
             children = []
             end = self.line
             self.leapfrog(tk.NEWLINE)
-        definition = class_(name, self.source, start, end,
-                            decorators, docstring, children, None,
-                            skipped_error_codes)
+        definition = class_(
+            name,
+            self.source,
+            start,
+            end,
+            decorators,
+            docstring,
+            children,
+            None,
+            skipped_error_codes,
+        )
         for child in definition.children:
             child.parent = definition
-        self.log.debug("finished parsing %s '%s'. Next token is %r",
-                       class_.__name__, name, self.current)
+        self.log.debug(
+            "finished parsing %s '%s'. Next token is %r",
+            class_.__name__,
+            name,
+            self.current,
+        )
         return definition
 
     def parse_skip_comment(self):
         """Parse a definition comment for noqa skips."""
-        skipped_error_codes = ''
+        skipped_error_codes = ""
         if self.current.kind == tk.COMMENT:
-            if 'noqa: ' in self.current.value:
-                skipped_error_codes = ''.join(
-                     self.current.value.split('noqa: ')[1:])
-            elif self.current.value.startswith('# noqa'):
-                skipped_error_codes = 'all'
+            if "noqa: " in self.current.value:
+                skipped_error_codes = "".join(
+                    self.current.value.split("noqa: ")[1:]
+                )
+            elif self.current.value.startswith("# noqa"):
+                skipped_error_codes = "all"
         return skipped_error_codes
 
     def check_current(self, kind=None, value=None):
         """Verify the current token is of type `kind` and equals `value`."""
-        msg = textwrap.dedent("""
+        msg = textwrap.dedent(
+            """
         Unexpected token at line {self.line}:
 
         In file: {self.filename}
 
         Got kind {self.current.kind!r}
         Got value {self.current.value}
-        """.format(self=self))
+        """.format(
+                self=self
+            )
+        )
         kind_valid = self.current.kind == kind if kind else True
         value_valid = self.current.value == value if value else True
         assert kind_valid and value_valid, msg
@@ -598,7 +703,7 @@ class Parser:
         The purpose is to find __future__ statements.
 
         """
-        self.log.debug('parsing from/import statement.')
+        self.log.debug("parsing from/import statement.")
         is_future_import = self._parse_from_import_source()
         self._parse_from_import_names(is_future_import)
 
@@ -607,46 +712,58 @@ class Parser:
 
         Return true iff `x` is __future__.
         """
-        assert self.current.value == 'from', self.current.value
+        assert self.current.value == "from", self.current.value
         self.stream.move()
-        is_future_import = self.current.value == '__future__'
+        is_future_import = self.current.value == "__future__"
         self.stream.move()
-        while (self.current is not None and
-               self.current.kind in (tk.DOT, tk.NAME, tk.OP) and
-               self.current.value != 'import'):
+        while (
+            self.current is not None
+            and self.current.kind in (tk.DOT, tk.NAME, tk.OP)
+            and self.current.value != "import"
+        ):
             self.stream.move()
-        if self.current is None or self.current.value != 'import':
+        if self.current is None or self.current.value != "import":
             return False
-        self.check_current(value='import')
-        assert self.current.value == 'import', self.current.value
+        self.check_current(value="import")
+        assert self.current.value == "import", self.current.value
         self.stream.move()
         return is_future_import
 
     def _parse_from_import_names(self, is_future_import):
         """Parse the 'y' part in a 'from x import y' statement."""
-        if self.current.value == '(':
+        if self.current.value == "(":
             self.consume(tk.OP)
-            expected_end_kinds = (tk.OP, )
+            expected_end_kinds = (tk.OP,)
         else:
             expected_end_kinds = (tk.NEWLINE, tk.ENDMARKER)
         while self.current.kind not in expected_end_kinds and not (
-                    self.current.kind == tk.OP and self.current.value == ';'):
+            self.current.kind == tk.OP and self.current.value == ";"
+        ):
             if self.current.kind != tk.NAME:
                 self.stream.move()
                 continue
-            self.log.debug("parsing import, token is %r (%s)",
-                           self.current.kind, self.current.value)
+            self.log.debug(
+                "parsing import, token is %r (%s)",
+                self.current.kind,
+                self.current.value,
+            )
             if is_future_import:
-                self.log.debug('found future import: %s', self.current.value)
+                self.log.debug("found future import: %s", self.current.value)
                 self.future_imports.add(self.current.value)
             self.consume(tk.NAME)
-            self.log.debug("parsing import, token is %r (%s)",
-                           self.current.kind, self.current.value)
-            if self.current.kind == tk.NAME and self.current.value == 'as':
+            self.log.debug(
+                "parsing import, token is %r (%s)",
+                self.current.kind,
+                self.current.value,
+            )
+            if self.current.kind == tk.NAME and self.current.value == "as":
                 self.consume(tk.NAME)  # as
                 if self.current.kind == tk.NAME:
                     self.consume(tk.NAME)  # new name, irrelevant
-            if self.current.value == ',':
+            if self.current.value == ",":
                 self.consume(tk.OP)
-            self.log.debug("parsing import, token is %r (%s)",
-                           self.current.kind, self.current.value)
+            self.log.debug(
+                "parsing import, token is %r (%s)",
+                self.current.kind,
+                self.current.value,
+            )

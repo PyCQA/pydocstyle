@@ -14,10 +14,12 @@ from .violations import ErrorRegistry, conventions
 
 def check_initialized(method):
     """Check that the configuration object was initialized."""
+
     def _decorator(self, *args, **kwargs):
         if self._arguments is None or self._options is None:
-            raise RuntimeError('using an uninitialized configuration')
+            raise RuntimeError("using an uninitialized configuration")
         return method(self, *args, **kwargs)
+
     return _decorator
 
 
@@ -31,7 +33,7 @@ class ConfigurationParser:
     ------------------
     Responsible for deciding things that are related to the user interface and
     configuration discovery, e.g. verbosity, debug options, etc.
-    All run configurations default to `False` or `None` and are decided only 
+    All run configurations default to `False` or `None` and are decided only
     by CLI.
 
     Check Configurations:
@@ -59,28 +61,35 @@ class ConfigurationParser:
 
     """
 
-    CONFIG_FILE_OPTIONS = ('convention', 'select', 'ignore', 'add-select',
-                           'add-ignore', 'match', 'match-dir',
-                           'ignore-decorators')
-    BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
+    CONFIG_FILE_OPTIONS = (
+        "convention",
+        "select",
+        "ignore",
+        "add-select",
+        "add-ignore",
+        "match",
+        "match-dir",
+        "ignore-decorators",
+    )
+    BASE_ERROR_SELECTION_OPTIONS = ("ignore", "select", "convention")
 
-    DEFAULT_MATCH_RE = '(?!test_).*\.py'
-    DEFAULT_MATCH_DIR_RE = '[^\.].*'
-    DEFAULT_IGNORE_DECORATORS_RE = ''
+    DEFAULT_MATCH_RE = r"(?!test_).*\.py"
+    DEFAULT_MATCH_DIR_RE = r"[^\.].*"
+    DEFAULT_IGNORE_DECORATORS_RE = ""
     DEFAULT_CONVENTION = conventions.pep257
 
     PROJECT_CONFIG_FILES = (
-        'setup.cfg',
-        'tox.ini',
-        '.pydocstyle',
-        '.pydocstyle.ini',
-        '.pydocstylerc',
-        '.pydocstylerc.ini',
+        "setup.cfg",
+        "tox.ini",
+        ".pydocstyle",
+        ".pydocstyle.ini",
+        ".pydocstylerc",
+        ".pydocstylerc.ini",
         # The following is deprecated, but remains for backwards compatibility.
-        '.pep257',
+        ".pep257",
     )
 
-    POSSIBLE_SECTION_NAMES = ('pydocstyle', 'pep257')
+    POSSIBLE_SECTION_NAMES = ("pydocstyle", "pep257")
 
     def __init__(self):
         """Create a configuration parser."""
@@ -105,7 +114,7 @@ class ConfigurationParser:
 
         """
         self._options, self._arguments = self._parse_args()
-        self._arguments = self._arguments or ['.']
+        self._arguments = self._arguments or ["."]
 
         if not self._validate_options(self._options):
             raise IllegalConfiguration()
@@ -133,16 +142,18 @@ class ConfigurationParser:
         might be raised.
 
         """
+
         def _get_matches(conf):
             """Return the `match` and `match_dir` functions for `config`."""
-            match_func = re(conf.match + '$').match
-            match_dir_func = re(conf.match_dir + '$').match
+            match_func = re(conf.match + "$").match
+            match_dir_func = re(conf.match_dir + "$").match
             return match_func, match_dir_func
 
         def _get_ignore_decorators(conf):
             """Return the `ignore_decorators` as None or regex."""
-            return (re(conf.ignore_decorators) if conf.ignore_decorators
-                    else None)
+            return (
+                re(conf.ignore_decorators) if conf.ignore_decorators else None
+            )
 
         for name in self._arguments:
             if os.path.isdir(name):
@@ -157,8 +168,11 @@ class ConfigurationParser:
                     for filename in filenames:
                         if match(filename):
                             full_path = os.path.join(root, filename)
-                            yield (full_path, list(config.checked_codes),
-                                   ignore_decorators)
+                            yield (
+                                full_path,
+                                list(config.checked_codes),
+                                ignore_decorators,
+                            )
             else:
                 config = self._get_config(os.path.abspath(name))
                 match, _ = _get_matches(config)
@@ -170,14 +184,14 @@ class ConfigurationParser:
 
     def _get_config_by_discovery(self, node):
         """Get a configuration for checking `node` by config discovery.
-        
+
         Config discovery happens when no explicit config file is specified. The
         file system is searched for config files starting from the directory
         containing the file being checked, and up until the root directory of
         the project.
-        
+
         See `_get_config` for further details.
-        
+
         """
         path = self._get_node_dir(node)
 
@@ -240,22 +254,25 @@ class ConfigurationParser:
 
         """
         if self._run_conf.config is None:
-            log.debug('No config file specified, discovering.')
+            log.debug("No config file specified, discovering.")
             config = self._get_config_by_discovery(node)
         else:
-            log.debug('Using config file %r', self._run_conf.config)
+            log.debug("Using config file %r", self._run_conf.config)
             if not os.path.exists(self._run_conf.config):
-                raise IllegalConfiguration('Configuration file {!r} specified '
-                                           'via --config was not found.'
-                                           .format(self._run_conf.config))
+                raise IllegalConfiguration(
+                    "Configuration file {!r} specified "
+                    "via --config was not found.".format(self._run_conf.config)
+                )
 
             if None in self._cache:
                 return self._cache[None]
             options, _ = self._read_configuration_file(self._run_conf.config)
 
             if options is None:
-                log.warning('Configuration file does not contain a '
-                            'pydocstyle section. Using default configuration.')
+                log.warning(
+                    "Configuration file does not contain a "
+                    "pydocstyle section. Using default configuration."
+                )
                 config = self._create_check_config(self._options)
             else:
                 config = self._create_check_config(options)
@@ -293,7 +310,7 @@ class ConfigurationParser:
         Returns (options, should_inherit).
 
         """
-        parser = RawConfigParser(inline_comment_prefixes=('#', ';'))
+        parser = RawConfigParser(inline_comment_prefixes=("#", ";"))
         options = None
         should_inherit = True
 
@@ -302,8 +319,7 @@ class ConfigurationParser:
             for group in self._parser.option_groups:
                 all_options.extend(group.option_list)
 
-            option_list = {o.dest: o.type or o.action
-                                for o in all_options}
+            option_list = {o.dest: o.type or o.action for o in all_options}
 
             # First, read the default values
             new_options, _ = self._parse_args([])
@@ -311,22 +327,22 @@ class ConfigurationParser:
             # Second, parse the configuration
             section_name = self._get_section_name(parser)
             for opt in parser.options(section_name):
-                if opt == 'inherit':
+                if opt == "inherit":
                     should_inherit = parser.getboolean(section_name, opt)
                     continue
 
-                if opt.replace('_', '-') not in self.CONFIG_FILE_OPTIONS:
+                if opt.replace("_", "-") not in self.CONFIG_FILE_OPTIONS:
                     log.warning("Unknown option '{}' ignored".format(opt))
                     continue
 
-                normalized_opt = opt.replace('-', '_')
+                normalized_opt = opt.replace("-", "_")
                 opt_type = option_list[normalized_opt]
-                if opt_type in ('int', 'count'):
+                if opt_type in ("int", "count"):
                     value = parser.getint(section_name, opt)
-                elif opt_type == 'string':
+                elif opt_type == "string":
                     value = parser.get(section_name, opt)
                 else:
-                    assert opt_type in ('store_true', 'store_false')
+                    assert opt_type in ("store_true", "store_false")
                     value = parser.getboolean(section_name, opt)
                 setattr(new_options, normalized_opt, value)
 
@@ -335,7 +351,7 @@ class ConfigurationParser:
 
         if options is not None:
             if not self._validate_options(options):
-                raise IllegalConfiguration('in file: {}'.format(path))
+                raise IllegalConfiguration("in file: {}".format(path))
 
         return options, should_inherit
 
@@ -355,9 +371,10 @@ class ConfigurationParser:
         self._set_add_options(error_codes, child_options)
 
         kwargs = dict(checked_codes=error_codes)
-        for key in ('match', 'match_dir', 'ignore_decorators'):
-            kwargs[key] = \
-                getattr(child_options, key) or getattr(parent_config, key)
+        for key in ("match", "match_dir", "ignore_decorators"):
+            kwargs[key] = getattr(child_options, key) or getattr(
+                parent_config, key
+            )
         return CheckConfiguration(**kwargs)
 
     def _parse_args(self, args=None, values=None):
@@ -368,8 +385,9 @@ class ConfigurationParser:
     @staticmethod
     def _create_run_config(options):
         """Create a `RunConfiguration` object from `options`."""
-        values = {opt: getattr(options, opt) for opt in
-                       RunConfiguration._fields}
+        values = {
+            opt: getattr(options, opt) for opt in RunConfiguration._fields
+        }
         return RunConfiguration(**values)
 
     @classmethod
@@ -387,10 +405,12 @@ class ConfigurationParser:
             checked_codes = cls._get_checked_errors(options)
 
         kwargs = dict(checked_codes=checked_codes)
-        for key in ('match', 'match_dir', 'ignore_decorators'):
-            kwargs[key] = getattr(cls, 'DEFAULT_{}_RE'.format(key.upper())) \
-                if getattr(options, key) is None and use_defaults \
+        for key in ("match", "match_dir", "ignore_decorators"):
+            kwargs[key] = (
+                getattr(cls, "DEFAULT_{}_RE".format(key.upper()))
+                if getattr(options, key) is None and use_defaults
                 else getattr(options, key)
+            )
         return CheckConfiguration(**kwargs)
 
     @classmethod
@@ -455,12 +475,15 @@ class ConfigurationParser:
                 if not part:
                     continue
 
-                codes_to_add = {code for code in codes
-                                if code.startswith(part)}
+                codes_to_add = {
+                    code for code in codes if code.startswith(part)
+                }
                 if not codes_to_add:
                     log.warning(
-                        'Error code passed is not a prefix of any '
-                        'known errors: %s', part)
+                        "Error code passed is not a prefix of any "
+                        "known errors: %s",
+                        part,
+                    )
                 expanded_codes.update(codes_to_add)
         except TypeError as e:
             raise IllegalConfiguration(e)
@@ -486,31 +509,40 @@ class ConfigurationParser:
         was selected.
 
         """
-        for opt1, opt2 in \
-                itertools.permutations(cls.BASE_ERROR_SELECTION_OPTIONS, 2):
+        for opt1, opt2 in itertools.permutations(
+            cls.BASE_ERROR_SELECTION_OPTIONS, 2
+        ):
             if getattr(options, opt1) and getattr(options, opt2):
-                log.error('Cannot pass both {} and {}. They are '
-                          'mutually exclusive.'.format(opt1, opt2))
+                log.error(
+                    "Cannot pass both {} and {}. They are "
+                    "mutually exclusive.".format(opt1, opt2)
+                )
                 return False
 
         if options.convention and options.convention not in conventions:
-            log.error("Illegal convention '{}'. Possible conventions: {}"
-                      .format(options.convention,
-                              ', '.join(conventions.keys())))
+            log.error(
+                "Illegal convention '{}'. Possible conventions: {}".format(
+                    options.convention, ", ".join(conventions.keys())
+                )
+            )
             return False
         return True
 
     @classmethod
     def _has_exclusive_option(cls, options):
         """Return `True` iff one or more exclusive options were selected."""
-        return any([getattr(options, opt) is not None for opt in
-                    cls.BASE_ERROR_SELECTION_OPTIONS])
+        return any(
+            [
+                getattr(options, opt) is not None
+                for opt in cls.BASE_ERROR_SELECTION_OPTIONS
+            ]
+        )
 
     @classmethod
     def _fix_set_options(cls, options):
         """Alter the set options from None/strings to sets in place."""
-        optional_set_options = ('ignore', 'select')
-        mandatory_set_options = ('add_ignore', 'add_select')
+        optional_set_options = ("ignore", "select")
+        mandatory_set_options = ("add_ignore", "add_select")
 
         def _get_set(value_str):
             """Split `value_str` by the delimiter `,` and return a set.
@@ -520,7 +552,7 @@ class ConfigurationParser:
             file.
 
             """
-            return cls._expand_error_codes(set(value_str.split(',')) - {''})
+            return cls._expand_error_codes(set(value_str.split(",")) - {""})
 
         for opt in optional_set_options:
             value = getattr(options, opt)
@@ -530,7 +562,7 @@ class ConfigurationParser:
         for opt in mandatory_set_options:
             value = getattr(options, opt)
             if value is None:
-                value = ''
+                value = ""
 
             if not isinstance(value, Set):
                 value = _get_set(value)
@@ -546,97 +578,171 @@ class ConfigurationParser:
 
         parser = OptionParser(
             version=__version__,
-            usage='Usage: pydocstyle [options] [<file|dir>...]')
+            usage="Usage: pydocstyle [options] [<file|dir>...]",
+        )
 
         option = parser.add_option
 
         # Run configuration options
-        option('-e', '--explain', action='store_true', default=False,
-               help='show explanation of each error')
-        option('-s', '--source', action='store_true', default=False,
-               help='show source for each error')
-        option('-d', '--debug', action='store_true', default=False,
-               help='print debug information')
-        option('-v', '--verbose', action='store_true', default=False,
-               help='print status information')
-        option('--count', action='store_true', default=False,
-               help='print total number of errors to stdout')
-        option('--config', metavar='<path>', default=None,
-               help='use given config file and disable config discovery')
+        option(
+            "-e",
+            "--explain",
+            action="store_true",
+            default=False,
+            help="show explanation of each error",
+        )
+        option(
+            "-s",
+            "--source",
+            action="store_true",
+            default=False,
+            help="show source for each error",
+        )
+        option(
+            "-d",
+            "--debug",
+            action="store_true",
+            default=False,
+            help="print debug information",
+        )
+        option(
+            "-v",
+            "--verbose",
+            action="store_true",
+            default=False,
+            help="print status information",
+        )
+        option(
+            "--count",
+            action="store_true",
+            default=False,
+            help="print total number of errors to stdout",
+        )
+        option(
+            "--config",
+            metavar="<path>",
+            default=None,
+            help="use given config file and disable config discovery",
+        )
 
-        parser.add_option_group(OptionGroup(
-            parser,
-            'Note',
-            'When using --match, --match-dir or --ignore-decorators consider '
-            'whether you should use a single quote (\') or a double quote ("), '
-            'depending on your OS, Shell, etc.'))
+        parser.add_option_group(
+            OptionGroup(
+                parser,
+                "Note",
+                "When using --match, --match-dir or --ignore-decorators"
+                "consider whether you should use a single quote (') or a"
+                "double quote (\"), depending on your OS, Shell, etc.",
+            )
+        )
 
         check_group = OptionGroup(
             parser,
-            'Error Check Options',
-            'Only one of --select, --ignore or --convention can be '
-            'specified. If none is specified, defaults to '
+            "Error Check Options",
+            "Only one of --select, --ignore or --convention can be "
+            "specified. If none is specified, defaults to "
             '`--convention=pep257`. These three options select the "basic '
             'list" of error codes to check. If you wish to change that list '
-            '(for example, if you selected a known convention but wish to '
-            'ignore a specific error from it or add a new one) you can '
-            'use `--add-[ignore/select]` in order to do so.')
+            "(for example, if you selected a known convention but wish to "
+            "ignore a specific error from it or add a new one) you can "
+            "use `--add-[ignore/select]` in order to do so.",
+        )
         add_check = check_group.add_option
 
         # Error check options
-        add_check('--select', metavar='<codes>', default=None,
-                  help='choose the basic list of checked errors by '
-                       'specifying which errors to check for (with a list of '
-                       'comma-separated error codes or prefixes). '
-                       'for example: --select=D101,D2')
-        add_check('--ignore', metavar='<codes>', default=None,
-                  help='choose the basic list of checked errors by '
-                       'specifying which errors to ignore out of all of the '
-                       'available error codes (with a list of '
-                       'comma-separated error codes or prefixes). '
-                       'for example: --ignore=D101,D2')
-        add_check('--convention', metavar='<name>', default=None,
-                  help='choose the basic list of checked errors by specifying '
-                       'an existing convention. Possible conventions: {}.'
-                       .format(', '.join(conventions)))
-        add_check('--add-select', metavar='<codes>', default=None,
-                  help='add extra error codes to check to the basic list of '
-                       'errors previously set by --select, --ignore or '
-                       '--convention.')
-        add_check('--add-ignore', metavar='<codes>', default=None,
-                  help='ignore extra error codes by removing them from the '
-                       'basic list previously set by --select, --ignore '
-                       'or --convention.')
+        add_check(
+            "--select",
+            metavar="<codes>",
+            default=None,
+            help="choose the basic list of checked errors by "
+            "specifying which errors to check for (with a list of "
+            "comma-separated error codes or prefixes). "
+            "for example: --select=D101,D2",
+        )
+        add_check(
+            "--ignore",
+            metavar="<codes>",
+            default=None,
+            help="choose the basic list of checked errors by "
+            "specifying which errors to ignore out of all of the "
+            "available error codes (with a list of "
+            "comma-separated error codes or prefixes). "
+            "for example: --ignore=D101,D2",
+        )
+        add_check(
+            "--convention",
+            metavar="<name>",
+            default=None,
+            help="choose the basic list of checked errors by specifying "
+            "an existing convention. Possible conventions: {}.".format(
+                ", ".join(conventions)
+            ),
+        )
+        add_check(
+            "--add-select",
+            metavar="<codes>",
+            default=None,
+            help="add extra error codes to check to the basic list of "
+            "errors previously set by --select, --ignore or "
+            "--convention.",
+        )
+        add_check(
+            "--add-ignore",
+            metavar="<codes>",
+            default=None,
+            help="ignore extra error codes by removing them from the "
+            "basic list previously set by --select, --ignore "
+            "or --convention.",
+        )
 
         parser.add_option_group(check_group)
 
         # Match clauses
-        option('--match', metavar='<pattern>', default=None,
-               help=("check only files that exactly match <pattern> regular "
-                     "expression; default is --match='{}' which matches "
-                     "files that don't start with 'test_' but end with "
-                     "'.py'").format(cls.DEFAULT_MATCH_RE))
-        option('--match-dir', metavar='<pattern>', default=None,
-               help=("search only dirs that exactly match <pattern> regular "
-                     "expression; default is --match-dir='{}', which "
-                     "matches all dirs that don't start with "
-                     "a dot").format(cls.DEFAULT_MATCH_DIR_RE))
+        option(
+            "--match",
+            metavar="<pattern>",
+            default=None,
+            help=(
+                "check only files that exactly match <pattern> regular "
+                "expression; default is --match='{}' which matches "
+                "files that don't start with 'test_' but end with "
+                "'.py'"
+            ).format(cls.DEFAULT_MATCH_RE),
+        )
+        option(
+            "--match-dir",
+            metavar="<pattern>",
+            default=None,
+            help=(
+                "search only dirs that exactly match <pattern> regular "
+                "expression; default is --match-dir='{}', which "
+                "matches all dirs that don't start with "
+                "a dot"
+            ).format(cls.DEFAULT_MATCH_DIR_RE),
+        )
 
         # Decorators
-        option('--ignore-decorators', metavar='<decorators>', default=None,
-               help=("ignore any functions or methods that are decorated "
-                     "by a function with a name fitting the <decorators> "
-                     "regular expression; default is --ignore-decorators='{}'"
-                     " which does not ignore any decorated functions."
-                     .format(cls.DEFAULT_IGNORE_DECORATORS_RE)))
+        option(
+            "--ignore-decorators",
+            metavar="<decorators>",
+            default=None,
+            help=(
+                "ignore any functions or methods that are decorated "
+                "by a function with a name fitting the <decorators> "
+                "regular expression; default is --ignore-decorators='{}'"
+                " which does not ignore any decorated functions.".format(
+                    cls.DEFAULT_IGNORE_DECORATORS_RE
+                )
+            ),
+        )
 
         return parser
 
 
 # Check configuration - used by the ConfigurationParser class.
-CheckConfiguration = namedtuple('CheckConfiguration',
-                                ('checked_codes', 'match', 'match_dir',
-                                 'ignore_decorators'))
+CheckConfiguration = namedtuple(
+    "CheckConfiguration",
+    ("checked_codes", "match", "match_dir", "ignore_decorators"),
+)
 
 
 class IllegalConfiguration(Exception):
@@ -646,6 +752,7 @@ class IllegalConfiguration(Exception):
 
 
 # General configurations for pydocstyle run.
-RunConfiguration = namedtuple('RunConfiguration',
-                              ('explain', 'source', 'debug',
-                               'verbose', 'count', 'config'))
+RunConfiguration = namedtuple(
+    "RunConfiguration",
+    ("explain", "source", "debug", "verbose", "count", "config"),
+)

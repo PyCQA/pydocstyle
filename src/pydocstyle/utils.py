@@ -5,7 +5,7 @@ from itertools import tee, zip_longest
 
 
 # Do not update the version manually - it is managed by `bumpversion`.
-__version__ = '4.0.1'
+__version__ = "4.0.1"
 log = logging.getLogger(__name__)
 
 
@@ -15,8 +15,7 @@ def is_blank(string: str) -> bool:
 
 
 def pairwise(
-    iterable: Iterable,
-    default_value: Any,
+    iterable: Iterable, default_value: Any
 ) -> Iterable[Tuple[Any, Any]]:
     """Return pairs of items from `iterable`.
 
