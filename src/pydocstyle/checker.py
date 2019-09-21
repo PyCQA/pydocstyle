@@ -676,7 +676,7 @@ class ConventionChecker:
         if suffix:
             yield violations.D406(capitalized_section, context.line.strip())
 
-        if capitalized_section in ("Parameters"):
+        if capitalized_section == "Parameters":
             yield from cls._check_parameters_section(docstring, definition, context)
 
     @staticmethod
@@ -712,7 +712,7 @@ class ConventionChecker:
                 # on the current line.
                 else:
                     parameters = current_line.strip()
-                # Numpy allow grouping of multiple parameters of same
+                # Numpy allows grouping of multiple parameters of same
                 # type in the same line. They are comma separated.
                 parameter_list = parameters.split(",")
                 for parameter in parameter_list:
@@ -734,6 +734,19 @@ class ConventionChecker:
             match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
             if match:
                 docstring_args.add(match.group(1))
+        yield from ConventionChecker._check_missing_args(docstring_args, definition)
+
+
+    @staticmethod
+    def _check_missing_args(docstring_args, definition):
+        """D417: Yield error for missing arguments in docstring.
+
+        Given a list of arguments found in the docstring and the
+        callable definition, it checks if all the arguments of the
+        callable are present in the docstring, else it yields a
+        D417 with a list of missing arguments.
+
+        """
         function_args = get_function_args(definition.source)
         # If the method isn't static, then we skip the first
         # positional argument as it is `cls` or `self`

@@ -277,8 +277,8 @@ def missing_colon_google_style_section():  # noqa: D406, D407
 @expect(_D213)
 @expect("D417: Missing arguments in the docstring "
         "(argument(s) 'y' missing in "
-        "'test_missing_args' docstring)")
-def test_missing_args(x=1, y=2):  # noqa: D406, D407
+        "'test_missing_google_args' docstring)")
+def test_missing_google_args(x=1, y=2):  # noqa: D406, D407
     """Toggle the gizmo.
 
     Args:
@@ -287,7 +287,7 @@ def test_missing_args(x=1, y=2):  # noqa: D406, D407
     """
 
 
-class Test:  # noqa: D203
+class TestGoogle:  # noqa: D203
     """Test class."""
 
     def test_method(self, test, another_test):  # noqa: D213, D407
@@ -331,5 +331,80 @@ class Test:  # noqa: D203
 
         Args:
             x: Another parameter.
+
+        """
+
+
+@expect(_D213)
+@expect("D417: Missing arguments in the docstring "
+        "(argument(s) 'y' missing in "
+        "'test_missing_numpy_args' docstring)")
+def test_missing_numpy_args(x=1, y=2):  # noqa: D406, D407
+    """Toggle the gizmo.
+
+    Parameters
+    ----------
+    x : int
+        The greatest integer.
+
+    """
+
+
+class TestNumpy:  # noqa: D203
+    """Test class."""
+
+    def test_method(self, test, another_test, x=1, y=2):  # noqa: D213, D407
+        """Test a valid args section.
+
+        Parameters
+        ----------
+        test, another_test
+            Some parameters without type.
+        x, y : int
+            Some integer parameters.
+
+        """
+
+    @expect("D417: Missing arguments in the docstring "
+            "(argument(s) 'test, y, z' missing in "
+            "'test_missing_args' docstring)", arg_count=4)
+    def test_missing_args(self, test, x, y, z=3, t=1):  # noqa: D213, D407
+        """Test a valid args section.
+
+        Parameters
+        ----------
+        x, t : int
+            Some parameters.
+
+
+        """
+
+    @classmethod
+    @expect("D417: Missing arguments in the docstring "
+            "(argument(s) 'test, y, z' missing in "
+            "'test_missing_args_class_method' docstring)", arg_count=4)
+    def test_missing_args_class_method(cls, test, x, y, z=3):  # noqa: D213, D407
+        """Test a valid args section.
+
+        Parameters
+        ----------
+        x
+            Another parameter.
+
+        """
+
+    @staticmethod
+    @expect("D417: Missing arguments in the docstring "
+            "(argument(s) 'a, z' missing in "
+            "'test_missing_args_static_method' docstring)", arg_count=3)
+    def test_missing_args_static_method(a, x, y, z=3, t=1):  # noqa: D213, D407
+        """Test a valid args section.
+
+        Parameters
+        ----------
+        x, y
+            Another parameter.
+        t : int
+            Yet another parameter.
 
         """
