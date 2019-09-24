@@ -706,7 +706,7 @@ class ConventionChecker:
             * The section does not contain any blank line between its name
               and content (D412).
             * The section is not empty (D414).
-            * The section name has semicolon as a suffix (D416).
+            * The section name has colon as a suffix (D416).
 
         Additionally, also yield all violations from `_check_common_section`
         which are style-agnostic section checks.
