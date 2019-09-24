@@ -19,6 +19,7 @@ New Features
 Bug Fixes
 
 * Remove D413 from the pep257 convention (#404).
+* Replace `semicolon` with `colon` in D416 messages. (#409)
 
 4.0.1 - August 14th, 2019
 -------------------------
