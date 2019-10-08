@@ -263,7 +263,7 @@ def valid_google_style_section():  # noqa: D406, D407
 
 
 @expect(_D213)
-@expect("D416: Section name should end with a semicolon "
+@expect("D416: Section name should end with a colon "
         "('Args:', not 'Args')")
 def missing_colon_google_style_section():  # noqa: D406, D407
     """Toggle the gizmo.

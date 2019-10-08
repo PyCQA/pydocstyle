@@ -250,7 +250,7 @@ D413 = D4xx.create_error('D413', 'Missing blank line after last section',
 D414 = D4xx.create_error('D414', 'Section has no content', '{0!r}')
 D415 = D4xx.create_error('D415', 'First line should end with a period, question '
                                  'mark, or exclamation point', 'not {0!r}')
-D416 = D4xx.create_error('D416', 'Section name should end with a semicolon',
+D416 = D4xx.create_error('D416', 'Section name should end with a colon',
                          '{0!r}, not {1!r}')
 D417 = D4xx.create_error('D417', 'Missing arguments in the docstring',
                          'argument(s) {0!r} missing in {1!r} docstring')
