@@ -1,5 +1,7 @@
 """General shared utilities."""
+import ast
 import logging
+import re
 from typing import Iterable, Any, Tuple
 from itertools import tee, zip_longest
 
@@ -38,3 +40,9 @@ def common_prefix_length(a: str, b: str) -> int:
         if ca != cb:
             return common
     return min(len(a), len(b))
+
+
+def strip_non_alphanumeric(string: str) -> str:
+    """Strip string from any non-alphanumeric characters."""
+    pattern = re.compile(r'[\W_]+')
+    return pattern.sub('', string)
