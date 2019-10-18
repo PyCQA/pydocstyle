@@ -29,5 +29,5 @@ def test_empty_string():
 
 
 def test_strip_non_alphanumeric():
-    """Test strip non alphanumeric of a string leaves only alpha numeric characters."""
+    """Test strip of a string leaves only alphanumeric characters."""
     assert utils.strip_non_alphanumeric("  1abcd1...") == "1abcd1"
