@@ -365,11 +365,16 @@ class ConventionChecker:
         Use r"""raw triple double quotes""" if you use any backslashes
         (\) in your docstrings.
 
+        Exceptions are backslashes for line-continuation and unicode escape
+        sequences \N... and \u... These are considered intended unescaped
+        content in docstrings.
         '''
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and '\\' in docstring and not docstring.startswith(
-                ('r', 'ur')):
+
+        if (docstring
+                and re(r'\\[^\nuN]').search(docstring)
+                and not docstring.startswith(('r', 'ur'))):
             return violations.D301()
 
     @check_for(Definition)
