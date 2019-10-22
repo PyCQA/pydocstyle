@@ -10,7 +10,7 @@ http://github.com/PyCQA/pydocstyle
 __all__ = ()
 
 
-def main():
+def main() -> None:
     from pydocstyle import cli
     cli.main()
 

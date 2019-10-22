@@ -181,6 +181,13 @@ class Method(Function):
                           self.is_magic)
         return self.parent.is_public and name_is_public
 
+    @property
+    def is_static(self):
+        for decorator in self.decorators:
+            if decorator.name == "staticmethod":
+                return True
+        return False
+
 
 class Class(Definition):
     """A Python source code class."""
@@ -444,26 +451,35 @@ class Parser:
             self.dunder_all_error = 'Could not evaluate contents of __all__. '
             return
         self.consume(tk.OP)
-        if self.current.value not in '([':
-            self.dunder_all_error = 'Could not evaluate contents of __all__. '
-            return
-        self.consume(tk.OP)
+
+        is_surrounded = False
+        if self.current.value in '([':
+            is_surrounded = True
+            self.consume(tk.OP)
 
         dunder_all_content = "("
-        while self.current.kind != tk.OP or self.current.value not in ")]":
+        while True:
+            if is_surrounded and self.current.value in ")]":
+                break
+            if self.current.kind in (tk.NEWLINE, tk.ENDMARKER):
+                break
             if self.current.kind in (tk.NL, tk.COMMENT):
                 pass
-            elif (self.current.kind == tk.STRING or
-                    self.current.value == ','):
+            elif (self.current.kind == tk.STRING or self.current.value == ','):
                 dunder_all_content += self.current.value
             else:
-                self.dunder_all_error = (
-                    'Unexpected token kind in __all__: {!r}. '
-                        .format(self.current.kind))
+                self.dunder_all_error = 'Could not evaluate contents of __all__.'
                 return
             self.stream.move()
-        self.consume(tk.OP)
+        if is_surrounded:
+            self.consume(tk.OP)
+        if not is_surrounded and ',' not in dunder_all_content:
+            self.dunder_all_error = (
+                'Unexpected token kind in __all__: {!r}. '
+                    .format(self.current.kind))
+            return
         dunder_all_content += ")"
+
         try:
             self.dunder_all = eval(dunder_all_content, {})
         except BaseException as e:
@@ -472,11 +488,13 @@ class Parser:
                 '\bThe value was {}. The exception was:\n{}'
                     .format(dunder_all_content, e))
 
-        while not self.current.kind in self.stream.LOGICAL_NEWLINES:
+        while (self.current.kind not in self.stream.LOGICAL_NEWLINES and
+               self.current.kind != tk.ENDMARKER):
             if self.current.kind != tk.COMMENT:
                 self.dunder_all = None
                 self.dunder_all_error = 'Could not evaluate contents of __all__. '
                 return
+            self.stream.move()
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""
