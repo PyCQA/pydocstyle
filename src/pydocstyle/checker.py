@@ -72,8 +72,6 @@ class ConventionChecker:
         'Methods',
         'Note',
         'Notes',
-        'Other Parameters',
-        'Parameters',
         'Return',
         'Returns',
         'Raises',
@@ -678,6 +676,48 @@ class ConventionChecker:
         if suffix:
             yield violations.D406(capitalized_section, context.line.strip())
 
+        if capitalized_section == "Parameters":
+            yield from cls._check_parameters_section(docstring, definition, context)
+
+    @staticmethod
+    def _check_parameters_section(docstring, definition, context):
+        """D417: `Parameters` section check for numpy style.
+
+        Check for a valid `Parameters` section. Checks that:
+            * The section documents all function arguments (D417)
+                except `self` or `cls` if it is a method.
+
+        """
+        docstring_args = set()
+        section_level_indent = leading_space(context.line)
+        content = context.following_lines
+        for current_line, next_line in zip(content, content[1:]):
+            # All parameter definitions in the Numpy parameters
+            # section must be at the same indent level as the section
+            # name.
+            # Also, we ensure that the following line is indented,
+            # and has some string, to ensure that the parameter actually
+            # has a description.
+            # This means, this is a parameter doc with some description
+            if ((leading_space(current_line) == section_level_indent)
+                and (len(leading_space(next_line)) > len(leading_space(current_line)))
+                and next_line.strip()):
+                # In case the parameter has type definitions, it
+                # will have a colon
+                if ":" in current_line:
+                    parameters, parameter_type = current_line.split(":", 1)
+                # Else, we simply have the list of parameters defined
+                # on the current line.
+                else:
+                    parameters = current_line.strip()
+                # Numpy allows grouping of multiple parameters of same
+                # type in the same line. They are comma separated.
+                parameter_list = parameters.split(",")
+                for parameter in parameter_list:
+                    docstring_args.add(parameter.strip())
+        yield from ConventionChecker._check_missing_args(docstring_args, definition)
+
+
     @staticmethod
     def _check_args_section(docstring, definition, context):
         """D417: `Args` section checks.
@@ -692,6 +732,19 @@ class ConventionChecker:
             match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
             if match:
                 docstring_args.add(match.group(1))
+        yield from ConventionChecker._check_missing_args(docstring_args, definition)
+
+
+    @staticmethod
+    def _check_missing_args(docstring_args, definition):
+        """D417: Yield error for missing arguments in docstring.
+
+        Given a list of arguments found in the docstring and the
+        callable definition, it checks if all the arguments of the
+        callable are present in the docstring, else it yields a
+        D417 with a list of missing arguments.
+
+        """
         function_args = get_function_args(definition.source)
         # If the method isn't static, then we skip the first
         # positional argument as it is `cls` or `self`
