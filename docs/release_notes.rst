@@ -17,7 +17,7 @@ New Features
   docstrings to method calls (#384).
 * Extend support for detecting missing argument description in Numpy style
   docstrings (#407).
-
+* Added support for Python 3.8 (#423).
 
 Bug Fixes
 
