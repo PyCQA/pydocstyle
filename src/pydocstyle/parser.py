@@ -267,7 +267,12 @@ class TokenStream:
         current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
-        self.got_logical_newline = (previous.kind in self.LOGICAL_NEWLINES)
+        is_logical_blank = previous.kind in (tk.NL, tk.COMMENT)
+        self.got_logical_newline = (
+            previous.kind in self.LOGICAL_NEWLINES
+            # Retain logical_newline status if last line was logically blank
+            or (self.got_logical_newline and is_logical_blank)
+        )
         return previous
 
     def _next_from_generator(self):
