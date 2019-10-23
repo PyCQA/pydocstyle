@@ -9,7 +9,56 @@ Current Development Version
 
 Major Updates
 
+* Support for Python 3.4 has been dropped (#402).
+
+New Features
+
+* Extend support for detecting missing arguments in Google style
+  docstrings to method calls (#384).
+* Extend support for detecting missing argument description in Numpy style
+  docstrings (#407).
+* Added support for Python 3.8 (#423).
+
+Bug Fixes
+
+* Remove D413 from the pep257 convention (#404).
+* Replace `semicolon` with `colon` in D416 messages. (#409)
+* D301 (Use r""" if any backslashes in a docstring) does not trigger on
+  backslashes for line continuation or unicode literals ``\u...`` and
+  ``\N...`` anymore. These are considered intended elements of the docstring
+  and thus should not be escaped by using a raw docstring (#365).
+* Fix decorator parsing (#411).
+
+4.0.1 - August 14th, 2019
+-------------------------
+
+Bug Fixes
+
+* D401: Fixed a false positive where one stem had multiple imperative forms,
+  e.g., init and initialize / initiate (#382).
+* Fix parser hanging when there's a comment directly after ``__all__``
+  (#391, #366).
+* Fixed RST error in table which resulted in the online documentation missing
+  the violation code table (#396).
+* Fixed IndentationError when parsing function arguments (#392).
+
+
+4.0.0 - July 6th, 2019
+----------------------
+
+Major Updates
+
 * Support for Python 2.x and PyPy has been dropped (#340).
+* Added initial support for Google convention (#357).
+
+New Features
+
+* Added pre-commit hook (#346)
+
+Bug Fixes
+
+* Fix parsing tuple syntax ``__all__`` (#355, #352).
+
 
 3.0.0 - October 14th, 2018
 --------------------------

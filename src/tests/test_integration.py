@@ -7,7 +7,6 @@ from collections import namedtuple
 
 import os
 import sys
-import mock
 import shlex
 import shutil
 import pytest
@@ -15,6 +14,8 @@ import pathlib
 import tempfile
 import textwrap
 import subprocess
+
+from unittest import mock
 
 from pydocstyle import checker, violations
 
@@ -169,12 +170,14 @@ def test_ignore_list():
             return foo
     ''')
     expected_error_codes = {'D100', 'D400', 'D401', 'D205', 'D209', 'D210',
-                            'D403'}
+                            'D403', 'D415', 'D213'}
     mock_open = mock.mock_open(read_data=function_to_check)
     from pydocstyle import checker
     with mock.patch.object(
             checker.tk, 'open', mock_open, create=True):
-        errors = tuple(checker.check(['filepath']))
+        # Passing a blank ignore here explicitly otherwise
+        # checkers takes the pep257 ignores by default.
+        errors = tuple(checker.check(['filepath'], ignore={}))
         error_codes = {error.code for error in errors}
         assert error_codes == expected_error_codes
 
@@ -196,9 +199,6 @@ def test_run_as_named_module():
         python -m pydocstyle
 
     """
-    # Running a package with "-m" is not supported in Python 2.6
-    if sys.version_info[0:2] == (2, 6):
-        return
     # Add --match='' so that no files are actually checked (to make sure that
     # the return code is 0 and to reduce execution time).
     cmd = shlex.split("python -m pydocstyle --match=''")
@@ -490,30 +490,6 @@ def test_conflicting_ignore_convention_config(env):
     assert 'mutually exclusive' in err
 
 
-def test_unicode_raw(env):
-    """Test acceptance of unicode raw docstrings for python 2.x."""
-    if sys.version_info[0] >= 3:
-        return  # ur"" is a syntax error in python 3.x
-
-    # This is all to avoid a syntax error for python 3.2
-    from codecs import unicode_escape_decode
-
-    def u(x):
-        return unicode_escape_decode(x)[0]
-
-    with env.open('example.py', 'wt') as example:
-        example.write(textwrap.dedent(u('''\
-            # -*- coding: utf-8 -*-
-            def foo():
-                ur"""Check unicode: \u2611 and raw: \\\\\\\\."""
-        ''').encode('utf-8')))
-    env.write_config(ignore='D100', verbose=True)
-    out, err, code = env.invoke()
-    assert code == 0, err
-    assert 'D301' not in out
-    assert 'D302' not in out
-
-
 def test_missing_docstring_in_package(env):
     """Make sure __init__.py files are treated as packages."""
     with env.open('__init__.py', 'wt') as init:
@@ -585,6 +561,19 @@ def test_pep257_convention(env):
                 """Docstring for this class"""
                 def foo():
                     pass
+
+
+            # Original PEP-257 example from -
+            # https://www.python.org/dev/peps/pep-0257/
+            def complex(real=0.0, imag=0.0):
+                """Form a complex number.
+
+                Keyword arguments:
+                real -- the real part (default 0.0)
+                imag -- the imaginary part (default 0.0)
+                """
+                if imag == 0.0 and real == 0.0:
+                    return complex_zero
         '''))
 
     env.write_config(convention="pep257")
@@ -595,6 +584,7 @@ def test_pep257_convention(env):
     assert 'D203' not in out
     assert 'D212' not in out
     assert 'D213' not in out
+    assert 'D413' not in out
 
 
 def test_numpy_convention(env):
@@ -622,6 +612,47 @@ def test_numpy_convention(env):
     assert 'D414' in out
     assert 'D410' not in out
     assert 'D413' not in out
+
+
+def test_google_convention(env):
+    """Test that the 'google' convention options has the correct errors."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''
+            def func(num1, num2, num_three=0):
+                """Docstring for this function.
+
+                Args:
+                    num1 (int): Number 1.
+                    num2: Number 2.
+                """
+
+
+            class Foo(object):
+                """Docstring for this class.
+
+                Attributes:
+
+                    test: Test
+
+                returns:
+                """
+                def __init__(self):
+                    pass
+        '''))
+
+    env.write_config(convention="google")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D107' in out
+    assert 'D213' not in out
+    assert 'D215' not in out
+    assert 'D405' in out
+    assert 'D409' not in out
+    assert 'D410' not in out
+    assert 'D412' in out
+    assert 'D413' in out
+    assert 'D414' in out
+    assert 'D417' in out
 
 
 def test_config_file_inheritance(env):
@@ -1064,3 +1095,22 @@ def test_syntax_error_multiple_files(env):
     assert code == 1
     assert 'first.py: Cannot parse file' in err
     assert 'second.py: Cannot parse file' in err
+
+
+def test_indented_function(env):
+    """Test that nested functions do not cause IndentationError."""
+    env.write_config(ignore='D')
+    with env.open("test.py", 'wt') as fobj:
+        fobj.write(textwrap.dedent('''\
+            def foo():
+                def bar(a):
+                    """A docstring
+
+                    Args:
+                        a : An argument.
+                    """
+                    pass
+        '''))
+    out, err, code = env.invoke(args="-v")
+    assert code == 0
+    assert "IndentationError: unexpected indent" not in err

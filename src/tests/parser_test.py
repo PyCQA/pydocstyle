@@ -1,7 +1,6 @@
 """Parser tests."""
 
 import io
-import six
 import sys
 import pytest
 import textwrap
@@ -434,8 +433,6 @@ def test_raise_from():
 
 def test_simple_matrix_multiplication():
     """Make sure 'a @ b' doesn't trip the parser."""
-    if sys.version_info.minor < 5:
-        return
     parser = Parser()
     code = CodeSnippet("""
         def foo():
@@ -444,20 +441,45 @@ def test_simple_matrix_multiplication():
     parser.parse(code, 'file_path')
 
 
-def test_matrix_multiplication_with_decorators():
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+                @b)
+                @a
+                def b():
+                    pass
+        """),
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+                @b)
+                a\
+                @b
+                @a
+                def b():
+                    pass
+        """),
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+
+                # A random comment here
+
+                @b)
+                a\
+                @b
+                @a
+                def b():
+                    pass
+        """),
+))
+def test_matrix_multiplication_with_decorators(code):
     """Make sure 'a @ b' doesn't trip the parser."""
-    if sys.version_info.minor < 5:
-        return
     parser = Parser()
-    code = CodeSnippet("""
-        def foo():
-            a @ b
-            (a
-            @b)
-            @a
-            def b():
-                pass
-    """)
     module = parser.parse(code, 'file_path')
 
     outer_function, = module.children
@@ -530,12 +552,59 @@ def test_complex_module():
                    'bar'
         ]
     """),
+    CodeSnippet("""\
+        __all__ = 'foo', 'bar'
+    """),
+    CodeSnippet("""\
+        __all__ = 'foo', 'bar',
+    """),
+    CodeSnippet(
+        """__all__ = 'foo', 'bar'"""
+    ),
+    CodeSnippet("""\
+        __all__ = 'foo', \
+                  'bar'
+    """),
+    CodeSnippet("""\
+        foo = 1
+        __all__ = 'foo', 'bar'
+    """),
+    CodeSnippet("""\
+        __all__ = 'foo', 'bar'
+        foo = 1
+    """),
+    CodeSnippet("""\
+        __all__ = ['foo', 'bar']  # never freeze
+    """),
 ))
 def test_dunder_all(code):
     """Test that __all__ is parsed correctly."""
     parser = Parser()
     module = parser.parse(code, "filepath")
     assert module.dunder_all == ('foo', 'bar')
+
+
+def test_single_value_dunder_all():
+    """Test that single value __all__ is parsed correctly."""
+    parser = Parser()
+    code = CodeSnippet("""\
+        __all__ = 'foo',
+    """)
+    module = parser.parse(code, "filepath")
+    assert module.dunder_all == ('foo', )
+
+    code = CodeSnippet("""\
+        __all__ = 'foo'
+    """)
+    module = parser.parse(code, "filepath")
+    assert module.dunder_all is None
+    assert module.dunder_all_error
+
+    code = CodeSnippet("""\
+        __all__ = ('foo', )
+    """)
+    module = parser.parse(code, "filepath")
+    assert module.dunder_all == ('foo', )
 
 
 indeterminable_dunder_all_test_cases = [
@@ -561,13 +630,10 @@ indeterminable_dunder_all_test_cases = [
         foo = 'foo'
         __all__ = [foo]
     """),
+    CodeSnippet("""\
+        __all__ = (*foo, 'bar')
+    """),
 ]
-if six.PY3 and not six.PY34:
-    indeterminable_dunder_all_test_cases += [
-        CodeSnippet("""\
-                __all__ = (*foo, 'bar')
-            """),
-    ]
 
 
 @pytest.mark.parametrize("code", indeterminable_dunder_all_test_cases)
@@ -608,16 +674,6 @@ def test_indeterminable_dunder_all(code):
         from __future__ \\
         import nested_scopes
     """),
-
-    # The following code snippet fails for PyPy, see:
-    # "Future statements are considered illegal if they are separated
-    # by a semicolon"
-    # https://bitbucket.org/pypy/pypy/issues/2526/
-
-    # CodeSnippet("""\
-    #     from __future__ import unicode_literals; from __future__ import \
-    #     nested_scopes
-    # """),
 ))
 def test_future_import(code):
     """Test that __future__ imports are properly parsed and collected."""
@@ -657,3 +713,119 @@ def test_invalid_syntax(code):
     parser = Parser()
     with pytest.raises(ParseError):
         module = parser.parse(code, "filepath")
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+        '''Test this'''
+
+        @property
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+
+
+        @property
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+        @property
+
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+
+        @property
+
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+        # A random comment in the middle to break things
+
+
+        @property
+
+        def test():
+            pass
+    """),
+))
+def test_parsing_function_decorators(code):
+    """Test to ensure we are correctly parsing function decorators."""
+    parser = Parser()
+    module = parser.parse(code, "filename")
+    function, = module.children
+    decorator_names = {dec.name for dec in function.decorators}
+    assert "property" in decorator_names
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+        class Test:
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            A = 1
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            A = 1
+
+            '''Another random comment'''
+
+            @property
+            def test(self):
+                pass
+    """),
+))
+def test_parsing_method_decorators(code):
+    """Test to ensure we are correctly parsing method decorators."""
+    parser = Parser()
+    module = parser.parse(code, "filename")
+    function, = module.children[0].children
+    decorator_names = {dec.name for dec in function.decorators}
+    assert "property" in decorator_names

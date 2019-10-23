@@ -270,6 +270,16 @@ def double_quotes_backslash_uppercase():
     R"""Sum\\mary."""
 
 
+@expect('D213: Multi-line docstring summary should start at the second line')
+def exceptions_of_D301():
+    """Exclude some backslashes from D301.
+
+    In particular, line continuations \
+    and unicode literals \u0394 and \N{GREEK CAPITAL LETTER DELTA}.
+    They are considered to be intentionally unescaped.
+    """
+
+
 if sys.version_info[0] <= 2:
     @expect('D302: Use u""" for Unicode docstrings')
     def unicode_unmarked():
@@ -281,12 +291,14 @@ if sys.version_info[0] <= 2:
 
 
 @expect("D400: First line should end with a period (not 'y')")
+@expect("D415: First line should end with a period, question mark, "
+        "or exclamation point (not 'y')")
 def lwnlkjl():
     """Summary"""
 
 
-@expect("D401: First line should be in imperative mood ('Return', not "
-        "'Returns')")
+@expect("D401: First line should be in imperative mood "
+        "(perhaps 'Return', not 'Returns')")
 def liouiwnlkjl():
     """Returns foo."""
 
@@ -325,6 +337,8 @@ def oneliner_d102(): return
 
 
 @expect("D400: First line should end with a period (not 'r')")
+@expect("D415: First line should end with a period, question mark,"
+        " or exclamation point (not 'r')")
 def oneliner_withdoc(): """One liner"""
 
 
@@ -357,7 +371,10 @@ def outer_function():
 
 
 @expect("D400: First line should end with a period (not 'g')")
-@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
+@expect("D401: First line should be in imperative mood "
+        "(perhaps 'Run', not 'Runs')")
+@expect("D415: First line should end with a period, question mark, "
+        "or exclamation point (not 'g')")
 def docstring_bad():
     """Runs something"""
     pass
@@ -368,21 +385,48 @@ def docstring_bad_ignore_all():  # noqa
     pass
 
 
-def docstring_bad_ignore_one():  # noqa: D400,D401
+def docstring_bad_ignore_one():  # noqa: D400,D401,D415
     """Runs something"""
     pass
 
 
-@expect("D401: First line should be in imperative mood ('Run', not 'Runs')")
-def docstring_ignore_violations_of_pydocstyle_D400_and_PEP8_E501_but_catch_D401():  # noqa: E501,D400
+@expect("D401: First line should be in imperative mood "
+        "(perhaps 'Run', not 'Runs')")
+def docstring_ignore_some_violations_but_catch_D401():  # noqa: E501,D400,D415
     """Runs something"""
     pass
+
+
+@expect(
+    "D401: First line should be in imperative mood "
+    "(perhaps 'Initiate', not 'Initiates')"
+)
+def docstring_initiates():
+    """Initiates the process."""
+
+
+@expect(
+    "D401: First line should be in imperative mood "
+    "(perhaps 'Initialize', not 'Initializes')"
+)
+def docstring_initializes():
+    """Initializes the process."""
 
 
 @wraps(docstring_bad_ignore_one)
 def bad_decorated_function():
     """Bad (E501) but decorated"""
     pass
+
+
+def valid_google_string():  # noqa: D400
+    """Test a valid something!"""
+
+
+@expect("D415: First line should end with a period, question mark, "
+        "or exclamation point (not 'g')")
+def bad_google_string():  # noqa: D400
+    """Test a valid something"""
 
 
 expect(os.path.normcase(__file__ if __file__[-1] != 'c' else __file__[:-1]),
