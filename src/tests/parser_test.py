@@ -441,18 +441,45 @@ def test_simple_matrix_multiplication():
     parser.parse(code, 'file_path')
 
 
-def test_matrix_multiplication_with_decorators():
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+                @b)
+                @a
+                def b():
+                    pass
+        """),
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+                @b)
+                a\
+                @b
+                @a
+                def b():
+                    pass
+        """),
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+
+                # A random comment here
+
+                @b)
+                a\
+                @b
+                @a
+                def b():
+                    pass
+        """),
+))
+def test_matrix_multiplication_with_decorators(code):
     """Make sure 'a @ b' doesn't trip the parser."""
     parser = Parser()
-    code = CodeSnippet("""
-        def foo():
-            a @ b
-            (a
-            @b)
-            @a
-            def b():
-                pass
-    """)
     module = parser.parse(code, 'file_path')
 
     outer_function, = module.children
@@ -686,3 +713,119 @@ def test_invalid_syntax(code):
     parser = Parser()
     with pytest.raises(ParseError):
         module = parser.parse(code, "filepath")
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+        '''Test this'''
+
+        @property
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+
+
+        @property
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+        @property
+
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+
+        @property
+
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+        # A random comment in the middle to break things
+
+
+        @property
+
+        def test():
+            pass
+    """),
+))
+def test_parsing_function_decorators(code):
+    """Test to ensure we are correctly parsing function decorators."""
+    parser = Parser()
+    module = parser.parse(code, "filename")
+    function, = module.children
+    decorator_names = {dec.name for dec in function.decorators}
+    assert "property" in decorator_names
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+        class Test:
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            A = 1
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            A = 1
+
+            '''Another random comment'''
+
+            @property
+            def test(self):
+                pass
+    """),
+))
+def test_parsing_method_decorators(code):
+    """Test to ensure we are correctly parsing method decorators."""
+    parser = Parser()
+    module = parser.parse(code, "filename")
+    function, = module.children[0].children
+    decorator_names = {dec.name for dec in function.decorators}
+    assert "property" in decorator_names

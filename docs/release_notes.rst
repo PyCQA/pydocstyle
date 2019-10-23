@@ -24,6 +24,7 @@ Bug Fixes
   backslashes for line continuation or unicode literals ``\u...`` and
   ``\N...`` anymore. These are considered intended elements of the docstring
   and thus should not be escaped by using a raw docstring (#365).
+* Fix decorator parsing (#411).
 
 4.0.1 - August 14th, 2019
 -------------------------
@@ -38,7 +39,7 @@ Bug Fixes
   the violation code table (#396).
 * Fixed IndentationError when parsing function arguments (#392).
 
-  
+
 4.0.0 - July 6th, 2019
 ----------------------
 
