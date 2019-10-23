@@ -15,6 +15,7 @@ New Features
 
 * Extend support for detecting missing arguments in Google style
   docstrings to method calls (#384).
+* Added support for Python 3.8 (#423).
 
 Bug Fixes
 
