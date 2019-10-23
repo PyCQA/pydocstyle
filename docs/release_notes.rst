@@ -15,6 +15,9 @@ New Features
 
 * Extend support for detecting missing arguments in Google style
   docstrings to method calls (#384).
+* Extend support for detecting missing argument description in Numpy style
+  docstrings (#407).
+
 
 Bug Fixes
 
