@@ -120,7 +120,6 @@ class ConventionChecker:
                     else:
                         error = None
                     errors = error if hasattr(error, '__iter__') else [error]
-
                     for error in errors:
                         if error is not None and error.code not in \
                                 definition.skipped_error_codes:
