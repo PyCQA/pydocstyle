@@ -49,6 +49,39 @@ def test_function():
     assert str(function) == 'in public function `do_something`'
 
 
+def test_fstring_docstring():
+    """Test parsing of a simple function with an fstring as its docstring."""
+    # fstrings are not supported in Python 3.5
+    if sys.version_info[0:2] == (3, 5):
+        return
+
+    parser = Parser()
+    code = CodeSnippet("""\
+        def do_something(pos_param0, pos_param1, kw_param0="default"):
+            f\"""Do something.\"""
+            return None
+    """)
+    module = parser.parse(code, 'file_path')
+    assert module.is_public
+    assert module.dunder_all is None
+
+    function, = module.children
+    assert function.name == 'do_something'
+    assert function.decorators == []
+    assert function.children == []
+    assert function.docstring == 'f"""Do something."""'
+    assert function.docstring.start == 2
+    assert function.docstring.end == 2
+    assert function.kind == 'function'
+    assert function.parent == module
+    assert function.start == 1
+    assert function.end == 3
+    assert function.error_lineno == 2
+    assert function.source == code.getvalue()
+    assert function.is_public
+    assert str(function) == 'in public function `do_something`'
+
+
 def test_decorated_function():
     """Test parsing of a simple function with a decorator."""
     parser = Parser()
