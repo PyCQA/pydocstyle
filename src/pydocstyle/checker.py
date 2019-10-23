@@ -120,6 +120,7 @@ class ConventionChecker:
                     else:
                         error = None
                     errors = error if hasattr(error, '__iter__') else [error]
+
                     for error in errors:
                         if error is not None and error.code not in \
                                 definition.skipped_error_codes:
@@ -824,7 +825,6 @@ class ConventionChecker:
                                    False)
                     for i in suspected_section_indices)
 
-
         # Now that we have manageable objects - rule out false positives.
         contexts = (c for c in contexts if ConventionChecker._is_docstring_section(c))
 
@@ -833,12 +833,11 @@ class ConventionChecker:
         for a, b in pairwise(contexts, None):
             end = -1 if b is None else b.original_index
             yield SectionContext(a.section_name,
-                                     a.previous_line,
-                                     a.line,
-                                     lines[a.original_index + 1:end],
-                                     a.original_index,
-                                     b is None)
-
+                                 a.previous_line,
+                                 a.line,
+                                 lines[a.original_index + 1:end],
+                                 a.original_index,
+                                 b is None)
 
     def _check_numpy_sections(self, lines, definition, docstring):
         """NumPy-style docstring sections checks.
@@ -860,9 +859,13 @@ class ConventionChecker:
         Yields all violation from `_check_numpy_section` for each valid
         Numpy-style section.
         """
+        found_any_numpy_section = False
         for ctx in self._get_section_contexts(lines,
                                               self.NUMPY_SECTION_NAMES):
+            found_any_numpy_section = True
             yield from self._check_numpy_section(docstring, definition, ctx)
+
+        return found_any_numpy_section
 
     def _check_google_sections(self, lines, definition, docstring):
         """Google-style docstring section checks.
@@ -895,8 +898,10 @@ class ConventionChecker:
         lines = docstring.split("\n")
         if len(lines) < 2:
             return
-        yield from self._check_numpy_sections(lines, definition, docstring)
-        yield from self._check_google_sections(lines, definition, docstring)
+
+        found_numpy = yield from self._check_numpy_sections(lines, definition, docstring)
+        if not found_numpy:
+            yield from self._check_google_sections(lines, definition, docstring)
 
 
 parse = Parser()
