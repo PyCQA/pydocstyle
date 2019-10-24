@@ -414,3 +414,14 @@ class TestNumpy:  # noqa: D203
             Yet another parameter.
 
         """
+
+    @staticmethod
+    def test_mixing_numpy_and_google(danger):  # noqa: D213
+        """Repro for #388.
+
+        Parameters
+        ----------
+        danger
+            Zoneeeeee!
+
+        """

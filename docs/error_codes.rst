@@ -10,7 +10,7 @@ Default conventions
 -------------------
 
 Not all error codes are checked for by default.  There are three
-conventions that may be used by pydocstyle: pep257, numpy and google.
+conventions that may be used by pydocstyle: ``pep257``, ``numpy`` and ``google``.
 
 The pep257 convention, which is enabled by default in pydocstyle,
 checks for all of the above errors except for D203, D212, D213, D214,
@@ -27,6 +27,17 @@ These conventions may be specified using `--convention=<name>` when
 running pydocstyle from the command line or by specifying the
 convention in a configuration file.  See the :ref:`cli_usage` section
 for more details.
+
+.. note::
+
+  It makes no sense to check the same docstring for both ``numpy`` and ``google``
+  conventions. Therefore, if we successfully detect that a docstring is in the
+  ``numpy`` style, we don't check it for ``google``.
+
+  The reason ``numpy`` style takes precedence over ``google`` is that the
+  heuristics of detecting it are better, and we don't want to enforce users to
+  provide external hints to `pydocstyle` in order to let it know which style
+  docstrings are written in.
 
 Publicity
 ---------
