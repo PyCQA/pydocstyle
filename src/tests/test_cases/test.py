@@ -295,6 +295,14 @@ if sys.version_info[0:2] != (3, 5):
     def fstring():
         f"""Do some {eval("'foo'")} and some {eval("'bar'")}."""
 
+    @expect('D303: F-strings not allowed as docstring')
+    def uppercase_fstring():
+        F"""Do some {eval("'foo'")} and some {eval("'bar'")}."""
+
+    @expect('D303: F-strings not allowed as docstring')
+    def raw_fstring():
+        rf"""Do one of: {eval("'foo'")} \ {eval("'bar'")}."""
+
 
 @expect("D400: First line should end with a period (not 'y')")
 @expect("D415: First line should end with a period, question mark, "

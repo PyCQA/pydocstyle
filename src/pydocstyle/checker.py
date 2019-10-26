@@ -143,7 +143,8 @@ class ConventionChecker:
     @check_for(Definition, terminal=True)
     def check_fstring(self, definition, docstring):
         """D303: F-strings not allowed as docstring."""
-        if docstring and docstring.startswith('f'):
+        regex = re("^[fF]|^[rR][fF]")
+        if docstring and regex.match(docstring):
             return violations.D303()
 
     @check_for(Definition, terminal=True)
