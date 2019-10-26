@@ -290,6 +290,12 @@ if sys.version_info[0] <= 2:
         """あy."""
 
 
+if sys.version_info[0:2] != (3, 5):
+    @expect('D303: F-strings not allowed as docstring')
+    def fstring():
+        f"""Do some {eval("'foo'")} and some {eval("'bar'")}."""
+
+
 @expect("D400: First line should end with a period (not 'y')")
 @expect("D415: First line should end with a period, question mark, "
         "or exclamation point (not 'y')")

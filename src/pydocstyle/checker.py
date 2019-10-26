@@ -141,6 +141,12 @@ class ConventionChecker:
         return sorted(all, key=lambda this_check: not this_check._terminal)
 
     @check_for(Definition, terminal=True)
+    def check_fstring(self, definition, docstring):
+        """D303: F-strings not allowed as docstring."""
+        if docstring and docstring.startswith('f'):
+            return violations.D303()
+
+    @check_for(Definition, terminal=True)
     def check_docstring_missing(self, definition, docstring):
         """D10{0,1,2,3}: Public definitions should have docstrings.
 
