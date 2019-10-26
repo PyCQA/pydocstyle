@@ -18,7 +18,7 @@ New Features
 * Extend support for detecting missing argument description in Numpy style
   docstrings (#407).
 * Added support for Python 3.8 (#423).
-* Allow skipping on errors on module level docstring (#427).
+* Allow skipping errors on module level docstring via #noqa (#427).
 
 Bug Fixes
 
