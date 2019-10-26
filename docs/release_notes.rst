@@ -18,6 +18,7 @@ New Features
 * Extend support for detecting missing argument description in Numpy style
   docstrings (#407).
 * Added support for Python 3.8 (#423).
+* Added D303: F-strings are not allowed as docstring.
 
 Bug Fixes
 
