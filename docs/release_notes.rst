@@ -29,6 +29,8 @@ Bug Fixes
   ``\N...`` anymore. These are considered intended elements of the docstring
   and thus should not be escaped by using a raw docstring (#365).
 * Fix decorator parsing (#411).
+* Google-style sections no longer cause false errors when used with
+  Numpy-style sections (#388, #424).
 
 4.0.1 - August 14th, 2019
 -------------------------
