@@ -1,4 +1,5 @@
-"""Test case for "# noqa" comments."""
+# noqa: D400
+"""Test case for "# noqa" comments"""
 from .expected import Expectation
 
 

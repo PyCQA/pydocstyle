@@ -505,6 +505,7 @@ class Parser:
         """Parse a module (and its children) and return a Module object."""
         self.log.debug("parsing module.")
         start = self.line
+        skipped_error_codes = self.parse_skip_comment()
         docstring = self.parse_docstring()
         children = list(self.parse_definitions(Module, dunder_all=True))
         assert self.current is None, self.current
@@ -514,7 +515,7 @@ class Parser:
             cls = Package
         module = cls(self.filename, self.source, start, end,
                      [], docstring, children, None, self.dunder_all,
-                     self.dunder_all_error, None, '')
+                     self.dunder_all_error, None, skipped_error_codes)
         for child in module.children:
             child.parent = module
         module.future_imports = self.future_imports
