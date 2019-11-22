@@ -10,6 +10,9 @@ from itertools import tee, zip_longest
 __version__ = '4.0.1'
 log = logging.getLogger(__name__)
 
+#: Regular expression for stripping non-alphanumeric characters
+NON_ALPHANUMERIC_STRIP_RE = re.compile(r'[\W_]+')
+
 
 def is_blank(string: str) -> bool:
     """Return True iff the string contains only whitespaces."""
@@ -44,5 +47,4 @@ def common_prefix_length(a: str, b: str) -> int:
 
 def strip_non_alphanumeric(string: str) -> str:
     """Strip string from any non-alphanumeric characters."""
-    pattern = re.compile(r'[\W_]+')
-    return pattern.sub('', string)
+    return NON_ALPHANUMERIC_STRIP_RE.sub('', string)
