@@ -49,6 +49,78 @@ def test_function():
     assert str(function) == 'in public function `do_something`'
 
 
+def test_simple_fstring():
+    """Test parsing of a function with a simple fstring as a docstring."""
+    # fstrings are not supported in Python 3.5
+    if sys.version_info[0:2] == (3, 5):
+        return
+
+    parser = Parser()
+    code = CodeSnippet("""\
+        def do_something(pos_param0, pos_param1, kw_param0="default"):
+            f\"""Do something.\"""
+            return None
+    """)
+    module = parser.parse(code, 'file_path')
+    assert module.is_public
+    assert module.dunder_all is None
+
+    function, = module.children
+    assert function.name == 'do_something'
+    assert function.decorators == []
+    assert function.children == []
+    assert function.docstring == 'f"""Do something."""'
+    assert function.docstring.start == 2
+    assert function.docstring.end == 2
+    assert function.kind == 'function'
+    assert function.parent == module
+    assert function.start == 1
+    assert function.end == 3
+    assert function.error_lineno == 2
+    assert function.source == code.getvalue()
+    assert function.is_public
+    assert str(function) == 'in public function `do_something`'
+
+
+def test_fstring_with_args():
+    """Test parsing of a function with an fstring with args as a docstring."""
+    # fstrings are not supported in Python 3.5
+    if sys.version_info[0:2] == (3, 5):
+        return
+
+    parser = Parser()
+    code = CodeSnippet("""\
+        foo = "bar"
+        bar = "baz"
+        def do_something(pos_param0, pos_param1, kw_param0="default"):
+            f\"""Do some {foo} and some {bar}.\"""
+            return None
+    """)
+    module = parser.parse(code, 'file_path')
+    assert module.is_public
+    assert module.dunder_all is None
+
+    function, = module.children
+    assert function.name == 'do_something'
+    assert function.decorators == []
+    assert function.children == []
+    assert function.docstring == 'f"""Do some {foo} and some {bar}."""'
+    assert function.docstring.start == 4
+    assert function.docstring.end == 4
+    assert function.kind == 'function'
+    assert function.parent == module
+    assert function.start == 3
+    assert function.end == 5
+    assert function.error_lineno == 4
+    assert function.source == textwrap.dedent("""\
+        def do_something(pos_param0, pos_param1, kw_param0="default"):
+            f\"""Do some {foo} and some {bar}.\"""
+            return None
+    """)
+    assert function.is_public
+    assert str(function) == 'in public function `do_something`'
+
+
 def test_decorated_function():
     """Test parsing of a simple function with a decorator."""
     parser = Parser()
@@ -441,18 +513,45 @@ def test_simple_matrix_multiplication():
     parser.parse(code, 'file_path')
 
 
-def test_matrix_multiplication_with_decorators():
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+                @b)
+                @a
+                def b():
+                    pass
+        """),
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+                @b)
+                a\
+                @b
+                @a
+                def b():
+                    pass
+        """),
+    CodeSnippet("""
+            def foo():
+                a @ b
+                (a
+
+                # A random comment here
+
+                @b)
+                a\
+                @b
+                @a
+                def b():
+                    pass
+        """),
+))
+def test_matrix_multiplication_with_decorators(code):
     """Make sure 'a @ b' doesn't trip the parser."""
     parser = Parser()
-    code = CodeSnippet("""
-        def foo():
-            a @ b
-            (a
-            @b)
-            @a
-            def b():
-                pass
-    """)
     module = parser.parse(code, 'file_path')
 
     outer_function, = module.children
@@ -686,3 +785,119 @@ def test_invalid_syntax(code):
     parser = Parser()
     with pytest.raises(ParseError):
         module = parser.parse(code, "filepath")
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+        '''Test this'''
+
+        @property
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+
+
+        @property
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+        @property
+
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+
+        @property
+
+        def test():
+            pass
+    """),
+    CodeSnippet("""\
+        '''Test this'''
+
+        # A random comment in the middle to break things
+
+
+        @property
+
+        def test():
+            pass
+    """),
+))
+def test_parsing_function_decorators(code):
+    """Test to ensure we are correctly parsing function decorators."""
+    parser = Parser()
+    module = parser.parse(code, "filename")
+    function, = module.children
+    decorator_names = {dec.name for dec in function.decorators}
+    assert "property" in decorator_names
+
+
+@pytest.mark.parametrize("code", (
+    CodeSnippet("""\
+        class Test:
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            A = 1
+
+            @property
+            def test(self):
+                pass
+    """),
+    CodeSnippet("""\
+        class Test:
+
+
+            # Random comment to trip decorator parsing
+
+            A = 1
+
+            '''Another random comment'''
+
+            @property
+            def test(self):
+                pass
+    """),
+))
+def test_parsing_method_decorators(code):
+    """Test to ensure we are correctly parsing method decorators."""
+    parser = Parser()
+    module = parser.parse(code, "filename")
+    function, = module.children[0].children
+    decorator_names = {dec.name for dec in function.decorators}
+    assert "property" in decorator_names

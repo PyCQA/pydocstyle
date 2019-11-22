@@ -72,8 +72,6 @@ class ConventionChecker:
         'Methods',
         'Note',
         'Notes',
-        'Other Parameters',
-        'Parameters',
         'Return',
         'Returns',
         'Raises',
@@ -365,11 +363,16 @@ class ConventionChecker:
         Use r"""raw triple double quotes""" if you use any backslashes
         (\) in your docstrings.
 
+        Exceptions are backslashes for line-continuation and unicode escape
+        sequences \N... and \u... These are considered intended unescaped
+        content in docstrings.
         '''
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and '\\' in docstring and not docstring.startswith(
-                ('r', 'ur')):
+
+        if (docstring
+                and re(r'\\[^\nuN]').search(docstring)
+                and not docstring.startswith(('r', 'ur'))):
             return violations.D301()
 
     @check_for(Definition)
@@ -679,6 +682,48 @@ class ConventionChecker:
         if suffix:
             yield violations.D406(capitalized_section, context.line.strip())
 
+        if capitalized_section == "Parameters":
+            yield from cls._check_parameters_section(docstring, definition, context)
+
+    @staticmethod
+    def _check_parameters_section(docstring, definition, context):
+        """D417: `Parameters` section check for numpy style.
+
+        Check for a valid `Parameters` section. Checks that:
+            * The section documents all function arguments (D417)
+                except `self` or `cls` if it is a method.
+
+        """
+        docstring_args = set()
+        section_level_indent = leading_space(context.line)
+        content = context.following_lines
+        for current_line, next_line in zip(content, content[1:]):
+            # All parameter definitions in the Numpy parameters
+            # section must be at the same indent level as the section
+            # name.
+            # Also, we ensure that the following line is indented,
+            # and has some string, to ensure that the parameter actually
+            # has a description.
+            # This means, this is a parameter doc with some description
+            if ((leading_space(current_line) == section_level_indent)
+                and (len(leading_space(next_line)) > len(leading_space(current_line)))
+                and next_line.strip()):
+                # In case the parameter has type definitions, it
+                # will have a colon
+                if ":" in current_line:
+                    parameters, parameter_type = current_line.split(":", 1)
+                # Else, we simply have the list of parameters defined
+                # on the current line.
+                else:
+                    parameters = current_line.strip()
+                # Numpy allows grouping of multiple parameters of same
+                # type in the same line. They are comma separated.
+                parameter_list = parameters.split(",")
+                for parameter in parameter_list:
+                    docstring_args.add(parameter.strip())
+        yield from ConventionChecker._check_missing_args(docstring_args, definition)
+
+
     @staticmethod
     def _check_args_section(docstring, definition, context):
         """D417: `Args` section checks.
@@ -693,6 +738,19 @@ class ConventionChecker:
             match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
             if match:
                 docstring_args.add(match.group(1))
+        yield from ConventionChecker._check_missing_args(docstring_args, definition)
+
+
+    @staticmethod
+    def _check_missing_args(docstring_args, definition):
+        """D417: Yield error for missing arguments in docstring.
+
+        Given a list of arguments found in the docstring and the
+        callable definition, it checks if all the arguments of the
+        callable are present in the docstring, else it yields a
+        D417 with a list of missing arguments.
+
+        """
         function_args = get_function_args(definition.source)
         # If the method isn't static, then we skip the first
         # positional argument as it is `cls` or `self`
@@ -772,7 +830,6 @@ class ConventionChecker:
                                    False)
                     for i in suspected_section_indices)
 
-
         # Now that we have manageable objects - rule out false positives.
         contexts = (c for c in contexts if ConventionChecker._is_docstring_section(c))
 
@@ -781,12 +838,11 @@ class ConventionChecker:
         for a, b in pairwise(contexts, None):
             end = -1 if b is None else b.original_index
             yield SectionContext(a.section_name,
-                                     a.previous_line,
-                                     a.line,
-                                     lines[a.original_index + 1:end],
-                                     a.original_index,
-                                     b is None)
-
+                                 a.previous_line,
+                                 a.line,
+                                 lines[a.original_index + 1:end],
+                                 a.original_index,
+                                 b is None)
 
     def _check_numpy_sections(self, lines, definition, docstring):
         """NumPy-style docstring sections checks.
@@ -808,9 +864,13 @@ class ConventionChecker:
         Yields all violation from `_check_numpy_section` for each valid
         Numpy-style section.
         """
+        found_any_numpy_section = False
         for ctx in self._get_section_contexts(lines,
                                               self.NUMPY_SECTION_NAMES):
+            found_any_numpy_section = True
             yield from self._check_numpy_section(docstring, definition, ctx)
+
+        return found_any_numpy_section
 
     def _check_google_sections(self, lines, definition, docstring):
         """Google-style docstring section checks.
@@ -843,8 +903,10 @@ class ConventionChecker:
         lines = docstring.split("\n")
         if len(lines) < 2:
             return
-        yield from self._check_numpy_sections(lines, definition, docstring)
-        yield from self._check_google_sections(lines, definition, docstring)
+
+        found_numpy = yield from self._check_numpy_sections(lines, definition, docstring)
+        if not found_numpy:
+            yield from self._check_google_sections(lines, definition, docstring)
 
 
 parse = Parser()

@@ -270,6 +270,26 @@ def double_quotes_backslash_uppercase():
     R"""Sum\\mary."""
 
 
+@expect('D213: Multi-line docstring summary should start at the second line')
+def exceptions_of_D301():
+    """Exclude some backslashes from D301.
+
+    In particular, line continuations \
+    and unicode literals \u0394 and \N{GREEK CAPITAL LETTER DELTA}.
+    They are considered to be intentionally unescaped.
+    """
+
+
+if sys.version_info[0] <= 2:
+    @expect('D302: Use u""" for Unicode docstrings')
+    def unicode_unmarked():
+        """Юникод."""
+
+    @expect('D302: Use u""" for Unicode docstrings')
+    def first_word_has_unicode_byte():
+        """あy."""
+
+
 @expect("D400: First line should end with a period (not 'y')")
 @expect("D415: First line should end with a period, question mark, "
         "or exclamation point (not 'y')")

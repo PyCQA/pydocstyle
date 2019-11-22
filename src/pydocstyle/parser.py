@@ -267,7 +267,12 @@ class TokenStream:
         current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
-        self.got_logical_newline = (previous.kind in self.LOGICAL_NEWLINES)
+        is_logical_blank = previous.kind in (tk.NL, tk.COMMENT)
+        self.got_logical_newline = (
+            previous.kind in self.LOGICAL_NEWLINES
+            # Retain logical_newline status if last line was logically blank
+            or (self.got_logical_newline and is_logical_blank)
+        )
         return previous
 
     def _next_from_generator(self):
@@ -500,6 +505,7 @@ class Parser:
         """Parse a module (and its children) and return a Module object."""
         self.log.debug("parsing module.")
         start = self.line
+        skipped_error_codes = self.parse_skip_comment()
         docstring = self.parse_docstring()
         children = list(self.parse_definitions(Module, dunder_all=True))
         assert self.current is None, self.current
@@ -509,7 +515,7 @@ class Parser:
             cls = Package
         module = cls(self.filename, self.source, start, end,
                      [], docstring, children, None, self.dunder_all,
-                     self.dunder_all_error, None, '')
+                     self.dunder_all_error, None, skipped_error_codes)
         for child in module.children:
             child.parent = module
         module.future_imports = self.future_imports
