@@ -650,7 +650,7 @@ def test_google_convention(env):
     assert 'D409' not in out
     assert 'D410' not in out
     assert 'D412' in out
-    assert 'D413' in out
+    assert 'D413' not in out
     assert 'D414' in out
     assert 'D417' in out
 
