@@ -41,6 +41,7 @@ a line by itself, preferably preceded by a blank line.
 # be able to paste and execute docstrings after importing only the
 # numpy module itself, unabbreviated.
 
+import os
 from .expected import Expectation
 
 expectation = Expectation()
@@ -48,18 +49,22 @@ expect = expectation.expect
 
 # module docstring expected violations:
 expectation.expected.add((
-    __file__, "D205: 1 blank line required between summary line and "
-    "description (found 0)"))
+    os.path.normcase(__file__),
+    "D205: 1 blank line required between summary line and description "
+    "(found 0)"))
 expectation.expected.add((
-    __file__, "D213: Multi-line docstring summary should start at the second "
-    "line"))
+    os.path.normcase(__file__),
+    "D213: Multi-line docstring summary should start at the second line"))
 expectation.expected.add((
-    __file__, "D400: First line should end with a period (not 'd')"))
+    os.path.normcase(__file__),
+    "D400: First line should end with a period (not 'd')"))
 expectation.expected.add((
-    __file__, "D404: First word of the docstring should not be `This`"))
+    os.path.normcase(__file__),
+    "D404: First word of the docstring should not be `This`"))
 expectation.expected.add((
-    __file__, "D415: First line should end with a period, question mark, or "
-    "exclamation point (not 'd')"))
+    os.path.normcase(__file__),
+    "D415: First line should end with a period, question mark, or exclamation "
+    "point (not 'd')"))
 
 
 @expect("D213: Multi-line docstring summary should start at the second line",

@@ -18,6 +18,7 @@ examples.
 #     * Source Markdown:
 #         https://github.com/google/styleguide/blob/gh-pages/pyguide.md
 
+import os
 from .expected import Expectation
 
 expectation = Expectation()
@@ -25,8 +26,8 @@ expect = expectation.expect
 
 # module docstring expected violations:
 expectation.expected.add((
-    __file__, "D213: Multi-line docstring summary should start at the second "
-    "line"))
+    os.path.normcase(__file__),
+    "D213: Multi-line docstring summary should start at the second line"))
 
 
 # "3.8.3 Functions and Methods" section example
