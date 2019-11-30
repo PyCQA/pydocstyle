@@ -103,27 +103,11 @@ class SandboxEnv:
         pass
 
 
-@pytest.yield_fixture(scope="module")
-def install_package(request):
-    """Install the package in development mode for the tests.
-
-    This is so we can run the integration tests on the installed console
-    script.
-    """
-    cwd = os.path.join(os.path.dirname(__file__), '..', '..')
-    subprocess.check_call(shlex.split("pip install -e ."), cwd=cwd)
-    yield
-    subprocess.check_call(shlex.split("pip uninstall -y pydocstyle"), cwd=cwd)
-
-
 @pytest.yield_fixture(scope="function")
 def env(request):
     """Add a testing environment to a test method."""
     with SandboxEnv() as test_env:
         yield test_env
-
-
-pytestmark = pytest.mark.usefixtures("install_package")
 
 
 def parse_errors(err):
