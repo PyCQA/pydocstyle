@@ -19,9 +19,11 @@ New Features
   docstrings (#407).
 * Added support for Python 3.8 (#423).
 * Allow skipping errors on module level docstring via #noqa (#427).
+* Whitespace is ignored with set options split across multiple lines (#221).
 
 Bug Fixes
 
+* Remove D413 from the google convention (#430).
 * Remove D413 from the pep257 convention (#404).
 * Replace `semicolon` with `colon` in D416 messages. (#409)
 * D301 (Use r""" if any backslashes in a docstring) does not trigger on
@@ -31,6 +33,7 @@ Bug Fixes
 * Fix decorator parsing (#411).
 * Google-style sections no longer cause false errors when used with
   Numpy-style sections (#388, #424).
+* Fix D401 and D404 checks not working for docstrings containing only one word and ending with non-alpha character (#421)
 
 4.0.1 - August 14th, 2019
 -------------------------

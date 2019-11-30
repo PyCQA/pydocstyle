@@ -14,7 +14,7 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO,
                      ParseError)
-from .utils import log, is_blank, pairwise, common_prefix_length
+from .utils import log, is_blank, pairwise, common_prefix_length, strip_non_alphanumeric
 from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
 
@@ -437,7 +437,7 @@ class ConventionChecker:
         if docstring and not function.is_test:
             stripped = ast.literal_eval(docstring).strip()
             if stripped:
-                first_word = stripped.split()[0]
+                first_word = strip_non_alphanumeric(stripped.split()[0])
                 check_word = first_word.lower()
 
                 if check_word in IMPERATIVE_BLACKLIST:
@@ -499,10 +499,16 @@ class ConventionChecker:
         with "This class is [..]" or "This module contains [..]".
 
         """
-        if docstring:
-            first_word = ast.literal_eval(docstring).split()[0]
-            if first_word.lower() == 'this':
-                return violations.D404()
+        if not docstring:
+            return
+
+        stripped = ast.literal_eval(docstring).strip()
+        if not stripped:
+            return
+
+        first_word = strip_non_alphanumeric(stripped.split()[0])
+        if first_word.lower() == 'this':
+            return violations.D404()
 
     @staticmethod
     def _is_docstring_section(context):

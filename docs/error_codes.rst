@@ -21,7 +21,7 @@ The numpy convention checks for all of the above errors except for
 D107, D203, D212, D213, D402, D413, D415, D416 and D417.
 
 The google convention checks for all of the above errors except for
-D203, D204, D213, D215, D400, D401, D404, D406, D407, D408 and D409.
+D203, D204, D213, D215, D400, D401, D404, D406, D407, D408, D409 and D413.
 
 These conventions may be specified using `--convention=<name>` when
 running pydocstyle from the command line or by specifying the
