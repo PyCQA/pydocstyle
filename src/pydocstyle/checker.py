@@ -186,8 +186,8 @@ class ConventionChecker:
     def check_no_blank_before(self, function, docstring):  # def
         """D20{1,2}: No blank lines allowed around function/method docstring.
 
-        There's no blank line either before or after the docstring.
-
+        There's no blank line either before or after the docstring unless directly
+        followed by an inner function or class.
         """
         if docstring:
             before, _, after = function.source.partition(docstring)
@@ -198,7 +198,14 @@ class ConventionChecker:
             if blanks_before_count != 0:
                 yield violations.D201(blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 0:
-                yield violations.D202(blanks_after_count)
+                # Report a D202 violation if the docstring is followed by a blank line
+                # and the blank line is not itself followed by an inner function or
+                # class.
+                if not (
+                    blanks_after_count == 1 and
+                    re(r"\s+(?:(?:class|def)\s|@)").match(after)
+                ):
+                    yield violations.D202(blanks_after_count)
 
     @check_for(Class)
     def check_blank_before_after_class(self, class_, docstring):
@@ -976,7 +983,7 @@ def is_ascii(string):
 
 def leading_space(string):
     """Return any leading space from `string`."""
-    return re('\s*').match(string).group()
+    return re(r'\s*').match(string).group()
 
 
 def get_leading_words(line):
@@ -984,7 +991,7 @@ def get_leading_words(line):
 
     For example, if `line` is "  Hello world!!!", returns "Hello world".
     """
-    result = re("[\w ]+").match(line.strip())
+    result = re(r"[\w ]+").match(line.strip())
     if result is not None:
         return result.group()
 
