@@ -23,6 +23,7 @@ New Features
 
 Bug Fixes
 
+* Remove D413 from the google convention (#430).
 * Remove D413 from the pep257 convention (#404).
 * Replace `semicolon` with `colon` in D416 messages. (#409)
 * D301 (Use r""" if any backslashes in a docstring) does not trigger on
