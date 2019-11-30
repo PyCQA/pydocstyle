@@ -309,6 +309,12 @@ def sdgfsdg23245():
     """Constructor for a foo."""
 
 
+@expect("D401: First line should be in imperative mood; try rephrasing "
+        "(found 'Constructor')")
+def sdgfsdg23245777():
+    """Constructor."""
+
+
 @expect('D402: First line should not be the function\'s "signature"')
 def foobar():
     """Signature: foobar()."""

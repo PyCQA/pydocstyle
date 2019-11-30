@@ -26,3 +26,8 @@ def test_differ_length():
 def test_empty_string():
     """Test common prefix length of two strings, one of them empty."""
     assert utils.common_prefix_length('abcd', '') == 0
+
+
+def test_strip_non_alphanumeric():
+    """Test strip of a string leaves only alphanumeric characters."""
+    assert utils.strip_non_alphanumeric("  1abcd1...") == "1abcd1"

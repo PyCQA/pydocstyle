@@ -32,6 +32,7 @@ Bug Fixes
 * Fix decorator parsing (#411).
 * Google-style sections no longer cause false errors when used with
   Numpy-style sections (#388, #424).
+* Fix D401 and D404 checks not working for docstrings containing only one word and ending with non-alpha character (#421)
 
 4.0.1 - August 14th, 2019
 -------------------------
