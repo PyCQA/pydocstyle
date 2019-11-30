@@ -446,6 +446,16 @@ def test_wildcard_add_ignore_cli(env):
     assert 'D300' not in out
 
 
+def test_ignores_whitespace_in_fixed_option_set(env):
+    with env.open('example.py', 'wt') as example:
+        example.write("class Foo(object):\n    'Doc string'")
+    env.write_config(ignore="D100,\n  # comment\n  D300")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D300' not in out
+    assert err == ''
+
+
 def test_bad_wildcard_add_ignore_cli(env):
     """Test adding a non-existent error codes with --add-ignore."""
     with env.open('example.py', 'wt') as example:

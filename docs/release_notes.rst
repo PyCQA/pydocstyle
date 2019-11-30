@@ -19,6 +19,7 @@ New Features
   docstrings (#407).
 * Added support for Python 3.8 (#423).
 * Allow skipping errors on module level docstring via #noqa (#427).
+* Whitespace is ignored with set options split across multiple lines (#221).
 
 Bug Fixes
 
