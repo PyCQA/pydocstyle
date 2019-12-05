@@ -14,7 +14,7 @@ conventions that may be used by pydocstyle: ``pep257``, ``numpy`` and ``google``
 
 The pep257 convention, which is enabled by default in pydocstyle,
 checks for all of the above errors except for D203, D212, D213, D214,
-D215, D404, D405, D406, D407, D408, D409, D410, D411, D415, D416 and D417
+D215, D404, D405, D406, D407, D408, D409, D410, D411, D413, D415, D416 and D417
 (as specified in `PEP257 <http://www.python.org/dev/peps/pep-0257/>`_).
 
 The numpy convention checks for all of the above errors except for
