@@ -4,6 +4,14 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+5.0.1 - December 9th, 2019
+--------------------------
+
+Bug Fixes
+
+* Fixed an issue where AttributeError was raised when parsing the parameter
+  section of a class docstring (#434, #436).
+
 5.0.0 - December 9th, 2019
 --------------------------
 
