@@ -758,15 +758,16 @@ class ConventionChecker:
         D417 with a list of missing arguments.
 
         """
-        function_args = get_function_args(definition.source)
-        # If the method isn't static, then we skip the first
-        # positional argument as it is `cls` or `self`
-        if definition.kind == 'method' and not definition.is_static:
-            function_args = function_args[1:]
-        missing_args = set(function_args) - docstring_args
-        if missing_args:
-            yield violations.D417(", ".join(sorted(missing_args)),
-                                  definition.name)
+        if isinstance(definition, Function):
+            function_args = get_function_args(definition.source)
+            # If the method isn't static, then we skip the first
+            # positional argument as it is `cls` or `self`
+            if definition.kind == 'method' and not definition.is_static:
+                function_args = function_args[1:]
+            missing_args = set(function_args) - docstring_args
+            if missing_args:
+                yield violations.D417(", ".join(sorted(missing_args)),
+                                      definition.name)
 
 
     @classmethod
