@@ -435,5 +435,20 @@ def bad_google_string():  # noqa: D400
     """Test a valid something"""
 
 
+# This is reproducing a bug where AttributeError is raised when parsing class
+# parameters as functions for Google / Numpy conventions.
+class Blah:  # noqa: D203,D213
+    """A Blah.
+
+    Parameters
+    ----------
+    x : int
+
+    """
+
+    def __init__(self, x):
+        pass
+
+
 expect(os.path.normcase(__file__ if __file__[-1] != 'c' else __file__[:-1]),
        'D100: Missing docstring in public module')
