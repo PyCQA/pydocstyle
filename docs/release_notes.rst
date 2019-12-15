@@ -15,6 +15,8 @@ Bug Fixes
 
 * Update convention support documentation (#386, #393)
 * Detect inner asynchronous functions for D202 (#467)
+* Fix indentation error while parsing class methods (#441).
+
 
 5.0.2 - January 8th, 2020
 ---------------------------

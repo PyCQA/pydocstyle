@@ -1007,9 +1007,20 @@ def is_def_arg_private(arg_name):
     """Return a boolean indicating if the argument name is private."""
     return arg_name.startswith("_")
 
-def get_function_args(function_string):
+def get_function_args(function_source):
     """Return the function arguments given the source-code string."""
-    function_arg_node = ast.parse(textwrap.dedent(function_string)).body[0].args
+    # We are stripping the whitespace from the left of the
+    # function source.
+    # This is so that if the docstring has incorrectly
+    # indented lines, which are at a lower indent than the
+    # function source, we still dedent the source correctly
+    # and the AST parser doesn't throw an error.
+    try:
+        function_arg_node = ast.parse(function_source.lstrip()).body[0].args
+    except SyntaxError:
+        # If we still get a syntax error, we don't want the
+        # the checker to crash. Instead we just return a blank list.
+        return []
     arg_nodes = function_arg_node.args
     kwonly_arg_nodes = function_arg_node.kwonlyargs
     return [arg_node.arg for arg_node in chain(arg_nodes, kwonly_arg_nodes)]
