@@ -4,6 +4,14 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Fix ``DeprecationWarning`` / ``SyntaxError`` "invalid escape sequence" with
+  Python 3.6+ (#445).
+
 5.0.1 - December 9th, 2019
 --------------------------
 
