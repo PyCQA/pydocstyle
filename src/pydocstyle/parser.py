@@ -169,6 +169,13 @@ class Method(Function):
         return self.name == '__init__'
 
     @property
+    def is_property(self):
+        for decorator in self.decorators:
+            if decorator.name == 'property':
+                return True
+        return False
+
+    @property
     def is_public(self):
         """Return True iff this method should be considered public."""
         # Check if we are a setter/deleter method, and mark as private if so.

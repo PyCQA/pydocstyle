@@ -441,6 +441,9 @@ class ConventionChecker:
         "Returns the pathname ...".
 
         """
+        if isinstance(function, Method) and function.is_property:
+            return
+
         if docstring and not function.is_test:
             stripped = ast.literal_eval(docstring).strip()
             if stripped:

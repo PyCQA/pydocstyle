@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Disable D401 for property methods (#301).
+
 5.0.1 - December 9th, 2019
 --------------------------
 
