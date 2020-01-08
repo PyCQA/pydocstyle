@@ -2,7 +2,7 @@ from setuptools import setup
 import sys
 
 # Do not update the version manually - it is managed by `bumpversion`.
-version = '5.0.2rc'
+version = '5.0.2'
 
 
 requirements = [
