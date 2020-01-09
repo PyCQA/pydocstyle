@@ -4,6 +4,15 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Fixed an issue where skipping errors on module level docstring via #noqa
+  failed when there where more prior comments (#446).
+
 5.0.2 - January 8th, 2020
 ---------------------------
 
