@@ -478,7 +478,10 @@ class ConventionChecker:
         """
         if docstring:
             first_line = ast.literal_eval(docstring).strip().split('\n')[0]
-            if function.name + '(' in first_line.replace(' ', ''):
+            function_signarture = function.source.split(
+                ":")[0].split('def')[-1].replace(' ', '')
+            
+            if function_signarture in first_line.replace(' ', ''):
                 return violations.D402()
 
     @check_for(Function)
@@ -701,10 +704,13 @@ class ConventionChecker:
                 except `self` or `cls` if it is a method.
 
         """
+        
         docstring_args = set()
         section_level_indent = leading_space(context.line)
         content = context.following_lines
+        
         for current_line, next_line in zip(content, content[1:]):
+            
             # All parameter definitions in the Numpy parameters
             # section must be at the same indent level as the section
             # name.
@@ -741,6 +747,7 @@ class ConventionChecker:
 
         """
         docstring_args = set()
+        
         for line in context.following_lines:
             match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
             if match:
