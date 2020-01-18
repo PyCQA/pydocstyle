@@ -704,13 +704,10 @@ class ConventionChecker:
                 except `self` or `cls` if it is a method.
 
         """
-        
         docstring_args = set()
         section_level_indent = leading_space(context.line)
         content = context.following_lines
-        
         for current_line, next_line in zip(content, content[1:]):
-            
             # All parameter definitions in the Numpy parameters
             # section must be at the same indent level as the section
             # name.
@@ -747,7 +744,6 @@ class ConventionChecker:
 
         """
         docstring_args = set()
-        
         for line in context.following_lines:
             match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
             if match:
