@@ -316,8 +316,13 @@ def sdgfsdg23245777():
 
 
 @expect('D402: First line should not be the function\'s "signature"')
-def foobar():
-    """Signature: foobar()."""
+def foobar(foo=1, bar=1):
+    """Signature: foobar(foo=1, bar=1)."""
+
+
+@expect('D402: First line should not be the function\'s "signature"')
+def foobarr():
+    """Signature: foobarr()."""
 
 
 @expect('D213: Multi-line docstring summary should start at the second line')
