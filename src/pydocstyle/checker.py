@@ -764,6 +764,13 @@ class ConventionChecker:
             # positional argument as it is `cls` or `self`
             if definition.kind == 'method' and not definition.is_static:
                 function_args = function_args[1:]
+            # Filtering out any arguments prefixed with `_` marking them
+            # as private.
+            function_args = [
+                arg_name
+                for arg_name in function_args
+                if not is_def_arg_private(arg_name)
+            ]
             missing_args = set(function_args) - docstring_args
             if missing_args:
                 yield violations.D417(", ".join(sorted(missing_args)),
@@ -996,6 +1003,9 @@ def get_leading_words(line):
     if result is not None:
         return result.group()
 
+def is_def_arg_private(arg_name):
+    """Returns a boolean indicating if the argument name is private."""
+    return arg_name.startswith("_")
 
 def get_function_args(function_string):
     """Return the function arguments given the source-code string."""
