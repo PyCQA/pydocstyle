@@ -7,6 +7,30 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
+* Skip function arguments prefixed with `_` in D417 check (#440).
+
+
+5.0.2 - January 8th, 2020
+---------------------------
+
+Bug Fixes
+
+* Fix ``DeprecationWarning`` / ``SyntaxError`` "invalid escape sequence" with
+  Python 3.6+ (#445).
+
+5.0.1 - December 9th, 2019
+--------------------------
+
+Bug Fixes
+
+* Fixed an issue where AttributeError was raised when parsing the parameter
+  section of a class docstring (#434, #436).
+
+5.0.0 - December 9th, 2019
+--------------------------
+
 Major Updates
 
 * Support for Python 3.4 has been dropped (#402).

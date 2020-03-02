@@ -64,8 +64,8 @@ class ConfigurationParser:
                            'ignore-decorators')
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
-    DEFAULT_MATCH_RE = '(?!test_).*\.py'
-    DEFAULT_MATCH_DIR_RE = '[^\.].*'
+    DEFAULT_MATCH_RE = r'(?!test_).*\.py'
+    DEFAULT_MATCH_DIR_RE = r'[^\.].*'
     DEFAULT_IGNORE_DECORATORS_RE = ''
     DEFAULT_CONVENTION = conventions.pep257
 
