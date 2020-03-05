@@ -155,6 +155,7 @@ class ConventionChecker:
 
         """
         if (not docstring and definition.is_public or
+                docstring and docstring.lower().startswith('f') or
                 docstring and is_blank(ast.literal_eval(docstring))):
             codes = {Module: violations.D100,
                      Class: violations.D101,

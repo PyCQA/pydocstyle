@@ -1124,3 +1124,53 @@ def test_indented_function(env):
     out, err, code = env.invoke(args="-v")
     assert code == 0
     assert "IndentationError: unexpected indent" not in err
+
+
+def test_fstring_module(env):
+    """Test that fstring can be used as a first thing in a module."""
+    # fstrings are not supported in Python prior to 3.6
+    if sys.version_info < (3, 6):
+        return
+
+    with env.open('example.py', 'wt') as example:
+        example.write('f""')
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+
+
+def test_fstring_class(env):
+    """Test that fstring can be used as a first thing in a class."""
+    # fstrings are not supported in Python prior to 3.6
+    if sys.version_info < (3, 6):
+        return
+
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''\
+            class Test:
+                F"Some value"
+        '''))  # F is big for a reason. It is also a valid syntax.
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+    assert 'D101' in out
+
+
+def test_fstring_function(env):
+    """Test that fstring can be used as a first thing in a function."""
+    # fstrings are not supported in Python prior to 3.6
+    if sys.version_info < (3, 6):
+        return
+
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''\
+            async def test():
+                f"Some value"
+        '''))
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+    assert 'D103' in out
