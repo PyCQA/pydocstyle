@@ -10,6 +10,7 @@ Current Development Version
 New Features
 
 * Skip function arguments prefixed with `_` in D417 check (#440).
+* Skip fstrings as first nodes in module, class, and function bodies (#456).
 
 
 5.0.2 - January 8th, 2020
