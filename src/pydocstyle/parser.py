@@ -587,6 +587,9 @@ class Parser:
             self.log.debug("parsing comments before docstring, token is %r (%s)",
                            self.current.kind, self.current.value)
 
+            if skipped_error_codes:
+                break
+
         return skipped_error_codes
 
     def check_current(self, kind=None, value=None):
