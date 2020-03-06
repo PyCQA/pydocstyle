@@ -4,17 +4,12 @@ import copy
 import itertools
 import os
 from collections import namedtuple
+from collections.abc import Set
 from re import compile as re
 from configparser import RawConfigParser
 
 from .utils import __version__, log
 from .violations import ErrorRegistry, conventions
-
-try:
-    from collections.abc import Set
-except ImportError:
-    # python 2.7
-    from collections import Set
 
 
 def check_initialized(method):
@@ -69,8 +64,8 @@ class ConfigurationParser:
                            'ignore-decorators')
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
-    DEFAULT_MATCH_RE = '(?!test_).*\.py'
-    DEFAULT_MATCH_DIR_RE = '[^\.].*'
+    DEFAULT_MATCH_RE = r'(?!test_).*\.py'
+    DEFAULT_MATCH_DIR_RE = r'[^\.].*'
     DEFAULT_IGNORE_DECORATORS_RE = ''
     DEFAULT_CONVENTION = conventions.pep257
 
@@ -520,12 +515,14 @@ class ConfigurationParser:
         def _get_set(value_str):
             """Split `value_str` by the delimiter `,` and return a set.
 
-            Removes any occurrences of '' in the set.
-            Also expand error code prefixes, to avoid doing this for every
+            Removes empty values ('') and strips whitespace.
+            Also expands error code prefixes, to avoid doing this for every
             file.
 
             """
-            return cls._expand_error_codes(set(value_str.split(',')) - {''})
+            return cls._expand_error_codes(
+                set([x.strip() for x in value_str.split(",")]) - {""}
+            )
 
         for opt in optional_set_options:
             value = getattr(options, opt)

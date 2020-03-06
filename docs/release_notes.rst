@@ -7,6 +7,63 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
+* Skip function arguments prefixed with `_` in D417 check (#440).
+
+
+5.0.2 - January 8th, 2020
+---------------------------
+
+Bug Fixes
+
+* Fix ``DeprecationWarning`` / ``SyntaxError`` "invalid escape sequence" with
+  Python 3.6+ (#445).
+
+5.0.1 - December 9th, 2019
+--------------------------
+
+Bug Fixes
+
+* Fixed an issue where AttributeError was raised when parsing the parameter
+  section of a class docstring (#434, #436).
+
+5.0.0 - December 9th, 2019
+--------------------------
+
+Major Updates
+
+* Support for Python 3.4 has been dropped (#402).
+
+New Features
+
+* Extend support for detecting missing arguments in Google style
+  docstrings to method calls (#384).
+* Extend support for detecting missing argument description in Numpy style
+  docstrings (#407).
+* Added support for Python 3.8 (#423).
+* Allow skipping errors on module level docstring via #noqa (#427).
+* Whitespace is ignored with set options split across multiple lines (#221).
+
+Bug Fixes
+
+* Remove D413 from the google convention (#430).
+* Remove D413 from the pep257 convention (#404).
+* Replace `semicolon` with `colon` in D416 messages. (#409)
+* D301 (Use r""" if any backslashes in a docstring) does not trigger on
+  backslashes for line continuation or unicode literals ``\u...`` and
+  ``\N...`` anymore. These are considered intended elements of the docstring
+  and thus should not be escaped by using a raw docstring (#365).
+* Fix decorator parsing (#411).
+* Google-style sections no longer cause false errors when used with
+  Numpy-style sections (#388, #424).
+* D202: Allow a blank line after function docstring when followed by
+  declaration of an inner function or class (#395, #426).
+* Fix D401 and D404 checks not working for docstrings containing only one word and ending with non-alpha character (#421)
+
+4.0.1 - August 14th, 2019
+-------------------------
+
 Bug Fixes
 
 * Update convention support documentation (#386, #393)
@@ -14,9 +71,12 @@ Bug Fixes
   e.g., init and initialize / initiate (#382).
 * Fix parser hanging when there's a comment directly after ``__all__``
   (#391, #366).
+* Fixed RST error in table which resulted in the online documentation missing
+  the violation code table (#396).
+* Fixed IndentationError when parsing function arguments (#392).
 
 4.0.0 - July 6th, 2019
----------------------------
+----------------------
 
 Major Updates
 

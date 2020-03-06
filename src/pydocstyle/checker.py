@@ -3,6 +3,7 @@
 import ast
 import string
 import sys
+import textwrap
 import tokenize as tk
 from itertools import takewhile, chain
 from re import compile as re
@@ -13,7 +14,7 @@ from .config import IllegalConfiguration
 from .parser import (Package, Module, Class, NestedClass, Definition, AllError,
                      Method, Function, NestedFunction, Parser, StringIO,
                      ParseError)
-from .utils import log, is_blank, pairwise, common_prefix_length
+from .utils import log, is_blank, pairwise, common_prefix_length, strip_non_alphanumeric
 from .wordlists import IMPERATIVE_VERBS, IMPERATIVE_BLACKLIST, stem
 
 
@@ -71,8 +72,6 @@ class ConventionChecker:
         'Methods',
         'Note',
         'Notes',
-        'Other Parameters',
-        'Parameters',
         'Return',
         'Returns',
         'Raises',
@@ -187,8 +186,8 @@ class ConventionChecker:
     def check_no_blank_before(self, function, docstring):  # def
         """D20{1,2}: No blank lines allowed around function/method docstring.
 
-        There's no blank line either before or after the docstring.
-
+        There's no blank line either before or after the docstring unless directly
+        followed by an inner function or class.
         """
         if docstring:
             before, _, after = function.source.partition(docstring)
@@ -199,7 +198,14 @@ class ConventionChecker:
             if blanks_before_count != 0:
                 yield violations.D201(blanks_before_count)
             if not all(blanks_after) and blanks_after_count != 0:
-                yield violations.D202(blanks_after_count)
+                # Report a D202 violation if the docstring is followed by a blank line
+                # and the blank line is not itself followed by an inner function or
+                # class.
+                if not (
+                    blanks_after_count == 1 and
+                    re(r"\s+(?:(?:class|def)\s|@)").match(after)
+                ):
+                    yield violations.D202(blanks_after_count)
 
     @check_for(Class)
     def check_blank_before_after_class(self, class_, docstring):
@@ -364,11 +370,16 @@ class ConventionChecker:
         Use r"""raw triple double quotes""" if you use any backslashes
         (\) in your docstrings.
 
+        Exceptions are backslashes for line-continuation and unicode escape
+        sequences \N... and \u... These are considered intended unescaped
+        content in docstrings.
         '''
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
-        if docstring and '\\' in docstring and not docstring.startswith(
-                ('r', 'ur')):
+
+        if (docstring
+                and re(r'\\[^\nuN]').search(docstring)
+                and not docstring.startswith(('r', 'ur'))):
             return violations.D301()
 
     @check_for(Definition)
@@ -433,7 +444,7 @@ class ConventionChecker:
         if docstring and not function.is_test:
             stripped = ast.literal_eval(docstring).strip()
             if stripped:
-                first_word = stripped.split()[0]
+                first_word = strip_non_alphanumeric(stripped.split()[0])
                 check_word = first_word.lower()
 
                 if check_word in IMPERATIVE_BLACKLIST:
@@ -495,10 +506,16 @@ class ConventionChecker:
         with "This class is [..]" or "This module contains [..]".
 
         """
-        if docstring:
-            first_word = ast.literal_eval(docstring).split()[0]
-            if first_word.lower() == 'this':
-                return violations.D404()
+        if not docstring:
+            return
+
+        stripped = ast.literal_eval(docstring).strip()
+        if not stripped:
+            return
+
+        first_word = strip_non_alphanumeric(stripped.split()[0])
+        if first_word.lower() == 'this':
+            return violations.D404()
 
     @staticmethod
     def _is_docstring_section(context):
@@ -672,6 +689,48 @@ class ConventionChecker:
         if suffix:
             yield violations.D406(capitalized_section, context.line.strip())
 
+        if capitalized_section == "Parameters":
+            yield from cls._check_parameters_section(docstring, definition, context)
+
+    @staticmethod
+    def _check_parameters_section(docstring, definition, context):
+        """D417: `Parameters` section check for numpy style.
+
+        Check for a valid `Parameters` section. Checks that:
+            * The section documents all function arguments (D417)
+                except `self` or `cls` if it is a method.
+
+        """
+        docstring_args = set()
+        section_level_indent = leading_space(context.line)
+        content = context.following_lines
+        for current_line, next_line in zip(content, content[1:]):
+            # All parameter definitions in the Numpy parameters
+            # section must be at the same indent level as the section
+            # name.
+            # Also, we ensure that the following line is indented,
+            # and has some string, to ensure that the parameter actually
+            # has a description.
+            # This means, this is a parameter doc with some description
+            if ((leading_space(current_line) == section_level_indent)
+                and (len(leading_space(next_line)) > len(leading_space(current_line)))
+                and next_line.strip()):
+                # In case the parameter has type definitions, it
+                # will have a colon
+                if ":" in current_line:
+                    parameters, parameter_type = current_line.split(":", 1)
+                # Else, we simply have the list of parameters defined
+                # on the current line.
+                else:
+                    parameters = current_line.strip()
+                # Numpy allows grouping of multiple parameters of same
+                # type in the same line. They are comma separated.
+                parameter_list = parameters.split(",")
+                for parameter in parameter_list:
+                    docstring_args.add(parameter.strip())
+        yield from ConventionChecker._check_missing_args(docstring_args, definition)
+
+
     @staticmethod
     def _check_args_section(docstring, definition, context):
         """D417: `Args` section checks.
@@ -681,16 +740,42 @@ class ConventionChecker:
                 except `self` or `cls` if it is a method.
 
         """
-        if definition.kind == 'function':
-            function_pos_args = get_function_args(definition.source)
-            docstring_args = set()
-            for line in context.following_lines:
-                match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
-                if match:
-                    docstring_args.add(match.group(1))
-            missing_args = function_pos_args - docstring_args
+        docstring_args = set()
+        for line in context.following_lines:
+            match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
+            if match:
+                docstring_args.add(match.group(1))
+        yield from ConventionChecker._check_missing_args(docstring_args, definition)
+
+
+    @staticmethod
+    def _check_missing_args(docstring_args, definition):
+        """D417: Yield error for missing arguments in docstring.
+
+        Given a list of arguments found in the docstring and the
+        callable definition, it checks if all the arguments of the
+        callable are present in the docstring, else it yields a
+        D417 with a list of missing arguments.
+
+        """
+        if isinstance(definition, Function):
+            function_args = get_function_args(definition.source)
+            # If the method isn't static, then we skip the first
+            # positional argument as it is `cls` or `self`
+            if definition.kind == 'method' and not definition.is_static:
+                function_args = function_args[1:]
+            # Filtering out any arguments prefixed with `_` marking them
+            # as private.
+            function_args = [
+                arg_name
+                for arg_name in function_args
+                if not is_def_arg_private(arg_name)
+            ]
+            missing_args = set(function_args) - docstring_args
             if missing_args:
-                yield violations.D417(", ".join(missing_args), definition.name)
+                yield violations.D417(", ".join(sorted(missing_args)),
+                                      definition.name)
+
 
     @classmethod
     def _check_google_section(cls, docstring, definition, context):
@@ -700,7 +785,7 @@ class ConventionChecker:
             * The section does not contain any blank line between its name
               and content (D412).
             * The section is not empty (D414).
-            * The section name has semicolon as a suffix (D416).
+            * The section name has colon as a suffix (D416).
 
         Additionally, also yield all violations from `_check_common_section`
         which are style-agnostic section checks.
@@ -760,7 +845,6 @@ class ConventionChecker:
                                    False)
                     for i in suspected_section_indices)
 
-
         # Now that we have manageable objects - rule out false positives.
         contexts = (c for c in contexts if ConventionChecker._is_docstring_section(c))
 
@@ -769,12 +853,11 @@ class ConventionChecker:
         for a, b in pairwise(contexts, None):
             end = -1 if b is None else b.original_index
             yield SectionContext(a.section_name,
-                                     a.previous_line,
-                                     a.line,
-                                     lines[a.original_index + 1:end],
-                                     a.original_index,
-                                     b is None)
-
+                                 a.previous_line,
+                                 a.line,
+                                 lines[a.original_index + 1:end],
+                                 a.original_index,
+                                 b is None)
 
     def _check_numpy_sections(self, lines, definition, docstring):
         """NumPy-style docstring sections checks.
@@ -796,9 +879,13 @@ class ConventionChecker:
         Yields all violation from `_check_numpy_section` for each valid
         Numpy-style section.
         """
+        found_any_numpy_section = False
         for ctx in self._get_section_contexts(lines,
                                               self.NUMPY_SECTION_NAMES):
+            found_any_numpy_section = True
             yield from self._check_numpy_section(docstring, definition, ctx)
+
+        return found_any_numpy_section
 
     def _check_google_sections(self, lines, definition, docstring):
         """Google-style docstring section checks.
@@ -831,8 +918,10 @@ class ConventionChecker:
         lines = docstring.split("\n")
         if len(lines) < 2:
             return
-        yield from self._check_numpy_sections(lines, definition, docstring)
-        yield from self._check_google_sections(lines, definition, docstring)
+
+        found_numpy = yield from self._check_numpy_sections(lines, definition, docstring)
+        if not found_numpy:
+            yield from self._check_google_sections(lines, definition, docstring)
 
 
 parse = Parser()
@@ -902,7 +991,7 @@ def is_ascii(string):
 
 def leading_space(string):
     """Return any leading space from `string`."""
-    return re('\s*').match(string).group()
+    return re(r'\s*').match(string).group()
 
 
 def get_leading_words(line):
@@ -910,14 +999,17 @@ def get_leading_words(line):
 
     For example, if `line` is "  Hello world!!!", returns "Hello world".
     """
-    result = re("[\w ]+").match(line.strip())
+    result = re(r"[\w ]+").match(line.strip())
     if result is not None:
         return result.group()
 
+def is_def_arg_private(arg_name):
+    """Returns a boolean indicating if the argument name is private."""
+    return arg_name.startswith("_")
 
 def get_function_args(function_string):
     """Return the function arguments given the source-code string."""
-    function_arg_node = ast.parse(function_string).body[0].args
+    function_arg_node = ast.parse(textwrap.dedent(function_string)).body[0].args
     arg_nodes = function_arg_node.args
     kwonly_arg_nodes = function_arg_node.kwonlyargs
-    return set(arg_node.arg for arg_node in chain(arg_nodes, kwonly_arg_nodes))
+    return [arg_node.arg for arg_node in chain(arg_nodes, kwonly_arg_nodes)]

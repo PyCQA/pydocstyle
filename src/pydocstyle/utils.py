@@ -1,12 +1,17 @@
 """General shared utilities."""
+import ast
 import logging
+import re
 from typing import Iterable, Any, Tuple
 from itertools import tee, zip_longest
 
 
 # Do not update the version manually - it is managed by `bumpversion`.
-__version__ = '4.0.1rc'
+__version__ = '5.0.3rc'
 log = logging.getLogger(__name__)
+
+#: Regular expression for stripping non-alphanumeric characters
+NON_ALPHANUMERIC_STRIP_RE = re.compile(r'[\W_]+')
 
 
 def is_blank(string: str) -> bool:
@@ -38,3 +43,8 @@ def common_prefix_length(a: str, b: str) -> int:
         if ca != cb:
             return common
     return min(len(a), len(b))
+
+
+def strip_non_alphanumeric(string: str) -> str:
+    """Strip string from any non-alphanumeric characters."""
+    return NON_ALPHANUMERIC_STRIP_RE.sub('', string)

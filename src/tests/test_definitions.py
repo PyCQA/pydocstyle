@@ -19,6 +19,10 @@ from pydocstyle.checker import check
     'superfluous_quotes',
     'noqa',
     'sections',
+    'functions',
+    'canonical_google_examples',
+    'canonical_numpy_examples',
+    'canonical_pep257_examples',
 ])
 def test_complex_file(test_case):
     """Run domain-specific tests from test.py file."""

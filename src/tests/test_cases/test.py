@@ -270,6 +270,16 @@ def double_quotes_backslash_uppercase():
     R"""Sum\\mary."""
 
 
+@expect('D213: Multi-line docstring summary should start at the second line')
+def exceptions_of_D301():
+    """Exclude some backslashes from D301.
+
+    In particular, line continuations \
+    and unicode literals \u0394 and \N{GREEK CAPITAL LETTER DELTA}.
+    They are considered to be intentionally unescaped.
+    """
+
+
 if sys.version_info[0] <= 2:
     @expect('D302: Use u""" for Unicode docstrings')
     def unicode_unmarked():
@@ -297,6 +307,12 @@ def liouiwnlkjl():
         "(found 'Constructor')")
 def sdgfsdg23245():
     """Constructor for a foo."""
+
+
+@expect("D401: First line should be in imperative mood; try rephrasing "
+        "(found 'Constructor')")
+def sdgfsdg23245777():
+    """Constructor."""
 
 
 @expect('D402: First line should not be the function\'s "signature"')
@@ -417,6 +433,21 @@ def valid_google_string():  # noqa: D400
         "or exclamation point (not 'g')")
 def bad_google_string():  # noqa: D400
     """Test a valid something"""
+
+
+# This is reproducing a bug where AttributeError is raised when parsing class
+# parameters as functions for Google / Numpy conventions.
+class Blah:  # noqa: D203,D213
+    """A Blah.
+
+    Parameters
+    ----------
+    x : int
+
+    """
+
+    def __init__(self, x):
+        pass
 
 
 expect(os.path.normcase(__file__ if __file__[-1] != 'c' else __file__[:-1]),

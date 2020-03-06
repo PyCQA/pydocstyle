@@ -152,18 +152,19 @@ class ErrorRegistry:
     @classmethod
     def to_rst(cls) -> str:
         """Output the registry as reStructuredText, for documentation."""
-        sep_line = '+' + 6 * '-' + '+' + '-' * 71 + '+\n'
-        blank_line = '|' + 78 * ' ' + '|\n'
+        max_len = max(len(error.short_desc) for group in cls.groups for  error in group.errors)
+        sep_line = '+' + 6 * '-' + '+' + '-' * (max_len + 2) + '+\n'
+        blank_line = '|' + (max_len + 9) * ' ' + '|\n'
         table = ''
         for group in cls.groups:
             table += sep_line
             table += blank_line
-            table += '|' + '**{}**'.format(group.name).center(78) + '|\n'
+            table += '|' + '**{}**'.format(group.name).center(max_len + 9) + '|\n'
             table += blank_line
             for error in group.errors:
                 table += sep_line
                 table += ('|' + error.code.center(6) + '| ' +
-                          error.short_desc.ljust(70) + '|\n')
+                          error.short_desc.ljust(max_len + 1) + '|\n')
         table += sep_line
         return table
 
@@ -249,10 +250,10 @@ D413 = D4xx.create_error('D413', 'Missing blank line after last section',
 D414 = D4xx.create_error('D414', 'Section has no content', '{0!r}')
 D415 = D4xx.create_error('D415', 'First line should end with a period, question '
                                  'mark, or exclamation point', 'not {0!r}')
-D416 = D4xx.create_error('D416', 'Section name should end with a semicolon',
+D416 = D4xx.create_error('D416', 'Section name should end with a colon',
                          '{0!r}, not {1!r}')
-D417 = D4xx.create_error('D417', 'Missing arguments in the function docstring',
-                         'argument(s) {0!r} missing in function {1!r} docstring')
+D417 = D4xx.create_error('D417', 'Missing argument descriptions in the docstring',
+                         'argument(s) {0} are missing descriptions in {1!r} docstring')
 
 class AttrDict(dict):
     def __getattr__(self, item: str) -> Any:
@@ -265,9 +266,9 @@ all_errors = set(ErrorRegistry.get_error_codes())
 conventions = AttrDict({
     'pep257': all_errors - {'D203', 'D212', 'D213', 'D214', 'D215', 'D404',
                             'D405', 'D406', 'D407', 'D408', 'D409', 'D410',
-                            'D411', 'D415', 'D416', 'D417'},
+                            'D411', 'D413', 'D415', 'D416', 'D417'},
     'numpy': all_errors - {'D107', 'D203', 'D212', 'D213', 'D402', 'D413',
                            'D415', 'D416', 'D417'},
     'google': all_errors - {'D203', 'D204', 'D213', 'D215', 'D400', 'D401',
-                            'D404', 'D406', 'D407', 'D408', 'D409'}
+                            'D404', 'D406', 'D407', 'D408', 'D409', 'D413'}
 })
