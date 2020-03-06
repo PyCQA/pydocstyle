@@ -4,9 +4,12 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
-
 Current Development Version
 ---------------------------
+
+New Features
+
+* Skip function arguments prefixed with `_` in D417 check (#440).
 
 Bug Fixes
 
