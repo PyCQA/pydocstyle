@@ -154,9 +154,14 @@ class ConventionChecker:
               with a single underscore.
 
         """
-        if (not docstring and definition.is_public or
-                docstring and docstring.lower().startswith('f') or
-                docstring and is_blank(ast.literal_eval(docstring))):
+        is_missing_docstring = (
+            (not docstring and definition.is_public) or
+            (docstring and (
+                docstring.lower().startswith('f') or
+                is_blank(ast.literal_eval(docstring))
+            ))
+        )
+        if is_missing_docstring:
             codes = {Module: violations.D100,
                      Class: violations.D101,
                      NestedClass: violations.D106,
