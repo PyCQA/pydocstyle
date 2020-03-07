@@ -11,6 +11,9 @@ New Features
 
 * Skip function arguments prefixed with `_` in D417 check (#440).
 
+Bug Fixes
+
+* Update convention support documentation (#386, #393)
 
 5.0.2 - January 8th, 2020
 ---------------------------
