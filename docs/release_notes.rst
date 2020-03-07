@@ -11,6 +11,9 @@ New Features
 
 * Skip function arguments prefixed with `_` in D417 check (#440).
 
+Bug Fixes
+
+* Update convention support documentation (#386, #393)
 
 5.0.2 - January 8th, 2020
 ---------------------------
@@ -66,7 +69,6 @@ Bug Fixes
 
 Bug Fixes
 
-* Update convention support documentation (#386, #393)
 * D401: Fixed a false positive where one stem had multiple imperative forms,
   e.g., init and initialize / initiate (#382).
 * Fix parser hanging when there's a comment directly after ``__all__``
