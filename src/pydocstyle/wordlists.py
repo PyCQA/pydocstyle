@@ -35,8 +35,8 @@ def load_wordlist(name: str) -> Iterator[str]:
                 yield line
 
 
-#: A dict mapping stemmed verbs to the imperative form
 def make_imperative_verbs_dict(wordlist: Iterator[str]) -> Dict[str, Set[str]]:
+    """Create a dictionary mapping stemmed verbs to the imperative form."""
     imperative_verbs = {}  # type: Dict[str, Set[str]]
     for word in wordlist:
         imperative_verbs.setdefault(stem(word), set()).add(word)

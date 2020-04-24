@@ -1004,7 +1004,7 @@ def get_leading_words(line):
         return result.group()
 
 def is_def_arg_private(arg_name):
-    """Returns a boolean indicating if the argument name is private."""
+    """Return a boolean indicating if the argument name is private."""
     return arg_name.startswith("_")
 
 def get_function_args(function_string):

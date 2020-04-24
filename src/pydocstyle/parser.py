@@ -14,6 +14,8 @@ __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
 
 
 class ParseError(Exception):
+    """An error parsing contents of a Python file."""
+
     def __str__(self):
         return "Cannot parse file."
 
@@ -111,6 +113,10 @@ class Module(Definition):
 
     @property
     def is_public(self):
+        """Return True iff the module is considered public.
+
+        This helps determine if it requires a docstring.
+        """
         return not self.name.startswith('_') or self.name.startswith('__')
 
     def __str__(self):
@@ -183,6 +189,7 @@ class Method(Function):
 
     @property
     def is_static(self):
+        """Return True iff the method is static."""
         for decorator in self.decorators:
             if decorator.name == "staticmethod":
                 return True
@@ -221,6 +228,7 @@ class Docstring(str):
     the start and end of the token.
 
     """
+
     def __new__(cls, v, start, end):
         return str.__new__(cls, v)
 
@@ -372,9 +380,9 @@ class Parser:
         return None
 
     def parse_decorators(self):
-        """Called after first @ is found.
+        """Parse decorators into self._accumulated_decorators.
 
-        Parse decorators into self._accumulated_decorators.
+        Called after first @ is found.
         Continue to do so until encountering the 'def' or 'class' start token.
         """
         name = []
