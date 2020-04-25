@@ -319,7 +319,7 @@ def foobar(foo=1, bar=1):
 
 
 # False negative for D402
-def foobar2wdsd(foo=1, bar=1):
+def foobarmahpuddfsdfdsfswdsd(foo=1, bar=1):
     """Signature: foobar()."""
 
 
