@@ -14,6 +14,8 @@ New Features
 Bug Fixes
 
 * Update convention support documentation (#386, #393)
+* Fixed an issue where D402 violation was raised when method name followed
+ by an lparen (#450)
 
 5.0.2 - January 8th, 2020
 ---------------------------
