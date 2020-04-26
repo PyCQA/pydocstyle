@@ -65,6 +65,7 @@ def asdlkfasd():
 
 @expect('D201: No blank lines allowed before function docstring (found 1)')
 def leading_space():
+
     """Leading space."""
 
 
@@ -78,6 +79,7 @@ def trailing_space():
 @expect('D201: No blank lines allowed before function docstring (found 1)')
 @expect('D202: No blank lines allowed after function docstring (found 1)')
 def trailing_and_leading_space():
+
     """Trailing and leading space."""
 
     pass
@@ -314,18 +316,13 @@ def sdgfsdg23245777():
 
 
 @expect('D402: First line should not be the function\'s "signature"')
-def foobar(foo=1, bar=1):
-    """Signature: foobar(foo=1, bar=1)."""
-
-
-# False negative for D402
-def foobarmahpuddfsdfdsfswdsd(foo=1, bar=1):
+def foobar():
     """Signature: foobar()."""
 
 
 @expect('D402: First line should not be the function\'s "signature"')
-def foobarr():
-    """Signature: foobarr()."""
+def foobar2ak():
+    """Signature: foobar2ak()."""
 
 
 @expect('D213: Multi-line docstring summary should start at the second line')
