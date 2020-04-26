@@ -321,8 +321,12 @@ def foobar():
 
 
 @expect('D402: First line should not be the function\'s "signature"')
-def foobar2ak():
-    """Signature: foobar2ak()."""
+def foobar2nis(foo=1, bar=2):
+    """Signature: foobar2nis(foo=1, bar=2)."""
+
+
+def foobar2nis2(foo=1, bar=2):
+    """Signature: foobar2nis2(foo stands for foo fighters)."""
 
 
 @expect('D213: Multi-line docstring summary should start at the second line')
