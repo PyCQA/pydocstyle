@@ -14,6 +14,7 @@ New Features
 Bug Fixes
 
 * Update convention support documentation (#386, #393)
+* Detect inner asynchronous functions (#467)
 
 5.0.2 - January 8th, 2020
 ---------------------------
