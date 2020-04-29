@@ -203,7 +203,7 @@ class ConventionChecker:
                 # class.
                 if not (
                     blanks_after_count == 1 and
-                    re(r"\s+(?:(?:class|def)\s|@)").match(after)
+                    re(r"\s+(?:(?:class|def|async def)\s|@)").match(after)
                 ):
                     yield violations.D202(blanks_after_count)
 

@@ -29,6 +29,15 @@ def func_with_inner_func_after():
     pass
 
 
+def func_with_inner_async_func_after():
+    """Test a function with inner async function after docstring."""
+
+    async def inner():
+        pass
+
+    pass
+
+
 def fake_decorator(decorated):
     """Fake decorator used to test decorated inner func."""
     return decorated
@@ -39,6 +48,16 @@ def func_with_inner_decorated_func_after():
 
     @fake_decorator
     def inner():
+        pass
+
+    pass
+
+
+def func_with_inner_decorated_async_func_after():
+    """Test a function with inner decorated async function after docstring."""
+
+    @fake_decorator
+    async def inner():
         pass
 
     pass
