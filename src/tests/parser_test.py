@@ -1,6 +1,7 @@
 """Parser tests."""
 
 import io
+import os
 import sys
 import pytest
 import textwrap
@@ -562,18 +563,22 @@ def test_matrix_multiplication_with_decorators(code):
     assert inner_function.decorators[0].name == 'a'
 
 
-def test_module_publicity():
+@pytest.mark.parametrize("parent_path", (
+    os.path.join("some", "directory"),
+    ""
+))
+def test_module_publicity(parent_path):
     """Test that a module that has a single leading underscore is private."""
     parser = Parser()
     code = CodeSnippet("")
 
-    module = parser.parse(code, "filepath")
+    module = parser.parse(code, os.path.join(parent_path, "filepath"))
     assert module.is_public
 
-    module = parser.parse(code, "_filepath")
+    module = parser.parse(code, os.path.join(parent_path, "_filepath"))
     assert not module.is_public
 
-    module = parser.parse(code, "__filepath")
+    module = parser.parse(code, os.path.join(parent_path, "__filepath"))
     assert module.is_public
 
 

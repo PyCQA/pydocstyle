@@ -1,5 +1,6 @@
 """Python code parser."""
 
+import os
 import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
@@ -117,7 +118,8 @@ class Module(Definition):
 
         This helps determine if it requires a docstring.
         """
-        return not self.name.startswith('_') or self.name.startswith('__')
+        module_name = os.path.basename(self.name)
+        return not module_name.startswith('_') or module_name.startswith('__')
 
     def __str__(self):
         return 'at module level'
