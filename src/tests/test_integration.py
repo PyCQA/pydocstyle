@@ -1157,3 +1157,36 @@ def test_comment_plus_docstring_file(env):
     out, _, code = env.invoke()
     assert '' == out
     assert code == 0
+
+
+def test_only_comment_with_noqa_file(env):
+    """Test that file with noqa and only comments does not cause errors."""
+    with env.open('comments.py', 'wt') as comments:
+        comments.write(
+            '#!/usr/bin/env python3\n'
+            '# -*- coding: utf-8 -*-\n'
+            '# Useless comment\n'
+            '# Just another useless comment\n'
+            '# noqa: D100\n'
+        )
+
+    out, _, code = env.invoke()
+    assert 'D100' not in out
+    assert code == 0
+
+
+def test_comment_with_noqa_plus_docstring_file(env):
+    """Test that file with comments, noqa, docstring does not cause errors."""
+    with env.open('comments_plus.py', 'wt') as comments_plus:
+        comments_plus.write(
+            '#!/usr/bin/env python3\n'
+            '# -*- coding: utf-8 -*-\n'
+            '# Useless comment\n'
+            '# Just another useless comment\n'
+            '# noqa: D400\n'
+            '"""Module docstring without period"""\n'
+        )
+
+    out, _, code = env.invoke()
+    assert '' == out
+    assert code == 0
