@@ -150,10 +150,9 @@ def parse_errors(err):
 def test_pep257_conformance():
     """Test that we conform to PEP 257."""
     base_dir = (pathlib.Path(__file__).parent / '..').resolve()
-    src_dirs = (base_dir, base_dir / 'tests')
-    src_files = []
-    for src_dir in src_dirs:
-        src_files.extend(str(path) for path in src_dir.glob('*.py'))
+    excluded = base_dir / 'tests' / 'test_cases'
+    src_files = (str(path) for path in base_dir.glob('**/*.py')
+                 if excluded not in path.parents)
 
     ignored = {'D104', 'D105'}
     select = violations.conventions.pep257 - ignored

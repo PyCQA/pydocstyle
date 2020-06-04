@@ -13,6 +13,10 @@ New Features
 
 Bug Fixes
 
+* Update convention support documentation (#386, #393)
+* Detect inner asynchronous functions for D202 (#467)
+* Fix a bug in parsing Google-style argument description.
+  The bug caused some argument names to go unreported in D417 (#448).
 * Fixed an issue where skipping errors on module level docstring via #noqa
   failed when there where more prior comments (#446).
 
