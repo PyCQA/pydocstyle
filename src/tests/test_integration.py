@@ -1144,7 +1144,7 @@ def test_only_comment_file(env):
 
 
 def test_comment_plus_docstring_file(env):
-    """Test that file with only comments and docstring does not cause errors."""
+    """Test that file with comments and docstring does not cause errors."""
     with env.open('comments_plus.py', 'wt') as comments_plus:
         comments_plus.write(
             '#!/usr/bin/env python3\n'
