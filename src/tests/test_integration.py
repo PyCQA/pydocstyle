@@ -1124,3 +1124,37 @@ def test_indented_function(env):
     out, err, code = env.invoke(args="-v")
     assert code == 0
     assert "IndentationError: unexpected indent" not in err
+
+
+def test_only_comment_file(env):
+    """Test that file with only comments does only cause D100."""
+    with env.open('comments.py', 'wt') as comments:
+        comments.write(
+            '#!/usr/bin/env python3\n'
+            '# -*- coding: utf-8 -*-\n'
+            '# Useless comment\n'
+            '# Just another useless comment\n'
+        )
+
+    out, _, code = env.invoke()
+    assert 'D100' in out
+    out = out.replace('D100', '')
+    for err in {'D1', 'D2', 'D3', 'D4'}:
+        assert err not in out
+    assert code == 1
+
+
+def test_comment_plus_docstring_file(env):
+    """Test that file with only comments and docstring does not cause errors."""
+    with env.open('comments_plus.py', 'wt') as comments_plus:
+        comments_plus.write(
+            '#!/usr/bin/env python3\n'
+            '# -*- coding: utf-8 -*-\n'
+            '# Useless comment\n'
+            '# Just another useless comment\n'
+            '"""Module docstring."""\n'
+        )
+
+    out, _, code = env.invoke()
+    assert '' == out
+    assert code == 0
