@@ -10,6 +10,7 @@ Current Development Version
 New Features
 
 * Skip function arguments prefixed with `_` in D417 check (#440).
+* Add flag to disable `# noqa` comment processing in API (#485).
 
 Bug Fixes
 
