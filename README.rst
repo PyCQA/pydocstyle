@@ -55,7 +55,7 @@ Run
 Links
 -----
 
-* `Read the full documentation here <http://pydocstyle.org>`_.
+* `Read the full documentation here <http://www.pydocstyle.org/en/5.0.2/>`_.
 
 * `Fork pydocstyle on GitHub <http://github.com/PyCQA/pydocstyle>`_.
 
