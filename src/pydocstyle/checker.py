@@ -104,7 +104,7 @@ class ConventionChecker:
         ".+"            # Followed by 1 or more characters - which is the docstring for the parameter
     )
 
-    def check_source(self, source, filename, ignore_decorators=None, disable_skip_errors=False):
+    def check_source(self, source, filename, ignore_decorators=None, ignore_inline_noqa=False):
         module = parse(StringIO(source), filename)
         for definition in module:
             for this_check in self.checks:
@@ -114,14 +114,14 @@ class ConventionChecker:
                     decorator_skip = ignore_decorators is not None and any(
                         len(ignore_decorators.findall(dec.name)) > 0
                         for dec in definition.decorators)
-                    if (disable_skip_errors or not skipping_all) and not decorator_skip:
+                    if (ignore_inline_noqa or not skipping_all) and not decorator_skip:
                         error = this_check(self, definition,
                                            definition.docstring)
                     else:
                         error = None
                     errors = error if hasattr(error, '__iter__') else [error]
                     for error in errors:
-                        if error is not None and (disable_skip_errors or error.code not in \
+                        if error is not None and (ignore_inline_noqa or error.code not in \
                                 definition.skipped_error_codes):
                             partition = this_check.__doc__.partition('.\n')
                             message, _, explanation = partition
@@ -927,7 +927,7 @@ class ConventionChecker:
 parse = Parser()
 
 
-def check(filenames, select=None, ignore=None, ignore_decorators=None, disable_skip_errors=False):
+def check(filenames, select=None, ignore=None, ignore_decorators=None, ignore_inline_noqa=False):
     """Generate docstring errors that exist in `filenames` iterable.
 
     By default, the PEP-257 convention is checked. To specifically define the
@@ -974,7 +974,7 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None, disable_s
                 source = file.read()
             for error in ConventionChecker().check_source(source, filename,
                                                           ignore_decorators,
-                                                          disable_skip_errors):
+                                                          ignore_inline_noqa):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error

@@ -215,7 +215,7 @@ def test_skip_errors():
     with mock.patch.object(
             checker.tk, 'open', mock_open, create=True):
         errors = tuple(checker.check(['filepath'], ignore={},
-                                     disable_skip_errors=True))
+                                     ignore_inline_noqa=True))
         error_codes = {error.code for error in errors}
         assert error_codes == expected_error_codes | skipped_error_codes
 
