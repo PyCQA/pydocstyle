@@ -463,7 +463,7 @@ class ConfigurationParser:
                         'known errors: %s', part)
                 expanded_codes.update(codes_to_add)
         except TypeError as e:
-            raise IllegalConfiguration(e)
+            raise IllegalConfiguration(e) from e
 
         return expanded_codes
 
