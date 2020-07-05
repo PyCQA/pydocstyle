@@ -96,9 +96,9 @@ class ConventionChecker:
         r"(\w+)"        # Followed by 1 or more unicode chars, numbers or underscores
                         # The above is captured as the first group as this is the paramater name.
         r"\s*"          # Followed by 0 or more whitespace characters
-        r"\(?(.*?)\)?"  # Matches patterns contained within round brackets.
-                        # The `(.*?)` is the second capturing group which matches any sequence of
-                        # characters in a non-greedy way (denoted by the `*?`)
+        r"(\(.*?\))?"   # Matches patterns contained within round brackets.
+                        # The `.*?`matches any sequence of characters in a non-greedy
+                        # way (denoted by the `*?`)
         r"\s*"          # Followed by 0 or more whitespace chars
         r":"            # Followed by a colon
         ".+"            # Followed by 1 or more characters - which is the docstring for the parameter
