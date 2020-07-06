@@ -1,11 +1,11 @@
 """Python code parser."""
 
-import os
 import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
 from re import compile as re
 from io import StringIO
+from pathlib import Path
 
 from .utils import log
 
@@ -118,7 +118,7 @@ class Module(Definition):
 
         This helps determine if it requires a docstring.
         """
-        module_name = os.path.basename(self.name)
+        module_name = Path(self.name).name
         return not module_name.startswith('_') or module_name.startswith('__')
 
     def __str__(self):
