@@ -335,6 +335,36 @@ class TestGoogle:  # noqa: D203
 
         """
 
+    @staticmethod
+    @expect("D417: Missing argument descriptions in the docstring "
+            "(argument(s) a, b are missing descriptions in "
+            "'test_missing_docstring' docstring)", arg_count=2)
+    def test_missing_docstring(a, b):  # noqa: D213, D407
+        """Test a valid args section.
+
+        Args:
+            a:
+
+        """
+
+    @staticmethod
+    @expect("D417: Missing argument descriptions in the docstring "
+            "(argument(s) skip, verbose are missing descriptions in "
+            "'test_missing_docstring_another' docstring)", arg_count=2)
+    def test_missing_docstring_another(skip, verbose):  # noqa: D213, D407
+        """Do stuff.
+
+        Args:
+            skip (:attr:`.Skip`):
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                Etiam at tellus a tellus faucibus maximus. Curabitur tellus
+                mauris, semper id vehicula ac, feugiat ut tortor.
+            verbose (bool):
+                If True, print out as much infromation as possible.
+                If False, print out concise "one-liner" information.
+
+        """
+
 
 @expect(_D213)
 @expect("D417: Missing argument descriptions in the docstring "

@@ -42,4 +42,7 @@ setup(
             'pydocstyle = pydocstyle.cli:main',
         ],
     },
+    project_urls={
+        'Release Notes': 'http://www.pydocstyle.org/en/latest/release_notes.html',
+    },
 )
