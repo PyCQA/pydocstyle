@@ -18,6 +18,8 @@ Bug Fixes
 * Fix indentation error while parsing class methods (#441).
 * Fix a bug in parsing Google-style argument description.
   The bug caused some argument names to go unreported in D417 (#448).
+* Fixed an issue where skipping errors on module level docstring via #noqa
+  failed when there where more prior comments (#446).
 
 
 5.0.2 - January 8th, 2020
