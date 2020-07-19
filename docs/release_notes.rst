@@ -17,7 +17,7 @@ Bug Fixes
 * Detect inner asynchronous functions for D202 (#467)
 * Fix a bug in parsing Google-style argument description.
   The bug caused some argument names to go unreported in D417 (#448).
-* Correctly detect publicity of modules inside directories (#470).
+* Correctly detect publicity of modules inside directories (#470, #493).
 
 5.0.2 - January 8th, 2020
 ---------------------------
