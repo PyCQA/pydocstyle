@@ -1,10 +1,10 @@
 """Parser tests."""
 
 import io
-import os
 import sys
 import pytest
 import textwrap
+from pathlib import Path
 
 from pydocstyle.parser import Parser, ParseError
 
@@ -564,21 +564,21 @@ def test_matrix_multiplication_with_decorators(code):
 
 
 @pytest.mark.parametrize("parent_path", (
-    os.path.join("some", "directory"),
-    ""
+    Path("some").joinpath("directory"),
+    Path("")
 ))
 def test_module_publicity(parent_path):
     """Test that a module that has a single leading underscore is private."""
     parser = Parser()
     code = CodeSnippet("")
 
-    module = parser.parse(code, os.path.join(parent_path, "filepath"))
+    module = parser.parse(code, str(parent_path.joinpath("filepath")))
     assert module.is_public
 
-    module = parser.parse(code, os.path.join(parent_path, "_filepath"))
+    module = parser.parse(code, str(parent_path.joinpath("_filepath")))
     assert not module.is_public
 
-    module = parser.parse(code, os.path.join(parent_path, "__filepath"))
+    module = parser.parse(code, str(parent_path.joinpath("__filepath")))
     assert module.is_public
 
 
