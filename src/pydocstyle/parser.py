@@ -586,12 +586,20 @@ class Parser:
     def parse_skip_comment(self):
         """Parse a definition comment for noqa skips."""
         skipped_error_codes = ''
-        if self.current.kind == tk.COMMENT:
-            if 'noqa: ' in self.current.value:
-                skipped_error_codes = ''.join(
-                     self.current.value.split('noqa: ')[1:])
-            elif self.current.value.startswith('# noqa'):
-                skipped_error_codes = 'all'
+        while self.current.kind in (tk.COMMENT, tk.NEWLINE, tk.NL):
+            if self.current.kind == tk.COMMENT:
+                if 'noqa: ' in self.current.value:
+                    skipped_error_codes = ''.join(
+                        self.current.value.split('noqa: ')[1:])
+                elif self.current.value.startswith('# noqa'):
+                    skipped_error_codes = 'all'
+            self.stream.move()
+            self.log.debug("parsing comments before docstring, token is %r (%s)",
+                           self.current.kind, self.current.value)
+
+            if skipped_error_codes:
+                break
+
         return skipped_error_codes
 
     def check_current(self, kind=None, value=None):
