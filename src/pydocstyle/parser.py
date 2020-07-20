@@ -119,7 +119,16 @@ class Module(Definition):
         This helps determine if it requires a docstring.
         """
         module_name = Path(self.name).name
-        return not module_name.startswith('_') or module_name.startswith('__')
+        return (
+            not self._is_inside_private_package() and
+            (not module_name.startswith('_') or module_name.startswith('__'))
+        )
+
+    def _is_inside_private_package(self):
+        """Return True if the module is inside a private package."""
+        path = Path(self.name)
+        package_names = path.parts[:-1]
+        return any([package.startswith('_') for package in package_names])
 
     def __str__(self):
         return 'at module level'
