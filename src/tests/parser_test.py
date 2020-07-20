@@ -564,7 +564,7 @@ def test_matrix_multiplication_with_decorators(code):
 
 
 @pytest.mark.parametrize("parent_path", (
-    Path("some").joinpath("directory"),
+    Path("some") / "directory",
     Path("")
 ))
 def test_module_publicity(parent_path):
@@ -572,13 +572,13 @@ def test_module_publicity(parent_path):
     parser = Parser()
     code = CodeSnippet("")
 
-    module = parser.parse(code, str(parent_path.joinpath("filepath")))
+    module = parser.parse(code, str(parent_path / "filepath"))
     assert module.is_public
 
-    module = parser.parse(code, str(parent_path.joinpath("_filepath")))
+    module = parser.parse(code, str(parent_path / "_filepath"))
     assert not module.is_public
 
-    module = parser.parse(code, str(parent_path.joinpath("__filepath")))
+    module = parser.parse(code, str(parent_path / "__filepath"))
     assert module.is_public
 
 
