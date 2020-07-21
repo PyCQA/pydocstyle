@@ -568,7 +568,13 @@ def test_matrix_multiplication_with_decorators(code):
     Path("")
 ))
 def test_module_publicity(parent_path):
-    """Test that a module that has a single leading underscore is private."""
+    """Test module publicity.
+
+    Modules containing a single leading underscore are private,
+    and modules within a private package are private.
+
+    Private packages contain a single leading underscore.
+    """
     parser = Parser()
     code = CodeSnippet("")
 
