@@ -588,6 +588,10 @@ def test_module_publicity(parent_path):
         parent_path / "_private_pkg" / "some_pkg" / "filepath"))
     assert not module.is_public
 
+    module = parser.parse(code, str(
+        parent_path / "__dunder_pkg" / "some_pkg" / "filepath"))
+    assert not module.is_public
+
     module = parser.parse(code, str(parent_path / "_filepath"))
     assert not module.is_public
 
