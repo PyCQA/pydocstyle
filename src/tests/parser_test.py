@@ -563,68 +563,55 @@ def test_matrix_multiplication_with_decorators(code):
     assert inner_function.decorators[0].name == 'a'
 
 
-@pytest.mark.parametrize("parent_path", (
-    Path("package") / "another_package",
-    Path("")
+@pytest.mark.parametrize("public_path", (
+    Path("module.py"),
+    Path("package") / "module.py",
+    Path("package") / "__init__.py",
+    Path("") / "package" / "module.py",
+    Path("") / "__dunder__" / "package" / "module.py"
 ))
-def test_module_publicity(parent_path):
-    """Test module publicity.
+def test_module_publicity_with_public_path(public_path):
+    """Test module publicity with public path.
 
     Module names such as my_module.py are considered public.
+
+    Special "dunder" modules,
+    with leading and trailing double-underscores (e.g. __init__.py) are public.
+
+    The same rules for publicity apply to both packages and modules.
+    """
+    parser = Parser()
+    code = CodeSnippet("")
+    module = parser.parse(code, str(public_path))
+    assert module.is_public
+
+
+@pytest.mark.parametrize("private_path", (
+    # single underscore
+    Path("_private_module.py"),
+    Path("_private_package") / "module.py",
+    Path("_private_package") / "package" / "module.py",
+    Path("") / "_private_package" / "package" / "module.py",
+
+    # double underscore
+    Path("__private_module.py"),
+    Path("__private_package") / "module.py",
+    Path("__private_package") / "package" / "module.py",
+    Path("") / "__private_package" / "package" / "module.py"
+))
+def test_module_publicity_with_private_paths(private_path):
+    """Test module publicity with private path.
 
     Module names starting with single or double-underscore are private.
     For example, _my_private_module.py and __my_private_module.py.
 
-    While special "dunder" modules,
-    with leading and trailing double-underscores (e.g. __init__.py) are public.
-
-    The same rules for module name publicity applies to package name publicity.
-
     Any module within a private package is considered private.
+
+    The same rules for publicity apply to both packages and modules.
     """
     parser = Parser()
     code = CodeSnippet("")
-
-    # Public assertions
-    # ===========================================================================
-    module = parser.parse(code, str(parent_path / "module"))
-    assert module.is_public
-
-    module = parser.parse(code, str(
-        parent_path / "package" / "__init__"))
-    assert module.is_public
-
-    module = parser.parse(code, str(
-        parent_path / "__dunder__" / "package" / "module"))
-    assert module.is_public
-
-    # Private assertions
-    # ===========================================================================
-
-    # Single Underscore
-    # -----------------
-    module = parser.parse(code, str(parent_path / "_private_module"))
-    assert not module.is_public
-
-    module = parser.parse(code, str(
-        parent_path / "_private_package" / "module"))
-    assert not module.is_public
-
-    module = parser.parse(code, str(
-        parent_path / "_private_package" / "package" / "module"))
-    assert not module.is_public
-
-    # Double Underscore
-    # -----------------
-    module = parser.parse(code, str(parent_path / "__private_module"))
-    assert not module.is_public
-
-    module = parser.parse(code, str(
-        parent_path / "__private_package" / "module"))
-    assert not module.is_public
-
-    module = parser.parse(code, str(
-        parent_path / "__private_package" / "package" / "module"))
+    module = parser.parse(code, str(private_path))
     assert not module.is_public
 
 
