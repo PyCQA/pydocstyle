@@ -121,14 +121,22 @@ class Module(Definition):
         module_name = Path(self.name).name
         return (
             not self._is_inside_private_package() and
-            (not module_name.startswith('_') or module_name.startswith('__'))
+            self._is_public_name(module_name)
         )
 
     def _is_inside_private_package(self):
         """Return True if the module is inside a private package."""
         path = Path(self.name)
         package_names = path.parts[:-1]
-        return any([package.startswith('_') for package in package_names])
+        return any([self._is_private_name(package) for package in package_names])
+
+    def _is_public_name(self, module_name):
+        """Determine whether a "module name" (i.e. module or package name) is public."""
+        return not module_name.startswith('_') or module_name.startswith('__')
+
+    def _is_private_name(self, module_name):
+        """Determine whether a "module name" (i.e. module or package name) is private."""
+        return not self._is_public_name(module_name)
 
     def __str__(self):
         return 'at module level'
