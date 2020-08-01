@@ -10,7 +10,9 @@ Publicity for all constructs is determined as follows: a construct is
 considered *public* if -
 
 1. Its immediate parent is public *and*
-2. Its name does not contain a single leading underscore.
+2. Its name does *not* start with a single or double underscore.
+
+    a. Note, names that start and end with a double underscore are *public* (e.g. ``__init__.py``).
 
 A construct's immediate parent is the construct that contains it. For example,
 a method's parent is a class object. A class' parent is usually a module, but
