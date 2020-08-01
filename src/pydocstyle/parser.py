@@ -118,7 +118,7 @@ class Module(Definition):
 
         This helps determine if it requires a docstring.
         """
-        module_name = Path(self.name).name
+        module_name = Path(self.name).stem
         return (
             not self._is_inside_private_package() and
             self._is_public_name(module_name)
@@ -132,7 +132,11 @@ class Module(Definition):
 
     def _is_public_name(self, module_name):
         """Determine whether a "module name" (i.e. module or package name) is public."""
-        return not module_name.startswith('_') or module_name.startswith('__')
+        return (
+            not module_name.startswith('_') or (
+                module_name.startswith('__') and module_name.endswith('__')
+            )
+        )
 
     def _is_private_name(self, module_name):
         """Determine whether a "module name" (i.e. module or package name) is private."""

@@ -564,47 +564,66 @@ def test_matrix_multiplication_with_decorators(code):
 
 
 @pytest.mark.parametrize("parent_path", (
-    Path("some") / "directory",
+    Path("package") / "another_package",
     Path("")
 ))
 def test_module_publicity(parent_path):
     """Test module publicity.
 
-    Modules containing a single leading underscore are private,
-    and modules within a private package are private.
+    Module names such as my_module.py are considered public.
 
-    Private packages contain a single leading underscore.
+    Module names starting with single or double-underscore are private.
+    For example, _my_private_module.py and __my_private_module.py.
+
+    While special "dunder" modules (i.e. leading and trailing double-underscores),
+    such as __init__.py, are public.
+
+    The same rules for module name publicity applies to package name publicity.
+
+    Any module within a private package is considered private.
     """
     parser = Parser()
     code = CodeSnippet("")
 
-    module = parser.parse(code, str(parent_path / "filepath"))
+    # Public assertions
+    # ===========================================================================
+    module = parser.parse(code, str(parent_path / "module"))
     assert module.is_public
 
-    module = parser.parse(code, str(parent_path / "_private_pkg" / "filepath"))
+    module = parser.parse(code, str(
+        parent_path / "package" / "__init__"))
+    assert module.is_public
+
+    module = parser.parse(code, str(
+        parent_path / "__dunder__" / "package" / "module"))
+    assert module.is_public
+
+    # Private assertions
+    # ===========================================================================
+
+    # Single Underscore
+    # -----------------
+    module = parser.parse(code, str(parent_path / "_private_module"))
+    assert not module.is_public
+
+    module = parser.parse(code, str(parent_path / "_private_package" / "module"))
     assert not module.is_public
 
     module = parser.parse(code, str(
-        parent_path / "_private_pkg" / "some_pkg" / "filepath"))
+        parent_path / "_private_package" / "package" / "module"))
+    assert not module.is_public
+
+    # Double Underscore
+    # -----------------
+    module = parser.parse(code, str(parent_path / "__private_module"))
+    assert not module.is_public
+
+    module = parser.parse(code, str(parent_path / "__private_package" / "module"))
     assert not module.is_public
 
     module = parser.parse(code, str(
-        parent_path / "__dunder_pkg__" / "some_pkg" / "filepath"))
-    assert module.is_public
-
-    module = parser.parse(code, str(
-        parent_path / "some_pkg" / "__init__"))
-    assert module.is_public
-
-    module = parser.parse(code, str(
-        parent_path / "__leading_dunder_pkg" / "some_pkg" / "filepath"))
-    assert module.is_public
-
-    module = parser.parse(code, str(parent_path / "_filepath"))
+        parent_path / "__private_package" / "package" / "module"))
     assert not module.is_public
-
-    module = parser.parse(code, str(parent_path / "__filepath"))
-    assert module.is_public
 
 
 def test_complex_module():
