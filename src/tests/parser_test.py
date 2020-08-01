@@ -575,8 +575,8 @@ def test_module_publicity(parent_path):
     Module names starting with single or double-underscore are private.
     For example, _my_private_module.py and __my_private_module.py.
 
-    While special "dunder" modules (i.e. leading and trailing double-underscores),
-    such as __init__.py, are public.
+    While special "dunder" modules,
+    with leading and trailing double-underscores (e.g. __init__.py) are public.
 
     The same rules for module name publicity applies to package name publicity.
 
@@ -606,7 +606,8 @@ def test_module_publicity(parent_path):
     module = parser.parse(code, str(parent_path / "_private_module"))
     assert not module.is_public
 
-    module = parser.parse(code, str(parent_path / "_private_package" / "module"))
+    module = parser.parse(code, str(
+        parent_path / "_private_package" / "module"))
     assert not module.is_public
 
     module = parser.parse(code, str(
@@ -618,7 +619,8 @@ def test_module_publicity(parent_path):
     module = parser.parse(code, str(parent_path / "__private_module"))
     assert not module.is_public
 
-    module = parser.parse(code, str(parent_path / "__private_package" / "module"))
+    module = parser.parse(code, str(
+        parent_path / "__private_package" / "module"))
     assert not module.is_public
 
     module = parser.parse(code, str(
