@@ -389,7 +389,6 @@ class TestGoogle:  # noqa: D203
 @expect("D417: Missing argument descriptions in the docstring "
         "(argument(s) y are missing descriptions in "
         "'test_missing_numpy_args' docstring)")
-@expect("D207: Docstring is under-indented")
 def test_missing_numpy_args(_private_arg=0, x=1, y=2):  # noqa: D406, D407
     """Toggle the gizmo.
 
@@ -405,13 +404,19 @@ of the entire world.
 class TestNumpy:  # noqa: D203
     """Test class."""
 
-    def test_method(self, test, another_test, _, x=1, y=2, _private_arg=1):  # noqa: D213, D407
+    def test_method(self, test, another_test, z, _, x=1, y=2, _private_arg=1):  # noqa: D213, D407
         """Test a valid args section.
+
+        Some long string with a \
+line continuation.
 
         Parameters
         ----------
         test, another_test
             Some parameters without type.
+        z : some parameter with a very long type description that requires a \
+line continuation.
+            But no further description.
         x, y : int
             Some integer parameters.
 

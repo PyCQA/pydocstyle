@@ -278,7 +278,9 @@ class ConventionChecker:
             indent = self._get_docstring_indent(definition, docstring)
             lines = docstring.split('\n')
             if len(lines) > 1:
-                lines = lines[1:]  # First line does not need indent.
+                # First line and line continuations need no indent.
+                lines = [line for i, line in enumerate(lines)
+                         if i and not lines[i-1].endswith('\\')]
                 indents = [leading_space(l) for l in lines if not is_blank(l)]
                 if set(' \t') == set(''.join(indents) + indent):
                     yield violations.D206()
@@ -703,7 +705,9 @@ class ConventionChecker:
         """
         docstring_args = set()
         section_level_indent = leading_space(context.line)
-        content = context.following_lines
+        # Join line continuations, then resplit by line.
+        content = (
+            '\n'.join(context.following_lines).replace('\\\n', '').split('\n'))
         for current_line, next_line in zip(content, content[1:]):
             # All parameter definitions in the Numpy parameters
             # section must be at the same indent level as the section
