@@ -1,5 +1,6 @@
 """Python code parser."""
 
+import sys
 import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
@@ -126,9 +127,15 @@ class Module(Definition):
 
     def _is_inside_private_package(self):
         """Return True if the module is inside a private package."""
-        path = Path(self.name)
-        package_names = path.parts[:-1]
-        return any([self._is_private_name(package) for package in package_names])
+        path = Path(self.name).parent  # Ignore the actual module's name
+        syspath = [Path(p) for p in sys.path]  # Convert to pathlib.Path.
+
+        while path != path.parent and path not in syspath:  # Bail if we are at the root directory or in `PYTHONPATH`.
+            if self._is_private_name(path.name):
+                return True
+            path = path.parent
+
+        return False
 
     def _is_public_name(self, module_name):
         """Determine whether a "module name" (i.e. module or package name) is public."""

@@ -564,6 +564,7 @@ def test_matrix_multiplication_with_decorators(code):
 
 
 @pytest.mark.parametrize("public_path", (
+    Path(""),
     Path("module.py"),
     Path("package") / "module.py",
     Path("package") / "__init__.py",
