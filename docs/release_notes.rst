@@ -20,7 +20,7 @@ Bug Fixes
   The bug caused some argument names to go unreported in D417 (#448).
 * Fixed an issue where skipping errors on module level docstring via #noqa
   failed when there where more prior comments (#446).
-* Support backslash-continued parameter descriptions in Numpy-style docstrings
+* Support backslash-continued descriptions in docstrings
   (#472).
 
 
