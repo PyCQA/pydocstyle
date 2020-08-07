@@ -130,7 +130,7 @@ class Module(Definition):
         path = Path(self.name).parent  # Ignore the actual module's name
         syspath = [Path(p) for p in sys.path]  # Convert to pathlib.Path.
 
-        # 2nd condition is to bail if we are at the root directory or in `PYTHONPATH`.
+        # Bail if we are at the root directory or in `PYTHONPATH`.
         while path != path.parent and path not in syspath:
             if self._is_private_name(path.name):
                 return True
