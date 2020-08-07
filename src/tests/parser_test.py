@@ -616,6 +616,24 @@ def test_module_publicity_with_private_paths(private_path):
     assert not module.is_public
 
 
+@pytest.mark.parametrize("syspath,is_public", (
+    ("/", False),
+    ("_foo/", True),
+))
+def test_module_publicity_with_different_sys_path(syspath,
+                                                  is_public,
+                                                  monkeypatch):
+    """Test module publicity for same path and different sys.path."""
+    parser = Parser()
+    code = CodeSnippet("")
+
+    monkeypatch.syspath_prepend(syspath)
+
+    path = Path("_foo") / "bar" / "baz.py"
+    module = parser.parse(code, str(path))
+    assert module.is_public == is_public
+
+
 def test_complex_module():
     """Test that a complex module is parsed correctly."""
     parser = Parser()
