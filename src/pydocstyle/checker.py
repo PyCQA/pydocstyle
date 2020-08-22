@@ -278,7 +278,9 @@ class ConventionChecker:
             indent = self._get_docstring_indent(definition, docstring)
             lines = docstring.split('\n')
             if len(lines) > 1:
-                lines = lines[1:]  # First line does not need indent.
+                # First line and line continuations need no indent.
+                lines = [line for i, line in enumerate(lines)
+                         if i and not lines[i-1].endswith('\\')]
                 indents = [leading_space(l) for l in lines if not is_blank(l)]
                 if set(' \t') == set(''.join(indents) + indent):
                     yield violations.D206()
@@ -703,7 +705,9 @@ class ConventionChecker:
         """
         docstring_args = set()
         section_level_indent = leading_space(context.line)
-        content = context.following_lines
+        # Join line continuations, then resplit by line.
+        content = (
+            '\n'.join(context.following_lines).replace('\\\n', '').split('\n'))
         for current_line, next_line in zip(content, content[1:]):
             # All parameter definitions in the Numpy parameters
             # section must be at the same indent level as the section
@@ -1008,9 +1012,20 @@ def is_def_arg_private(arg_name):
     """Return a boolean indicating if the argument name is private."""
     return arg_name.startswith("_")
 
-def get_function_args(function_string):
+def get_function_args(function_source):
     """Return the function arguments given the source-code string."""
-    function_arg_node = ast.parse(textwrap.dedent(function_string)).body[0].args
+    # We are stripping the whitespace from the left of the
+    # function source.
+    # This is so that if the docstring has incorrectly
+    # indented lines, which are at a lower indent than the
+    # function source, we still dedent the source correctly
+    # and the AST parser doesn't throw an error.
+    try:
+        function_arg_node = ast.parse(function_source.lstrip()).body[0].args
+    except SyntaxError:
+        # If we still get a syntax error, we don't want the
+        # the checker to crash. Instead we just return a blank list.
+        return []
     arg_nodes = function_arg_node.args
     kwonly_arg_nodes = function_arg_node.kwonlyargs
     return [arg_node.arg for arg_node in chain(arg_nodes, kwonly_arg_nodes)]

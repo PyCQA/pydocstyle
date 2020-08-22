@@ -274,6 +274,25 @@ def missing_colon_google_style_section():  # noqa: D406, D407
     """
 
 
+@expect("D417: Missing argument descriptions in the docstring "
+        "(argument(s) y are missing descriptions in "
+        "'bar' docstring)", func_name="bar")
+def _test_nested_functions():
+    x = 1
+
+    def bar(y=2):  # noqa: D207, D213, D406, D407
+        """Nested function test for docstrings.
+
+        Will this work when referencing x?
+
+        Args:
+            x: Test something
+that is broken.
+
+        """
+        print(x)
+
+
 @expect(_D213)
 @expect("D417: Missing argument descriptions in the docstring "
         "(argument(s) y are missing descriptions in "
@@ -376,7 +395,8 @@ def test_missing_numpy_args(_private_arg=0, x=1, y=2):  # noqa: D406, D407
     Parameters
     ----------
     x : int
-        The greatest integer.
+        The greatest integer in the history \
+of the entire world.
 
     """
 
@@ -384,13 +404,19 @@ def test_missing_numpy_args(_private_arg=0, x=1, y=2):  # noqa: D406, D407
 class TestNumpy:  # noqa: D203
     """Test class."""
 
-    def test_method(self, test, another_test, _, x=1, y=2, _private_arg=1):  # noqa: D213, D407
+    def test_method(self, test, another_test, z, _, x=1, y=2, _private_arg=1):  # noqa: D213, D407
         """Test a valid args section.
+
+        Some long string with a \
+line continuation.
 
         Parameters
         ----------
         test, another_test
             Some parameters without type.
+        z : some parameter with a very long type description that requires a \
+line continuation.
+            But no further description.
         x, y : int
             Some integer parameters.
 
@@ -453,5 +479,22 @@ class TestNumpy:  # noqa: D203
         ----------
         danger
             Zoneeeeee!
+
+        """
+
+
+class TestIncorrectIndent:  # noqa: D203
+    """Test class."""
+
+    @expect("D417: Missing argument descriptions in the docstring "
+            "(argument(s) y are missing descriptions in "
+            "'test_incorrect_indent' docstring)", arg_count=3)
+    def test_incorrect_indent(self, x=1, y=2):  # noqa: D207, D213, D407
+        """Reproducing issue #437.
+
+Testing this incorrectly indented docstring.
+
+        Args:
+            x: Test argument.
 
         """
