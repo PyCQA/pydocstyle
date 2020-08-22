@@ -54,3 +54,6 @@ docs/snippets/error_code_table.rst
 
 # PyCharm files
 .idea
+
+# VS Code
+.vscode/
