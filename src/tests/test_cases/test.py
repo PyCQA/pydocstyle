@@ -348,6 +348,16 @@ def oneliner_d102(): return
 def oneliner_withdoc(): """One liner"""
 
 
+def ignored_decorator(func):   # noqa: D400,D401,D415
+    """Runs something"""
+    func()
+    pass
+
+
+@ignored_decorator
+def oneliner_ignored_decorator(): """One liner"""
+
+
 @expect("D207: Docstring is under-indented")
 @expect('D213: Multi-line docstring summary should start at the second line')
 def docstring_start_in_same_line(): """First Line.
