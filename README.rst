@@ -2,11 +2,8 @@ pydocstyle - docstring style checker
 ====================================
 
 
-.. image:: https://travis-ci.org/PyCQA/pydocstyle.svg?branch=master
-    :target: https://travis-ci.org/PyCQA/pydocstyle
-
-.. image:: https://ci.appveyor.com/api/projects/status/40kkc366bmrrttca/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/Nurdok/pydocstyle/branch/master
+.. image:: https://github.com/PyCQA/pydocstyle/workflows/Run%20tests/badge.svg
+    :target: https://github.com/PyCQA/pydocstyle/actions?query=workflow%3A%22Run+tests%22+branch%3Amaster
 
 .. image:: https://readthedocs.org/projects/pydocstyle/badge/?version=latest
     :target: https://readthedocs.org/projects/pydocstyle/?badge=latest
@@ -15,6 +12,8 @@ pydocstyle - docstring style checker
 .. image:: https://img.shields.io/pypi/pyversions/pydocstyle.svg
     :target: https://pypi.org/project/pydocstyle
 
+.. image:: https://pepy.tech/badge/pydocstyle
+    :target: https://pepy.tech/project/pydocstyle
 
 **pydocstyle** is a static analysis tool for checking compliance with Python
 docstring conventions.
