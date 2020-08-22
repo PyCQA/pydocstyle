@@ -27,7 +27,7 @@ a class called ``_Foo`` is considered private. A method ``bar`` in ``_Foo`` is
 also considered private since its parent is a private class, even though its
 name does not begin with a single underscore.
 
-Note, a construct's parent is recursively checked upward until we reach a directory
+Note, a module's parent is recursively checked upward until we reach a directory
 in ``sys.path`` to avoid considering the complete filepath of a module.
 For example, consider the module ``/_foo/bar/baz.py``.
 If ``PYTHONPATH`` is set to ``/``, then ``baz.py`` is *private*.

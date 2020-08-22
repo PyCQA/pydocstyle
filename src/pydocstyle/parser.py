@@ -127,7 +127,7 @@ class Module(Definition):
 
     def _is_inside_private_package(self):
         """Return True if the module is inside a private package."""
-        path = Path(self.name).parent  # Ignore the actual module's name
+        path = Path(self.name).parent  # Ignore the actual module's name.
         syspath = [Path(p) for p in sys.path]  # Convert to pathlib.Path.
 
         # Bail if we are at the root directory or in `PYTHONPATH`.
