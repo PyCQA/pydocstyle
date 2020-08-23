@@ -833,7 +833,7 @@ def test_invalid_syntax(code):
     """),
     CodeSnippet("""\
         '''Test this'''
-        
+
         @property
         def test(): pass
     """),
