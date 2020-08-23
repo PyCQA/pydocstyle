@@ -948,6 +948,8 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None, ignore_in
     convenience, you may use `pydocstyle.violations.conventions.pep257` as
     a base set to add or remove errors from.
 
+    `ignore_inline_noqa` controls if `# noqa` comments are respected or not.
+
     Examples
     ---------
     >>> check(['pydocstyle.py'])
