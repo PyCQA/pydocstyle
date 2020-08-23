@@ -1,10 +1,12 @@
 """Python code parser."""
 
+import sys
 import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
 from re import compile as re
 from io import StringIO
+from pathlib import Path
 
 from .utils import log
 
@@ -117,7 +119,36 @@ class Module(Definition):
 
         This helps determine if it requires a docstring.
         """
-        return not self.name.startswith('_') or self.name.startswith('__')
+        module_name = Path(self.name).stem
+        return (
+            not self._is_inside_private_package() and
+            self._is_public_name(module_name)
+        )
+
+    def _is_inside_private_package(self):
+        """Return True if the module is inside a private package."""
+        path = Path(self.name).parent  # Ignore the actual module's name.
+        syspath = [Path(p) for p in sys.path]  # Convert to pathlib.Path.
+
+        # Bail if we are at the root directory or in `PYTHONPATH`.
+        while path != path.parent and path not in syspath:
+            if self._is_private_name(path.name):
+                return True
+            path = path.parent
+
+        return False
+
+    def _is_public_name(self, module_name):
+        """Determine whether a "module name" (i.e. module or package name) is public."""
+        return (
+            not module_name.startswith('_') or (
+                module_name.startswith('__') and module_name.endswith('__')
+            )
+        )
+
+    def _is_private_name(self, module_name):
+        """Determine whether a "module name" (i.e. module or package name) is private."""
+        return not self._is_public_name(module_name)
 
     def __str__(self):
         return 'at module level'
