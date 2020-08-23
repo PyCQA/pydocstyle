@@ -7,6 +7,9 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
+* Add flag to disable `# noqa` comment processing in API (#485).
 
 5.1.0 - August 22nd, 2020
 ---------------------------
@@ -14,7 +17,6 @@ Current Development Version
 New Features
 
 * Skip function arguments prefixed with `_` in D417 check (#440).
-* Add flag to disable `# noqa` comment processing in API (#485).
 
 Bug Fixes
 
