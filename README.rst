@@ -1,16 +1,33 @@
-PEP 257 docstring style checker
-===========================================================
+pydocstyle - docstring style checker
+====================================
 
-**pep257** is a static analysis tool for checking
-compliance with Python `PEP 257
-<http://www.python.org/dev/peps/pep-0257/>`_.
+.. image:: https://badges.gitter.im/PyCQA/pydocstyle.svg
+   :alt: Join the chat at https://gitter.im/PyCQA/pydocstyle
+   :target: https://gitter.im/PyCQA/pydocstyle?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
-The framework for checking docstring style is flexible, and
-custom checks can be easily added, for example to cover
-NumPy `docstring conventions
-<https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`_.
 
-**pep257** supports Python 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, pypy and pypy3.
+.. image:: https://github.com/PyCQA/pydocstyle/workflows/Run%20tests/badge.svg
+    :target: https://github.com/PyCQA/pydocstyle/actions?query=workflow%3A%22Run+tests%22+branch%3Amaster
+
+.. image:: https://readthedocs.org/projects/pydocstyle/badge/?version=latest
+    :target: https://readthedocs.org/projects/pydocstyle/?badge=latest
+    :alt: Documentation Status
+
+.. image:: https://img.shields.io/pypi/pyversions/pydocstyle.svg
+    :target: https://pypi.org/project/pydocstyle
+
+.. image:: https://pepy.tech/badge/pydocstyle
+    :target: https://pepy.tech/project/pydocstyle
+
+**pydocstyle** is a static analysis tool for checking compliance with Python
+docstring conventions.
+
+**pydocstyle** supports most of
+`PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ out of the box, but it
+should not be considered a reference implementation.
+
+**pydocstyle** supports Python 3.5, 3.6, 3.7 and 3.8.
+
 
 Quick Start
 -----------
@@ -20,33 +37,29 @@ Install
 
 .. code::
 
-    pip install pep257
+    pip install pydocstyle
+
 
 Run
-^^^
+^^^^
 
 .. code::
 
-    $ pep257 test.py
+    $ pydocstyle test.py
     test.py:18 in private nested class `meta`:
             D101: Docstring missing
-    test.py:22 in public method `method`:
-            D102: Docstring missing
+    test.py:27 in public function `get_user`:
+        D300: Use """triple double quotes""" (found '''-quotes)
+    test:75 in public function `init_database`:
+        D201: No blank lines allowed before function docstring (found 1)
     ...
 
 
 Links
 -----
 
-.. image:: https://travis-ci.org/GreenSteam/pep257.svg?branch=master
-    :target: https://travis-ci.org/GreenSteam/pep257
+* `Read the full documentation here <http://pydocstyle.org/en/stable/>`_.
 
-.. image:: https://readthedocs.org/projects/pep257/badge/?version=latest
-    :target: https://readthedocs.org/projects/pep257/?badge=latest
-    :alt: Documentation Status
+* `Fork pydocstyle on GitHub <http://github.com/PyCQA/pydocstyle>`_.
 
-* `Read the full documentation here <http://pep257.readthedocs.org>`_.
-
-* `Fork pep257 on GitHub <http://github.com/GreenSteam/pep257>`_.
-
-* `PyPI project page <https://pypi.python.org/pypi/pep257>`_.
+* `PyPI project page <https://pypi.python.org/pypi/pydocstyle>`_.
