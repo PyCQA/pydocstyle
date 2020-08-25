@@ -70,3 +70,8 @@ def func_with_inner_class_after():
         pass
 
     pass
+
+
+def func_with_weird_backslash():
+    """Test a function with a weird backslash.\
+"""

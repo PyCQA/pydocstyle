@@ -7,6 +7,10 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Bug Fixes
+
+* Fix ``IndexError`` crash on one-line backslashed docstrings (#506).
+
 
 5.1.0 - August 22nd, 2020
 ---------------------------

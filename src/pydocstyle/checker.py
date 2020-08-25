@@ -284,10 +284,12 @@ class ConventionChecker:
                 indents = [leading_space(l) for l in lines if not is_blank(l)]
                 if set(' \t') == set(''.join(indents) + indent):
                     yield violations.D206()
-                if (len(indents) > 1 and min(indents[:-1]) > indent or
-                        indents[-1] > indent):
+                if (
+                    len(indents) > 1 and min(indents[:-1]) > indent or
+                    len(indents) > 0 and indents[-1] > indent
+                ):
                     yield violations.D208()
-                if min(indents) < indent:
+                if len(indents) > 0 and min(indents) < indent:
                     yield violations.D207()
 
     @check_for(Definition)
