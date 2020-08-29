@@ -4,12 +4,21 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+
 Current Development Version
 ---------------------------
 
 New Features
 
 * Add flag to disable `# noqa` comment processing in API (#485).
+
+5.1.1 - August 29th, 2020
+---------------------------
+
+Bug Fixes
+
+* Fix ``IndexError`` crash on one-line backslashed docstrings (#506).
+
 
 5.1.0 - August 22nd, 2020
 ---------------------------
