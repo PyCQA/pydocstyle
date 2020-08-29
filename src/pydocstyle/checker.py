@@ -284,8 +284,7 @@ class ConventionChecker:
                 indents = [leading_space(l) for l in lines if not is_blank(l)]
                 if set(' \t') == set(''.join(indents) + indent):
                     yield violations.D206()
-                if (
-                    len(indents) > 1 and min(indents[:-1]) > indent or
+                if (len(indents) > 1 and min(indents[:-1]) > indent) or (
                     len(indents) > 0 and indents[-1] > indent
                 ):
                     yield violations.D208()
