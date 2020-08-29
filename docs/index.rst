@@ -31,5 +31,4 @@ Credits
 pydocstyle is a rename and continuation of pep257, a project created by
 Vladimir Keleshev.
 
-Maintained by Amir Rachum.
-
+Maintained by Amir Rachum and Sambhav Kothari.
