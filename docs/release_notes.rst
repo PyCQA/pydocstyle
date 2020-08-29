@@ -8,6 +8,9 @@ Release Notes
 Current Development Version
 ---------------------------
 
+New Features
+
+* Add flag to disable `# noqa` comment processing in API (#485).
 
 5.1.1 - August 29th, 2020
 ---------------------------
