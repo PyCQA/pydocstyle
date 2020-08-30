@@ -1,4 +1,3 @@
-# encoding: utf-8
 # No docstring, so we can test D100
 from functools import wraps
 import os

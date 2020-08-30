@@ -52,10 +52,10 @@ class Error:
     @property
     def message(self) -> str:
         """Return the message to print to the user."""
-        ret = '{}: {}'.format(self.code, self.short_desc)
+        ret = f'{self.code}: {self.short_desc}'
         if self.context is not None:
             specific_error_msg = self.context.format(*self.parameters)
-            ret += ' ({})'.format(specific_error_msg)
+            ret += f' ({specific_error_msg})'
         return ret
 
     @property
@@ -69,7 +69,7 @@ class Error:
         lines_stripped = list(reversed(list(dropwhile(is_blank,
                                                       reversed(lines)))))
         numbers_width = len(str(offset + len(lines_stripped)))
-        line_format = '{{:{}}}:{{}}'.format(numbers_width)
+        line_format = f'{{:{numbers_width}}}:{{}}'
         for n, line in enumerate(lines_stripped):
             if line:
                 line = ' ' + line
@@ -159,7 +159,7 @@ class ErrorRegistry:
         for group in cls.groups:
             table += sep_line
             table += blank_line
-            table += '|' + '**{}**'.format(group.name).center(max_len + 9) + '|\n'
+            table += '|' + f'**{group.name}**'.center(max_len + 9) + '|\n'
             table += blank_line
             for error in group.errors:
                 table += sep_line

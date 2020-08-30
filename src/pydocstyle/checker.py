@@ -985,7 +985,7 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None, ignore_in
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error
-        except (EnvironmentError, AllError, ParseError) as error:
+        except (OSError, AllError, ParseError) as error:
             log.warning('Error in file %s: %s', filename, error)
             yield error
         except tk.TokenError:
