@@ -214,7 +214,7 @@ D3xx = ErrorRegistry.create_group('D3', 'Quotes Issues')
 D300 = D3xx.create_error('D300', 'Use """triple double quotes"""',
                          'found {0}-quotes')
 D301 = D3xx.create_error('D301', 'Use r""" if any backslashes in a docstring')
-D302 = D3xx.create_error('D302', 'Use u""" for Unicode docstrings')
+D302 = D3xx.create_error('D302', 'Deprecated: Use u""" for Unicode docstrings')
 
 D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
 D400 = D4xx.create_error('D400', 'First line should end with a period',
