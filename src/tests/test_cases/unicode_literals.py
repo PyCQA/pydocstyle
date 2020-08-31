@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 """A module."""
 
-from __future__ import unicode_literals
 from .expected import Expectation
 
 

@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-
 """Use tox or py.test to run the test-suite."""
 
-from __future__ import with_statement
 from collections import namedtuple
 
 import os
@@ -52,7 +49,7 @@ class SandboxEnv:
             self.makedirs(base)
 
         with open(os.path.join(base, name), 'wt') as conf:
-            conf.write("[{}]\n".format(self.script_name))
+            conf.write(f"[{self.script_name}]\n")
             for k, v in kwargs.items():
                 conf.write("{} = {}\n".format(k.replace('_', '-'), v))
 
@@ -190,6 +187,36 @@ def test_ignore_list():
         assert error_codes == expected_error_codes - ignored
 
 
+def test_skip_errors():
+    """Test that `ignore`d errors are not reported in the API."""
+    function_to_check = textwrap.dedent('''
+        def function_with_bad_docstring(foo):  # noqa: D400, D401, D403, D415
+            """ does spacinwithout a period in the end
+            no blank line after one-liner is bad. Also this - """
+            return foo
+    ''')
+    expected_error_codes = {'D100', 'D205', 'D209', 'D210', 'D213'}
+    mock_open = mock.mock_open(read_data=function_to_check)
+    from pydocstyle import checker
+    with mock.patch.object(
+            checker.tk, 'open', mock_open, create=True):
+        # Passing a blank ignore here explicitly otherwise
+        # checkers takes the pep257 ignores by default.
+        errors = tuple(checker.check(['filepath'], ignore={}))
+        error_codes = {error.code for error in errors}
+        assert error_codes == expected_error_codes
+
+    skipped_error_codes = {'D400', 'D401', 'D403', 'D415'}
+    # We need to recreate the mock, otherwise the read file is empty
+    mock_open = mock.mock_open(read_data=function_to_check)
+    with mock.patch.object(
+            checker.tk, 'open', mock_open, create=True):
+        errors = tuple(checker.check(['filepath'], ignore={},
+                                     ignore_inline_noqa=True))
+        error_codes = {error.code for error in errors}
+        assert error_codes == expected_error_codes | skipped_error_codes
+
+
 def test_run_as_named_module():
     """Test that pydocstyle can be run as a "named module".
 
@@ -254,7 +281,7 @@ def test_sectionless_config_file(env):
         conf.write('[pdcstl]')
         config_path = conf.name
 
-    _, err, code = env.invoke('--config={}'.format(config_path))
+    _, err, code = env.invoke(f'--config={config_path}')
     assert code == 0
     assert 'Configuration file does not contain a pydocstyle section' in err
 
