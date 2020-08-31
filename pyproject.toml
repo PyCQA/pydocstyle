@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 79
+target-version = ['py36']
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+src_paths = ["src/pydocstyle"]
+line_length = 79
