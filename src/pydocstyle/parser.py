@@ -141,7 +141,7 @@ class Module(Definition):
         'start',
         'end',
         'decorators',
-        'docstring',  # type: ignore
+        'docstring',
         'children',
         'parent',
         '_dunder_all',

@@ -107,18 +107,25 @@ class ConventionChecker:
     # "     random: Test" where random will be captured as the param
     # " random         : test" where random will be captured as the param
     # "  random_t (Test) : test  " where random_t will be captured as the param
+    # Matches anything that fulfills all the following conditions:
     GOOGLE_ARGS_REGEX = re(
-        # Matches anything that fulfills all the following conditions:
-        r"^\s*"  # Begins with 0 or more whitespace characters
-        r"(\w+)"  # Followed by 1 or more unicode chars, numbers or underscores
+        # Begins with 0 or more whitespace characters
+        r"^\s*"
+        # Followed by 1 or more unicode chars, numbers or underscores
         # The above is captured as the first group as this is the paramater name.
-        r"\s*"  # Followed by 0 or more whitespace characters
-        r"(\(.*?\))?"  # Matches patterns contained within round brackets.
+        r"(\w+)"
+        # Followed by 0 or more whitespace characters
+        r"\s*"
+        # Matches patterns contained within round brackets.
         # The `.*?`matches any sequence of characters in a non-greedy
         # way (denoted by the `*?`)
-        r"\s*"  # Followed by 0 or more whitespace chars
-        r":"  # Followed by a colon
-        ".+"  # Followed by 1 or more characters - which is the docstring for the parameter
+        r"(\(.*?\))?"
+        # Followed by 0 or more whitespace chars
+        r"\s*"
+        # Followed by a colon
+        r":"
+        # Followed by 1 or more characters - which is the docstring for the parameter
+        ".+"
     )
 
     def check_source(
