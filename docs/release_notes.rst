@@ -8,6 +8,10 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Major Updates
+
+* Support for Python 3.5 has been dropped (#510).
+
 New Features
 
 * Add flag to disable `# noqa` comment processing in API (#485).
