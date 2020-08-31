@@ -83,7 +83,7 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
         "('Attributes', not 'Attributes:')")
 @expect("D407: Missing dashed underline after section ('Attributes')")
 @expect("D413: Missing blank line after last section ('Attributes')")
-class SampleClass(object):
+class SampleClass:
     """Summary of class here.
 
     Longer class information....

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # No docstring, so we can test D100
 from functools import wraps
 import os
@@ -278,16 +277,6 @@ def exceptions_of_D301():
     and unicode literals \u0394 and \N{GREEK CAPITAL LETTER DELTA}.
     They are considered to be intentionally unescaped.
     """
-
-
-if sys.version_info[0] <= 2:
-    @expect('D302: Use u""" for Unicode docstrings')
-    def unicode_unmarked():
-        """Юникод."""
-
-    @expect('D302: Use u""" for Unicode docstrings')
-    def first_word_has_unicode_byte():
-        """あy."""
 
 
 @expect("D400: First line should end with a period (not 'y')")

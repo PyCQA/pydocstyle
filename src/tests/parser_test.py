@@ -52,10 +52,6 @@ def test_function():
 
 def test_simple_fstring():
     """Test parsing of a function with a simple fstring as a docstring."""
-    # fstrings are not supported in Python 3.5
-    if sys.version_info[0:2] == (3, 5):
-        return
-
     parser = Parser()
     code = CodeSnippet("""\
         def do_something(pos_param0, pos_param1, kw_param0="default"):
@@ -85,10 +81,6 @@ def test_simple_fstring():
 
 def test_fstring_with_args():
     """Test parsing of a function with an fstring with args as a docstring."""
-    # fstrings are not supported in Python 3.5
-    if sys.version_info[0:2] == (3, 5):
-        return
-
     parser = Parser()
     code = CodeSnippet("""\
         foo = "bar"

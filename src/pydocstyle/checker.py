@@ -104,7 +104,7 @@ class ConventionChecker:
         ".+"            # Followed by 1 or more characters - which is the docstring for the parameter
     )
 
-    def check_source(self, source, filename, ignore_decorators=None):
+    def check_source(self, source, filename, ignore_decorators=None, ignore_inline_noqa=False):
         module = parse(StringIO(source), filename)
         for definition in module:
             for this_check in self.checks:
@@ -114,15 +114,15 @@ class ConventionChecker:
                     decorator_skip = ignore_decorators is not None and any(
                         len(ignore_decorators.findall(dec.name)) > 0
                         for dec in definition.decorators)
-                    if not skipping_all and not decorator_skip:
+                    if (ignore_inline_noqa or not skipping_all) and not decorator_skip:
                         error = this_check(self, definition,
                                            definition.docstring)
                     else:
                         error = None
                     errors = error if hasattr(error, '__iter__') else [error]
                     for error in errors:
-                        if error is not None and error.code not in \
-                                definition.skipped_error_codes:
+                        if error is not None and (ignore_inline_noqa or error.code not in \
+                                definition.skipped_error_codes):
                             partition = this_check.__doc__.partition('.\n')
                             message, _, explanation = partition
                             error.set_context(explanation=explanation,
@@ -284,10 +284,11 @@ class ConventionChecker:
                 indents = [leading_space(l) for l in lines if not is_blank(l)]
                 if set(' \t') == set(''.join(indents) + indent):
                     yield violations.D206()
-                if (len(indents) > 1 and min(indents[:-1]) > indent or
-                        indents[-1] > indent):
+                if (len(indents) > 1 and min(indents[:-1]) > indent) or (
+                    len(indents) > 0 and indents[-1] > indent
+                ):
                     yield violations.D208()
-                if min(indents) < indent:
+                if len(indents) > 0 and min(indents) < indent:
                     yield violations.D207()
 
     @check_for(Definition)
@@ -384,23 +385,6 @@ class ConventionChecker:
                 and not docstring.startswith(('r', 'ur'))):
             return violations.D301()
 
-    @check_for(Definition)
-    def check_unicode_docstring(self, definition, docstring):
-        r'''D302: Use u""" for docstrings with Unicode.
-
-        For Unicode docstrings, use u"""Unicode triple-quoted strings""".
-
-        '''
-        if 'unicode_literals' in definition.module.future_imports:
-            return
-
-        # Just check that docstring is unicode, check_triple_double_quotes
-        # ensures the correct quotes.
-        if docstring and sys.version_info[0] <= 2:
-            if not is_ascii(docstring) and not docstring.startswith(
-                    ('u', 'ur')):
-                return violations.D302()
-
     @staticmethod
     def _check_ends_with(docstring, chars, violation):
         """First line ends with one of `chars`.
@@ -452,13 +436,7 @@ class ConventionChecker:
                 if check_word in IMPERATIVE_BLACKLIST:
                     return violations.D401b(first_word)
 
-                try:
-                    correct_forms = IMPERATIVE_VERBS.get(stem(check_word))
-                except UnicodeDecodeError:
-                    # This is raised when the docstring contains unicode
-                    # characters in the first word, but is not a unicode
-                    # string. In which case D302 will be reported. Ignoring.
-                    return
+                correct_forms = IMPERATIVE_VERBS.get(stem(check_word))
 
                 if correct_forms and check_word not in correct_forms:
                     best = max(
@@ -931,7 +909,7 @@ class ConventionChecker:
 parse = Parser()
 
 
-def check(filenames, select=None, ignore=None, ignore_decorators=None):
+def check(filenames, select=None, ignore=None, ignore_decorators=None, ignore_inline_noqa=False):
     """Generate docstring errors that exist in `filenames` iterable.
 
     By default, the PEP-257 convention is checked. To specifically define the
@@ -947,6 +925,8 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
     error codes, which is larger than just the PEP-257 convention. To your
     convenience, you may use `pydocstyle.violations.conventions.pep257` as
     a base set to add or remove errors from.
+
+    `ignore_inline_noqa` controls if `# noqa` comments are respected or not.
 
     Examples
     ---------
@@ -977,11 +957,12 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None):
             with tk.open(filename) as file:
                 source = file.read()
             for error in ConventionChecker().check_source(source, filename,
-                                                          ignore_decorators):
+                                                          ignore_decorators,
+                                                          ignore_inline_noqa):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error
-        except (EnvironmentError, AllError, ParseError) as error:
+        except (OSError, AllError, ParseError) as error:
             log.warning('Error in file %s: %s', filename, error)
             yield error
         except tk.TokenError:

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # pydocstyle documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 30 20:30:42 2015.
 #
@@ -32,7 +30,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
-    'sphinxcontrib.issuetracker',  # autolinks issue numbers (like #78)
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -49,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pydocstyle'
-copyright = '2016, Amir Rachum'
+copyright = '2020, Amir Rachum, Sambhav Kothari'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -266,10 +263,6 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-
-# sphinxcontrib.issuetracker settings
-issuetracker = 'github'
-issuetracker_project = 'PyCQA/pydocstyle'
 
 
 def generate_error_code_table():

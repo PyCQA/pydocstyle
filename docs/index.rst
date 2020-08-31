@@ -8,7 +8,7 @@ docstring conventions.
 `PEP 257 <http://www.python.org/dev/peps/pep-0257/>`_ out of the box, but it
 should not be considered a reference implementation.
 
-**pydocstyle** supports Python 3.5, 3.6, 3.7 and 3.8.
+**pydocstyle** supports Python 3.6, 3.7 and 3.8.
 
 
 .. include:: quickstart.rst
@@ -31,5 +31,4 @@ Credits
 pydocstyle is a rename and continuation of pep257, a project created by
 Vladimir Keleshev.
 
-Maintained by Amir Rachum.
-
+Maintained by Amir Rachum and Sambhav Kothari.

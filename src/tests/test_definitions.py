@@ -26,7 +26,7 @@ from pydocstyle.checker import check
 ])
 def test_complex_file(test_case):
     """Run domain-specific tests from test.py file."""
-    case_module = __import__('test_cases.{}'.format(test_case),
+    case_module = __import__(f'test_cases.{test_case}',
                              globals=globals(),
                              locals=locals(),
                              fromlist=['expectation'],
