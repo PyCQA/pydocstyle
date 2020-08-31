@@ -316,7 +316,7 @@ class ConfigurationParser:
                     continue
 
                 if opt.replace('_', '-') not in self.CONFIG_FILE_OPTIONS:
-                    log.warning("Unknown option '{}' ignored".format(opt))
+                    log.warning(f"Unknown option '{opt}' ignored")
                     continue
 
                 normalized_opt = opt.replace('-', '_')
@@ -335,7 +335,7 @@ class ConfigurationParser:
 
         if options is not None:
             if not self._validate_options(options):
-                raise IllegalConfiguration('in file: {}'.format(path))
+                raise IllegalConfiguration(f'in file: {path}')
 
         return options, should_inherit
 
@@ -388,7 +388,7 @@ class ConfigurationParser:
 
         kwargs = dict(checked_codes=checked_codes)
         for key in ('match', 'match_dir', 'ignore_decorators'):
-            kwargs[key] = getattr(cls, 'DEFAULT_{}_RE'.format(key.upper())) \
+            kwargs[key] = getattr(cls, f'DEFAULT_{key.upper()}_RE') \
                 if getattr(options, key) is None and use_defaults \
                 else getattr(options, key)
         return CheckConfiguration(**kwargs)
@@ -521,7 +521,7 @@ class ConfigurationParser:
 
             """
             return cls._expand_error_codes(
-                set([x.strip() for x in value_str.split(",")]) - {""}
+                {x.strip() for x in value_str.split(",")} - {""}
             )
 
         for opt in optional_set_options:

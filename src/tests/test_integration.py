@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-
 """Use tox or py.test to run the test-suite."""
 
-from __future__ import with_statement
 from collections import namedtuple
 
 import os
@@ -52,7 +49,7 @@ class SandboxEnv:
             self.makedirs(base)
 
         with open(os.path.join(base, name), 'wt') as conf:
-            conf.write("[{}]\n".format(self.script_name))
+            conf.write(f"[{self.script_name}]\n")
             for k, v in kwargs.items():
                 conf.write("{} = {}\n".format(k.replace('_', '-'), v))
 
@@ -284,7 +281,7 @@ def test_sectionless_config_file(env):
         conf.write('[pdcstl]')
         config_path = conf.name
 
-    _, err, code = env.invoke('--config={}'.format(config_path))
+    _, err, code = env.invoke(f'--config={config_path}')
     assert code == 0
     assert 'Configuration file does not contain a pydocstyle section' in err
 

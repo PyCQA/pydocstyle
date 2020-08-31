@@ -385,23 +385,6 @@ class ConventionChecker:
                 and not docstring.startswith(('r', 'ur'))):
             return violations.D301()
 
-    @check_for(Definition)
-    def check_unicode_docstring(self, definition, docstring):
-        r'''D302: Use u""" for docstrings with Unicode.
-
-        For Unicode docstrings, use u"""Unicode triple-quoted strings""".
-
-        '''
-        if 'unicode_literals' in definition.module.future_imports:
-            return
-
-        # Just check that docstring is unicode, check_triple_double_quotes
-        # ensures the correct quotes.
-        if docstring and sys.version_info[0] <= 2:
-            if not is_ascii(docstring) and not docstring.startswith(
-                    ('u', 'ur')):
-                return violations.D302()
-
     @staticmethod
     def _check_ends_with(docstring, chars, violation):
         """First line ends with one of `chars`.
@@ -453,13 +436,7 @@ class ConventionChecker:
                 if check_word in IMPERATIVE_BLACKLIST:
                     return violations.D401b(first_word)
 
-                try:
-                    correct_forms = IMPERATIVE_VERBS.get(stem(check_word))
-                except UnicodeDecodeError:
-                    # This is raised when the docstring contains unicode
-                    # characters in the first word, but is not a unicode
-                    # string. In which case D302 will be reported. Ignoring.
-                    return
+                correct_forms = IMPERATIVE_VERBS.get(stem(check_word))
 
                 if correct_forms and check_word not in correct_forms:
                     best = max(
@@ -985,7 +962,7 @@ def check(filenames, select=None, ignore=None, ignore_decorators=None, ignore_in
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
                     yield error
-        except (EnvironmentError, AllError, ParseError) as error:
+        except (OSError, AllError, ParseError) as error:
             log.warning('Error in file %s: %s', filename, error)
             yield error
         except tk.TokenError:

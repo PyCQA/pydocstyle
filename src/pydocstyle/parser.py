@@ -55,7 +55,7 @@ class Value:
     def __repr__(self):
         kwargs = ', '.join('{}={!r}'.format(field, getattr(self, field))
                            for field in self._fields)
-        return '{}({})'.format(self.__class__.__name__, kwargs)
+        return f'{self.__class__.__name__}({kwargs})'
 
 
 class Definition(Value):
@@ -97,9 +97,9 @@ class Definition(Value):
         return ''.join(reversed(list(filtered_src)))
 
     def __str__(self):
-        out = 'in {} {} `{}`'.format(self._publicity, self._human, self.name)
+        out = f'in {self._publicity} {self._human} `{self.name}`'
         if self.skipped_error_codes:
-            out += ' (skipping {})'.format(self.skipped_error_codes)
+            out += f' (skipping {self.skipped_error_codes})'
         return out
 
 
@@ -211,7 +211,7 @@ class Method(Function):
         # Check if we are a setter/deleter method, and mark as private if so.
         for decorator in self.decorators:
             # Given 'foo', match 'foo.bar' but not 'foobar' or 'sfoo'
-            if re(r"^{}\.".format(self.name)).match(decorator.name):
+            if re(fr"^{self.name}\.").match(decorator.name):
                 return False
         name_is_public = (not self.name.startswith('_') or
                           self.name in VARIADIC_MAGIC_METHODS or
@@ -343,7 +343,7 @@ class Token(Value):
         self.kind = TokenKind(self.kind)
 
     def __str__(self):
-        return "{!r} ({})".format(self.kind, self.value)
+        return f"{self.kind!r} ({self.value})"
 
 
 class Parser:
@@ -472,8 +472,7 @@ class Parser:
                 yield self.parse_definition(class_._nest(self.current.value))
             elif self.current.kind == tk.INDENT:
                 self.consume(tk.INDENT)
-                for definition in self.parse_definitions(class_):
-                    yield definition
+                yield from self.parse_definitions(class_)
             elif self.current.kind == tk.DEDENT:
                 self.consume(tk.DEDENT)
                 return
