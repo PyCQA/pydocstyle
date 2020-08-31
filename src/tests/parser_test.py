@@ -894,6 +894,13 @@ def test_invalid_syntax(code):
         @property
         def test(): pass
     """),
+    CodeSnippet("""\
+    '''Test this'''
+
+    @first_decorator
+    @property
+    def test(): pass
+   """),
 ))
 def test_parsing_function_decorators(code):
     """Test to ensure we are correctly parsing function decorators."""
