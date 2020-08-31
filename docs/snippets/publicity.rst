@@ -10,7 +10,9 @@ Publicity for all constructs is determined as follows: a construct is
 considered *public* if -
 
 1. Its immediate parent is public *and*
-2. Its name does not contain a single leading underscore.
+2. Its name does *not* start with a single or double underscore.
+
+    a. Note, names that start and end with a double underscore are *public* (e.g. ``__init__.py``).
 
 A construct's immediate parent is the construct that contains it. For example,
 a method's parent is a class object. A class' parent is usually a module, but
@@ -24,6 +26,12 @@ private, then all of its descendants are also considered private. For example,
 a class called ``_Foo`` is considered private. A method ``bar`` in ``_Foo`` is
 also considered private since its parent is a private class, even though its
 name does not begin with a single underscore.
+
+Note, a module's parent is recursively checked upward until we reach a directory
+in ``sys.path`` to avoid considering the complete filepath of a module.
+For example, consider the module ``/_foo/bar/baz.py``.
+If ``PYTHONPATH`` is set to ``/``, then ``baz.py`` is *private*.
+If ``PYTHONPATH`` is set to ``/_foo/``, then ``baz.py`` is *public*.
 
 Modules are parsed to look if ``__all__`` is defined. If so, only those top
 level constructs are considered public. The parser looks for ``__all__``

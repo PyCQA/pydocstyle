@@ -4,18 +4,125 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+
 Current Development Version
 ---------------------------
 
 Major Updates
 
-* Support for Python 2.x and PyPy has been dropped (#340).
-* Added pre-commit hook (#346)
-* Fix parsing tuple syntax ``__all__`` (#355, #352).
+* Support for Python 3.5 has been dropped (#510).
+
+New Features
+
+* Add flag to disable `# noqa` comment processing in API (#485).
 
 Bug Fixes
 
 * Treat "package" as an imperative verb for D401 (#356).
+
+5.1.1 - August 29th, 2020
+---------------------------
+
+Bug Fixes
+
+* Fix ``IndexError`` crash on one-line backslashed docstrings (#506).
+
+5.1.0 - August 22nd, 2020
+---------------------------
+
+New Features
+
+* Skip function arguments prefixed with `_` in D417 check (#440).
+
+Bug Fixes
+
+* Update convention support documentation (#386, #393)
+* Detect inner asynchronous functions for D202 (#467)
+* Fix indentation error while parsing class methods (#441).
+* Fix a bug in parsing Google-style argument description.
+  The bug caused some argument names to go unreported in D417 (#448).
+* Fixed an issue where skipping errors on module level docstring via #noqa
+  failed when there where more prior comments (#446).
+* Support backslash-continued descriptions in docstrings (#472).
+* Correctly detect publicity of modules inside directories (#470, #494).
+
+5.0.2 - January 8th, 2020
+---------------------------
+
+Bug Fixes
+
+* Fix ``DeprecationWarning`` / ``SyntaxError`` "invalid escape sequence" with
+  Python 3.6+ (#445).
+
+5.0.1 - December 9th, 2019
+--------------------------
+
+Bug Fixes
+
+* Fixed an issue where AttributeError was raised when parsing the parameter
+  section of a class docstring (#434, #436).
+
+5.0.0 - December 9th, 2019
+--------------------------
+
+Major Updates
+
+* Support for Python 3.4 has been dropped (#402).
+
+New Features
+
+* Extend support for detecting missing arguments in Google style
+  docstrings to method calls (#384).
+* Extend support for detecting missing argument description in Numpy style
+  docstrings (#407).
+* Added support for Python 3.8 (#423).
+* Allow skipping errors on module level docstring via #noqa (#427).
+* Whitespace is ignored with set options split across multiple lines (#221).
+
+Bug Fixes
+
+* Remove D413 from the google convention (#430).
+* Remove D413 from the pep257 convention (#404).
+* Replace `semicolon` with `colon` in D416 messages. (#409)
+* D301 (Use r""" if any backslashes in a docstring) does not trigger on
+  backslashes for line continuation or unicode literals ``\u...`` and
+  ``\N...`` anymore. These are considered intended elements of the docstring
+  and thus should not be escaped by using a raw docstring (#365).
+* Fix decorator parsing (#411).
+* Google-style sections no longer cause false errors when used with
+  Numpy-style sections (#388, #424).
+* D202: Allow a blank line after function docstring when followed by
+  declaration of an inner function or class (#395, #426).
+* Fix D401 and D404 checks not working for docstrings containing only one word and ending with non-alpha character (#421)
+
+4.0.1 - August 14th, 2019
+-------------------------
+
+Bug Fixes
+
+* D401: Fixed a false positive where one stem had multiple imperative forms,
+  e.g., init and initialize / initiate (#382).
+* Fix parser hanging when there's a comment directly after ``__all__``
+  (#391, #366).
+* Fixed RST error in table which resulted in the online documentation missing
+  the violation code table (#396).
+* Fixed IndentationError when parsing function arguments (#392).
+
+4.0.0 - July 6th, 2019
+----------------------
+
+Major Updates
+
+* Support for Python 2.x and PyPy has been dropped (#340).
+* Added initial support for Google convention (#357).
+
+New Features
+
+* Added pre-commit hook (#346)
+
+Bug Fixes
+
+* Fix parsing tuple syntax ``__all__`` (#355, #352).
 
 3.0.0 - October 14th, 2018
 --------------------------

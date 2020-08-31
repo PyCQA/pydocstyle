@@ -1,10 +1,12 @@
 """Python code parser."""
 
+import sys
 import textwrap
 import tokenize as tk
 from itertools import chain, dropwhile
 from re import compile as re
 from io import StringIO
+from pathlib import Path
 
 from .utils import log
 
@@ -14,6 +16,8 @@ __all__ = ('Parser', 'Definition', 'Module', 'Package', 'Function',
 
 
 class ParseError(Exception):
+    """An error parsing contents of a Python file."""
+
     def __str__(self):
         return "Cannot parse file."
 
@@ -51,7 +55,7 @@ class Value:
     def __repr__(self):
         kwargs = ', '.join('{}={!r}'.format(field, getattr(self, field))
                            for field in self._fields)
-        return '{}({})'.format(self.__class__.__name__, kwargs)
+        return f'{self.__class__.__name__}({kwargs})'
 
 
 class Definition(Value):
@@ -93,9 +97,9 @@ class Definition(Value):
         return ''.join(reversed(list(filtered_src)))
 
     def __str__(self):
-        out = 'in {} {} `{}`'.format(self._publicity, self._human, self.name)
+        out = f'in {self._publicity} {self._human} `{self.name}`'
         if self.skipped_error_codes:
-            out += ' (skipping {})'.format(self.skipped_error_codes)
+            out += f' (skipping {self.skipped_error_codes})'
         return out
 
 
@@ -111,7 +115,40 @@ class Module(Definition):
 
     @property
     def is_public(self):
-        return not self.name.startswith('_') or self.name.startswith('__')
+        """Return True iff the module is considered public.
+
+        This helps determine if it requires a docstring.
+        """
+        module_name = Path(self.name).stem
+        return (
+            not self._is_inside_private_package() and
+            self._is_public_name(module_name)
+        )
+
+    def _is_inside_private_package(self):
+        """Return True if the module is inside a private package."""
+        path = Path(self.name).parent  # Ignore the actual module's name.
+        syspath = [Path(p) for p in sys.path]  # Convert to pathlib.Path.
+
+        # Bail if we are at the root directory or in `PYTHONPATH`.
+        while path != path.parent and path not in syspath:
+            if self._is_private_name(path.name):
+                return True
+            path = path.parent
+
+        return False
+
+    def _is_public_name(self, module_name):
+        """Determine whether a "module name" (i.e. module or package name) is public."""
+        return (
+            not module_name.startswith('_') or (
+                module_name.startswith('__') and module_name.endswith('__')
+            )
+        )
+
+    def _is_private_name(self, module_name):
+        """Determine whether a "module name" (i.e. module or package name) is private."""
+        return not self._is_public_name(module_name)
 
     def __str__(self):
         return 'at module level'
@@ -174,12 +211,20 @@ class Method(Function):
         # Check if we are a setter/deleter method, and mark as private if so.
         for decorator in self.decorators:
             # Given 'foo', match 'foo.bar' but not 'foobar' or 'sfoo'
-            if re(r"^{}\.".format(self.name)).match(decorator.name):
+            if re(fr"^{self.name}\.").match(decorator.name):
                 return False
         name_is_public = (not self.name.startswith('_') or
                           self.name in VARIADIC_MAGIC_METHODS or
                           self.is_magic)
         return self.parent.is_public and name_is_public
+
+    @property
+    def is_static(self):
+        """Return True iff the method is static."""
+        for decorator in self.decorators:
+            if decorator.name == "staticmethod":
+                return True
+        return False
 
 
 class Class(Definition):
@@ -214,6 +259,7 @@ class Docstring(str):
     the start and end of the token.
 
     """
+
     def __new__(cls, v, start, end):
         return str.__new__(cls, v)
 
@@ -260,7 +306,12 @@ class TokenStream:
         current = self._next_from_generator()
         self.current = None if current is None else Token(*current)
         self.line = self.current.start[0] if self.current else self.line
-        self.got_logical_newline = (previous.kind in self.LOGICAL_NEWLINES)
+        is_logical_blank = previous.kind in (tk.NL, tk.COMMENT)
+        self.got_logical_newline = (
+            previous.kind in self.LOGICAL_NEWLINES
+            # Retain logical_newline status if last line was logically blank
+            or (self.got_logical_newline and is_logical_blank)
+        )
         return previous
 
     def _next_from_generator(self):
@@ -292,7 +343,7 @@ class Token(Value):
         self.kind = TokenKind(self.kind)
 
     def __str__(self):
-        return "{!r} ({})".format(self.kind, self.value)
+        return f"{self.kind!r} ({self.value})"
 
 
 class Parser:
@@ -360,9 +411,9 @@ class Parser:
         return None
 
     def parse_decorators(self):
-        """Called after first @ is found.
+        """Parse decorators into self._accumulated_decorators.
 
-        Parse decorators into self._accumulated_decorators.
+        Called after first @ is found.
         Continue to do so until encountering the 'def' or 'class' start token.
         """
         name = []
@@ -421,8 +472,7 @@ class Parser:
                 yield self.parse_definition(class_._nest(self.current.value))
             elif self.current.kind == tk.INDENT:
                 self.consume(tk.INDENT)
-                for definition in self.parse_definitions(class_):
-                    yield definition
+                yield from self.parse_definitions(class_)
             elif self.current.kind == tk.DEDENT:
                 self.consume(tk.DEDENT)
                 return
@@ -487,11 +537,13 @@ class Parser:
                 self.dunder_all = None
                 self.dunder_all_error = 'Could not evaluate contents of __all__. '
                 return
+            self.stream.move()
 
     def parse_module(self):
         """Parse a module (and its children) and return a Module object."""
         self.log.debug("parsing module.")
         start = self.line
+        skipped_error_codes = self.parse_skip_comment()
         docstring = self.parse_docstring()
         children = list(self.parse_definitions(Module, dunder_all=True))
         assert self.current is None, self.current
@@ -501,7 +553,7 @@ class Parser:
             cls = Package
         module = cls(self.filename, self.source, start, end,
                      [], docstring, children, None, self.dunder_all,
-                     self.dunder_all_error, None, '')
+                     self.dunder_all_error, None, skipped_error_codes)
         for child in module.children:
             child.parent = module
         module.future_imports = self.future_imports
@@ -562,12 +614,20 @@ class Parser:
     def parse_skip_comment(self):
         """Parse a definition comment for noqa skips."""
         skipped_error_codes = ''
-        if self.current.kind == tk.COMMENT:
-            if 'noqa: ' in self.current.value:
-                skipped_error_codes = ''.join(
-                     self.current.value.split('noqa: ')[1:])
-            elif self.current.value.startswith('# noqa'):
-                skipped_error_codes = 'all'
+        while self.current.kind in (tk.COMMENT, tk.NEWLINE, tk.NL):
+            if self.current.kind == tk.COMMENT:
+                if 'noqa: ' in self.current.value:
+                    skipped_error_codes = ''.join(
+                        self.current.value.split('noqa: ')[1:])
+                elif self.current.value.startswith('# noqa'):
+                    skipped_error_codes = 'all'
+            self.stream.move()
+            self.log.debug("parsing comments before docstring, token is %r (%s)",
+                           self.current.kind, self.current.value)
+
+            if skipped_error_codes:
+                break
+
         return skipped_error_codes
 
     def check_current(self, kind=None, value=None):

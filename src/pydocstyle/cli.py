@@ -71,7 +71,7 @@ def main():
 
 
 def setup_stream_handlers(conf):
-    """Setup logging stream handlers according to the options."""
+    """Set up logging stream handlers according to the options."""
     class StdoutFilter(logging.Filter):
         def filter(self, record):
             return record.levelno in (logging.DEBUG, logging.INFO)

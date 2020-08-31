@@ -1,4 +1,5 @@
 *.py[co]
+__pycache__
 
 # Vim
 *.swp
@@ -46,9 +47,13 @@ docs/_*
 # virtualenv
 venv/
 .venvs/
+.venv/
 
 # generated rst
 docs/snippets/error_code_table.rst
 
 # PyCharm files
 .idea
+
+# VS Code
+.vscode/
