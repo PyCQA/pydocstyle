@@ -355,7 +355,8 @@ def oneliner_ignored_decorator(): """One liner"""
 
 @decorator_for_test
 @expect("D400: First line should end with a period (not 'r')")
-@expect("D415: First line should end with a period, question mark, or exclamation point (not 'r')")
+@expect("D415: First line should end with a period, question mark,"
+        " or exclamation point (not 'r')")
 def oneliner_with_decorator_expecting_errors(): """One liner"""
 
 
