@@ -343,8 +343,24 @@ def ignored_decorator(func):   # noqa: D400,D401,D415
     pass
 
 
+def decorator_for_test(func):   # noqa: D400,D401,D415
+    """Runs something"""
+    func()
+    pass
+
+
 @ignored_decorator
 def oneliner_ignored_decorator(): """One liner"""
+
+
+@decorator_for_test
+@expect("D400: First line should end with a period (not 'r')")
+@expect("D415: First line should end with a period, question mark, or exclamation point (not 'r')")
+def oneliner_with_decorator_expecting_errors(): """One liner"""
+
+
+@decorator_for_test
+def valid_oneliner_with_decorator(): """One liner."""
 
 
 @expect("D207: Docstring is under-indented")
