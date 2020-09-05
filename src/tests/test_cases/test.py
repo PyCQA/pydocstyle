@@ -56,13 +56,13 @@ def function():
 
 
 @overload
-def overloaded_func(a: str) -> str:
+def overloaded_func(a: int) -> str:
     return 2
 
 
-@expect('D103: Missing docstring in public function', arg_count=1)
-def overloaded_func(a):
-    return str(a)
+@overload
+def overloaded_func(a: str) -> str:
+    return '1'
 
 
 def overloaded_func(a):
