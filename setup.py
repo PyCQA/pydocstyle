@@ -1,8 +1,7 @@
 from setuptools import setup
-import sys
 
 # Do not update the version manually - it is managed by `bumpversion`.
-version = '5.0.3rc'
+version = '5.1.2rc'
 
 
 requirements = [
@@ -24,14 +23,14 @@ setup(
         'Environment :: Console',
         'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3 :: Only',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
     ],
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     keywords='pydocstyle, PEP 257, pep257, PEP 8, pep8, docstrings',
     packages=('pydocstyle',),
     package_dir={'': 'src'},
@@ -43,6 +42,6 @@ setup(
         ],
     },
     project_urls={
-        'Release Notes': 'http://www.pydocstyle.org/en/latest/release_notes.html',
+        'Release Notes': 'https://www.pydocstyle.org/en/latest/release_notes.html',
     },
 )
