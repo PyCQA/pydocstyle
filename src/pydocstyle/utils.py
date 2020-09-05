@@ -2,9 +2,8 @@
 import ast
 import logging
 import re
-from typing import Iterable, Any, Tuple
 from itertools import tee, zip_longest
-
+from typing import Any, Iterable, Tuple
 
 # Do not update the version manually - it is managed by `bumpversion`.
 __version__ = '5.1.2rc'

@@ -4,11 +4,11 @@ We can treat them as part of the code for the imperative mood check, and
 therefore we load them at import time, rather than on-demand.
 
 """
-import re
 import pkgutil
-import snowballstemmer
-from typing import Iterator, Dict, Set
+import re
+from typing import Dict, Iterator, Set
 
+import snowballstemmer
 
 #: Regular expression for stripping comments from the wordlists
 COMMENT_RE = re.compile(r'\s*#.*')
