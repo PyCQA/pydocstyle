@@ -683,7 +683,9 @@ class Parser:
         else:  # one-liner definition
             skipped_error_codes = ''
             docstring = self.parse_docstring()
-            decorators = []  # TODO
+            decorators = self._accumulated_decorators
+            self.log.debug("current accumulated decorators: %s", decorators)
+            self._accumulated_decorators = []
             children = []
             end = self.line
             self.leapfrog(tk.NEWLINE)
