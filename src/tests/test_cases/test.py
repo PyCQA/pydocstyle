@@ -4,6 +4,7 @@ from functools import wraps
 import os
 import sys
 from .expected import Expectation
+from typing import overload
 
 
 expectation = Expectation()
@@ -52,6 +53,21 @@ def function():
     @expect('D103: Missing docstring in public function')
     def nested():
         ''
+
+
+@overload
+def overloaded_func(a: str) -> str:
+    return 2
+
+
+@expect('D103: Missing docstring in public function', arg_count=1)
+def overloaded_func(a):
+    return str(a)
+
+
+def overloaded_func(a):
+    """Foo bar documentation."""
+    return str(a)
 
 
 @expect('D200: One-line docstring should fit on one line with quotes '
