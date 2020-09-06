@@ -13,8 +13,15 @@ log = logging.getLogger(__name__)
 NON_ALPHANUMERIC_STRIP_RE = re.compile(r'[\W_]+')
 
 
-def is_blank(string: str) -> bool:
+def is_blank(string: str, literal_eval: bool = False) -> bool:
     """Return True iff the string contains only whitespaces."""
+    if literal_eval:
+        try:
+            string = ast.literal_eval(string)
+        except ValueError:
+            # This happens in case of an fstring
+            # in which case let's return false
+            return False
     return not string.strip()
 
 

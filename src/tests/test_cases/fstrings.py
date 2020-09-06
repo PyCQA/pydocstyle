@@ -45,3 +45,8 @@ def fstring_with_other_errors(arg=1, missing_arg=2):
     This should not raise any other errors since fstrings
     are a terminal check.
     """
+
+
+@D303
+def fstring_with_blank_doc_string():
+    f"""  """

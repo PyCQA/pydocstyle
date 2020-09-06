@@ -186,8 +186,13 @@ class ConventionChecker:
             for this_check in vars(type(self)).values()
             if hasattr(this_check, '_check_for')
         ]
+        # This returns the checks in the order they are
+        # listed in the file (since py3.6) if their priority is the same
         return sorted(all, key=lambda this_check: not this_check._terminal)
 
+    # Note - this needs to be listed before other checks
+    # as f string evalutaion may cause malformed AST Nodes.
+    # So we need to run this check first and terminate early.
     @check_for(Definition, terminal=True)
     def check_docstring_fstring(self, definition, docstring):
         """D303: Docstrings may not be f-strings.
@@ -213,14 +218,11 @@ class ConventionChecker:
               with a single underscore.
 
         """
-        if _is_fstring(docstring):
-            return  # checked above in check_docstring_fstring
-
         if (
             not docstring
             and definition.is_public
             or docstring
-            and is_blank(ast.literal_eval(docstring))
+            and is_blank(docstring, literal_eval=True)
         ):
             codes = {
                 Module: violations.D100,
