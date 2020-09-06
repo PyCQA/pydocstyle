@@ -56,7 +56,7 @@ def function():
 
 @overload
 def overloaded_func(a: int) -> str:
-    return 2
+    return '2'
 
 
 @overload
