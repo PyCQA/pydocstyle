@@ -502,6 +502,35 @@ def test_bad_wildcard_add_ignore_cli(env):
             in err)
 
 
+def test_overload_function(env):
+    """Functions decorated with @overload trigger D418 error."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''\
+        from typing import overload
+
+
+        @overload
+        def overloaded_func(a: int) -> str:
+            ...
+
+
+        @overload
+        def overloaded_func(a: str) -> str:
+            """Foo bar documentation."""
+            ...
+
+
+        def overloaded_func(a):
+            """Foo bar documentation."""
+            return str(a)
+
+        '''))
+    env.write_config(ignore="D100")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D418' in out
+
+
 def test_conflicting_select_ignore_config(env):
     """Test that select and ignore are mutually exclusive."""
     env.write_config(select="D100", ignore="D101")
