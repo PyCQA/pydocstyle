@@ -3,6 +3,7 @@
 import ast
 import string
 import sys
+import textwrap
 import tokenize as tk
 from itertools import takewhile, chain
 from re import compile as re
@@ -89,18 +90,25 @@ class ConventionChecker:
     # "     random: Test" where random will be captured as the param
     # " random         : test" where random will be captured as the param
     # "  random_t (Test) : test  " where random_t will be captured as the param
+    # Matches anything that fulfills all the following conditions:
     GOOGLE_ARGS_REGEX = re(
-                        # Matches anything that fulfills all the following conditions:
-        r"^\s*"         # Begins with 0 or more whitespace characters
-        r"(\w+)"        # Followed by 1 or more unicode chars, numbers or underscores
-                        # The above is captured as the first group as this is the parameter name.
-        r"\s*"          # Followed by 0 or more whitespace characters
-        r"(\(.*?\))?"   # Matches patterns contained within round brackets.
-                        # The `.*?`matches any sequence of characters in a non-greedy
-                        # way (denoted by the `*?`)
-        r"\s*"          # Followed by 0 or more whitespace chars
-        r":"            # Followed by a colon
-        ".+"            # Followed by 1 or more characters - which is the docstring for the parameter
+        # Begins with 0 or more whitespace characters
+        r"^\s*"
+        # Followed by 1 or more unicode chars, numbers or underscores
+        # The above is captured as the first group as this is the paramater name.
+        r"(\w+)"
+        # Followed by 0 or more whitespace characters
+        r"\s*"
+        # Matches patterns contained within round brackets.
+        # The `.*?`matches any sequence of characters in a non-greedy
+        # way (denoted by the `*?`)
+        r"(\(.*?\))?"
+        # Followed by 0 or more whitespace chars
+        r"\s*"
+        # Followed by a colon
+        r":"
+        # Followed by 1 or more characters - which is the docstring for the parameter
+        ".+"
     )
 
     def check_source(self, source, filename, ignore_decorators=None, ignore_inline_noqa=False):
@@ -153,6 +161,29 @@ class ConventionChecker:
               with a single underscore.
 
         """
+        if (
+            not docstring
+            and definition.is_public
+            or docstring
+            and is_blank(ast.literal_eval(docstring))
+        ):
+            codes = {
+                Module: violations.D100,
+                Class: violations.D101,
+                NestedClass: violations.D106,
+                Method: (
+                    lambda: violations.D105()
+                    if definition.is_magic
+                    else (
+                        violations.D107()
+                        if definition.is_init
+                        else violations.D102()
+                    )
+                ),
+                Function: violations.D103,
+                NestedFunction: violations.D103,
+                Package: violations.D104,
+            }
         if (not docstring and definition.is_public or
                 docstring and is_blank(ast.literal_eval(docstring))):
             codes = {Module: violations.D100,

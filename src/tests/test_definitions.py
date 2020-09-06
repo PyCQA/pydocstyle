@@ -37,7 +37,8 @@ def test_complex_file(test_case):
                                   test_case + '.py')
     results = list(check([test_case_file],
                          select=set(ErrorRegistry.get_error_codes()),
-                         ignore_decorators=re.compile('wraps')))
+                         ignore_decorators=re.compile(
+                             'wraps|ignored_decorator')))
     for error in results:
         assert isinstance(error, Error)
     results = {(e.definition.name, e.message) for e in results}

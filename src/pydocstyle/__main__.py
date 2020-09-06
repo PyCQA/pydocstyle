@@ -12,6 +12,7 @@ __all__ = ()
 
 def main() -> None:
     from pydocstyle import cli
+
     cli.main()
 
 

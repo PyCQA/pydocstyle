@@ -2,13 +2,12 @@
 import logging
 import sys
 
+from .checker import check
+from .config import ConfigurationParser, IllegalConfiguration
 from .utils import log
 from .violations import Error
-from .config import ConfigurationParser, IllegalConfiguration
-from .checker import check
 
-
-__all__ = ('main', )
+__all__ = ('main',)
 
 
 class ReturnCode:
@@ -39,10 +38,18 @@ def run_pydocstyle():
 
     errors = []
     try:
-        for filename, checked_codes, ignore_decorators in \
-                conf.get_files_to_check():
-            errors.extend(check((filename,), select=checked_codes,
-                                ignore_decorators=ignore_decorators))
+        for (
+            filename,
+            checked_codes,
+            ignore_decorators,
+        ) in conf.get_files_to_check():
+            errors.extend(
+                check(
+                    (filename,),
+                    select=checked_codes,
+                    ignore_decorators=ignore_decorators,
+                )
+            )
     except IllegalConfiguration as error:
         # An illegal configuration file was found during file generation.
         log.error(error.args[0])
@@ -72,6 +79,7 @@ def main():
 
 def setup_stream_handlers(conf):
     """Set up logging stream handlers according to the options."""
+
     class StdoutFilter(logging.Filter):
         def filter(self, record):
             return record.levelno in (logging.DEBUG, logging.INFO)
