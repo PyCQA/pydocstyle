@@ -16,7 +16,8 @@ New Features
 
 * Add flag to disable `# noqa` comment processing in API (#485).
 * New error code D303 is emitted when an f-string is found in place of a
-  docstring.
+  docstring. Also fixes a bug where using f-strings as docstrings returned
+  ValueError: malformed node or string. (#381)
 
 Bug Fixes
 
