@@ -56,14 +56,14 @@ def function():
 
 @overload
 def overloaded_func(a: int) -> str:
-    return '2'
+    ...
 
 
 @overload
 def overloaded_func(a: str) -> str:
     # TODO(Find a way to test D418
     #  as @overload can't be passed to the @expect function)
-    return '1'
+    ...
 
 
 def overloaded_func(a):
