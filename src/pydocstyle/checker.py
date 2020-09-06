@@ -46,7 +46,6 @@ def check_for(kind, terminal=False):
     return decorator
 
 
-
 FSTRING_RE = re(r'^[rR]?[fF]')
 
 
@@ -61,7 +60,6 @@ def is_fstring(docstring):
     False
     """
     return FSTRING_RE.match(str(docstring))
-
 
 
 class ConventionChecker:
