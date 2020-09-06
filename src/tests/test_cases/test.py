@@ -61,7 +61,12 @@ def overloaded_func(a: int) -> str:
 
 @overload
 def overloaded_func(a: str) -> str:
+    """Foo bar documentation."""
     ...
+
+
+expect('overloaded_func',
+       "D418: Function decorated with @overload shouldn't contain a docstring")
 
 
 def overloaded_func(a):
