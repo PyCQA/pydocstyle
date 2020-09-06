@@ -46,20 +46,12 @@ def check_for(kind, terminal=False):
     return decorator
 
 
-FSTRING_RE = re(r'^[rR]?[fF]')
+_FSTRING_REGEX = re(r'^[rR]?[fF]')
 
 
-def is_fstring(docstring):
-    r"""Return True if docstring is an f-string.
-
-    >>> is_fstring('rf"abc"')
-    True
-    >>> is_fstring('F"abc"')
-    True
-    >>> is_fstring("u'''abc'''")
-    False
-    """
-    return FSTRING_RE.match(str(docstring))
+def _is_fstring(docstring):
+    """Return True if docstring is an f-string."""
+    return _FSTRING_REGEX.match(str(docstring))
 
 
 class ConventionChecker:
@@ -204,7 +196,7 @@ class ConventionChecker:
         and users may attempt to use them as docstrings. This is an
         outright mistake so we issue a specific error code.
         """
-        if is_fstring(docstring):
+        if _is_fstring(docstring):
             return violations.D303()
 
     @check_for(Definition, terminal=True)
@@ -221,7 +213,7 @@ class ConventionChecker:
               with a single underscore.
 
         """
-        if is_fstring(docstring):
+        if _is_fstring(docstring):
             return  # checked above in check_docstring_fstring
 
         if (

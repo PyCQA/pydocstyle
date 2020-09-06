@@ -20,6 +20,7 @@ from pydocstyle.checker import check
     'noqa',
     'sections',
     'functions',
+    'fstrings',
     'canonical_google_examples',
     'canonical_numpy_examples',
     'canonical_pep257_examples',
