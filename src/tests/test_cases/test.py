@@ -65,13 +65,13 @@ def overloaded_func(a: str) -> str:
     ...
 
 
-expect('overloaded_func',
-       "D418: Function decorated with @overload shouldn't contain a docstring")
-
-
 def overloaded_func(a):
     """Foo bar documentation."""
     return str(a)
+
+
+expect('overloaded_func',
+       "D418: Function decorated with @overload shouldn't contain a docstring")
 
 
 @expect('D200: One-line docstring should fit on one line with quotes '
