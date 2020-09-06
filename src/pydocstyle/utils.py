@@ -1,5 +1,4 @@
 """General shared utilities."""
-import ast
 import logging
 import re
 from itertools import tee, zip_longest
@@ -47,24 +46,3 @@ def common_prefix_length(a: str, b: str) -> int:
 def strip_non_alphanumeric(string: str) -> str:
     """Strip string from any non-alphanumeric characters."""
     return NON_ALPHANUMERIC_STRIP_RE.sub('', string)
-
-
-FSTRING_REGEX = re.compile(r'^([rR]?)[fF]')
-
-
-def is_fstring(docstring):
-    """Return True if docstring is an f-string."""
-    return FSTRING_REGEX.match(str(docstring))
-
-
-def safe_literal_eval(string):
-    """Safely evaluate a literal even if it is an fstring."""
-    try:
-        return ast.literal_eval(string)
-    except ValueError:
-        # In case we hit a value error due to an fstring
-        # we do a literal eval by subtituting the fstring
-        # with a normal string.
-        # We keep the first captured group if any. This includes
-        # the raw identifiers (r/R) and replace f/F with a blank.
-        return ast.literal_eval(FSTRING_REGEX.sub(r"\1", string))

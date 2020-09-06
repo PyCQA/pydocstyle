@@ -26,10 +26,8 @@ from .parser import (
 from .utils import (
     common_prefix_length,
     is_blank,
-    is_fstring,
     log,
     pairwise,
-    safe_literal_eval,
     strip_non_alphanumeric,
 )
 from .wordlists import IMPERATIVE_BLACKLIST, IMPERATIVE_VERBS, stem
@@ -44,6 +42,27 @@ def check_for(kind, terminal=False):
         return f
 
     return decorator
+
+
+FSTRING_REGEX = re(r'^([rR]?)[fF]')
+
+
+def is_fstring(docstring):
+    """Return True if docstring is an f-string."""
+    return FSTRING_REGEX.match(str(docstring))
+
+
+def safe_literal_eval(string):
+    """Safely evaluate a literal even if it is an fstring."""
+    try:
+        return ast.literal_eval(string)
+    except ValueError as error:
+        # If the docstring is a fstring, it is
+        # not considered a valid docstring. See
+        # https://bugs.python.org/issue28739
+        raise ParseError(
+            info="f-strings are not valid as docstrings."
+        ) from error
 
 
 class ConventionChecker:

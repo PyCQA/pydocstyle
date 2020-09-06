@@ -571,6 +571,21 @@ def test_empty_select_config(env):
     assert code == 0
 
 
+def test_fstring_excluded(env):
+    """Test excluding D303 fstring error."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            def foo():  # noqa: D303
+                f'''Test'''
+        """))
+
+    env.write_config(add_ignore="D100")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert out == ""
+    assert "f-strings are not valid as docstrings." in err
+
+
 def test_empty_select_with_added_error(env):
     """Test excluding all errors but one."""
     with env.open('example.py', 'wt') as example:

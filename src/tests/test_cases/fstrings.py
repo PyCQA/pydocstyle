@@ -50,8 +50,3 @@ def fstring_with_other_errors(arg=1, missing_arg=2):
 @D303
 def fstring_with_blank_doc_string():
     f"""  """
-
-
-@expect("D103: Missing docstring in public function")
-def fstring_with_ignores():  # noqa: D303
-    f"""  """
