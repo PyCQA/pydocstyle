@@ -61,6 +61,8 @@ def overloaded_func(a: int) -> str:
 
 @overload
 def overloaded_func(a: str) -> str:
+    # TODO(Find a way to test D418
+    #  as @overload can't be passed to the @expect function)
     return '1'
 
 

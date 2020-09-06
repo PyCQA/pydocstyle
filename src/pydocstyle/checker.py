@@ -213,29 +213,6 @@ class ConventionChecker:
                         else violations.D102()
                     )
                 ),
-                Function: violations.D103,
-                NestedFunction: violations.D103,
-                Package: violations.D104,
-            }
-        if (
-            not docstring
-            and definition.is_public
-            or docstring
-            and is_blank(ast.literal_eval(docstring))
-        ):
-            codes = {
-                Module: violations.D100,
-                Class: violations.D101,
-                NestedClass: violations.D106,
-                Method: (
-                    lambda: violations.D105()
-                    if definition.is_magic
-                    else (
-                        violations.D107()
-                        if definition.is_init
-                        else violations.D102()
-                    )
-                ),
                 NestedFunction: violations.D103,
                 Function: (
                     lambda: violations.D103()
@@ -570,6 +547,18 @@ class ConventionChecker:
                     return
             if first_word != first_word.capitalize():
                 return violations.D403(first_word.capitalize(), first_word)
+
+    @check_for(Function)
+    def check_if_needed(self, function, docstring):
+        """D418: Function decorated with @overload shouldn't contain a docstring.
+
+        Functions that are decorated with @overload are definitions,
+        and are for the benefit of the type checker only,
+        since they will be overwritten by the non-@overload-decorated definition.
+
+        """
+        if docstring and function.is_overload:
+            return violations.D418()
 
     @check_for(Definition)
     def check_starts_with_this(self, function, docstring):
