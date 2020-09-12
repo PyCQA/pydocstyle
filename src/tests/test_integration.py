@@ -3,7 +3,6 @@
 from collections import namedtuple
 
 import os
-import sys
 import shlex
 import shutil
 import pytest
@@ -529,6 +528,37 @@ def test_overload_function(env):
     out, err, code = env.invoke()
     assert code == 1
     assert 'D418' in out
+    assert 'D103' not in out
+
+
+def test_overload_nested_function(env):
+    """Nested functions decorated with @overload trigger D418 error."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''\
+        from typing import overload
+
+        def function_with_nesting():
+            """Valid docstring in public function."""
+            @overload
+            def overloaded_func(a: int) -> str:
+                ...
+
+
+            @overload
+            def overloaded_func(a: str) -> str:
+                """Foo bar documentation."""
+                ...
+
+
+            def overloaded_func(a):
+                """Foo bar documentation."""
+                return str(a)
+            '''))
+    env.write_config(ignore="D100")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D418' in out
+    assert 'D103' not in out
 
 
 def test_conflicting_select_ignore_config(env):

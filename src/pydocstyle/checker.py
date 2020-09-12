@@ -2,8 +2,6 @@
 
 import ast
 import string
-import sys
-import textwrap
 import tokenize as tk
 from collections import namedtuple
 from itertools import chain, takewhile
@@ -204,13 +202,15 @@ class ConventionChecker:
                 Module: violations.D100,
                 Class: violations.D101,
                 NestedClass: violations.D106,
-                Method: (
-                    lambda: violations.D105()
-                    if definition.is_magic
+                Method: lambda: violations.D105()
+                if definition.is_magic
+                else (
+                    violations.D107()
+                    if definition.is_init
                     else (
-                        violations.D107()
-                        if definition.is_init
-                        else violations.D102()
+                        violations.D102()
+                        if not definition.is_overload
+                        else None
                     )
                 ),
                 NestedFunction: violations.D103,

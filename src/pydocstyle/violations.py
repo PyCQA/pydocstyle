@@ -413,7 +413,7 @@ D417 = D4xx.create_error(
 
 D418 = D4xx.create_error(
     'D418',
-    'Function decorated with @overload shouldn\'t contain a docstring',
+    'Function/ Method decorated with @overload shouldn\'t contain a docstring',
 )
 
 
