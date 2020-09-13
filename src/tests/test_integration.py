@@ -654,6 +654,36 @@ def test_overload_nested_function(env):
     assert 'D103' not in out
 
 
+def test_overload_nested_function_valid(env):
+    """Valid case for overload decorated nested functions.
+
+    This shouldn't throw any errors.
+    """
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''\
+        from typing import overload
+
+        def function_with_nesting():
+            """Adding a docstring to a function."""
+            @overload
+            def overloaded_func(a: int) -> str:
+                ...
+
+
+            @overload
+            def overloaded_func(a: str) -> str:
+                ...
+
+
+            def overloaded_func(a):
+                """Foo bar documentation."""
+                return str(a)
+            '''))
+    env.write_config(ignore="D100")
+    out, err, code = env.invoke()
+    assert code == 0
+
+
 def test_conflicting_select_ignore_config(env):
     """Test that select and ignore are mutually exclusive."""
     env.write_config(select="D100", ignore="D101")
