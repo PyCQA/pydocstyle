@@ -20,6 +20,16 @@ Bug Fixes
 
 * Treat "package" as an imperative verb for D401 (#356).
 
+5.1.2 - September 13th, 2020
+----------------------------
+
+New Features
+
+* Methods, Functions and Nested functions that have a docstring now throw D418 (#511).
+* Methods decorated with @overload no longer reported as D102.
+* Functions and nested functions decorated with @overload no longer reported as D103.
+
+
 5.1.1 - August 29th, 2020
 ---------------------------
 
