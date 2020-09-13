@@ -1,8 +1,8 @@
 # No docstring, so we can test D100
 from functools import wraps
 import os
-import sys
 from .expected import Expectation
+from typing import overload
 
 
 expectation = Expectation()
@@ -24,6 +24,23 @@ class class_:
 
     def _ok_since_private(self=None):
         pass
+
+    @overload
+    def overloaded_method(self, a: int) -> str:
+        ...
+
+    @overload
+    def overloaded_method(self, a: str) -> str:
+        """Foo bar documentation."""
+        ...
+
+    def overloaded_method(a):
+        """Foo bar documentation."""
+        return str(a)
+
+    expect('overloaded_method',
+           "D418: Function/ Method decorated with @overload"
+           " shouldn't contain a docstring")
 
     @expect('D102: Missing docstring in public method')
     def __new__(self=None):
@@ -51,6 +68,48 @@ def function():
     @expect('D103: Missing docstring in public function')
     def nested():
         ''
+
+
+def function_with_nesting():
+    """Foo bar documentation."""
+    @overload
+    def nested_overloaded_func(a: int) -> str:
+        ...
+
+    @overload
+    def nested_overloaded_func(a: str) -> str:
+        """Foo bar documentation."""
+        ...
+
+    def nested_overloaded_func(a):
+        """Foo bar documentation."""
+        return str(a)
+
+
+expect('nested_overloaded_func',
+       "D418: Function/ Method decorated with @overload"
+       " shouldn't contain a docstring")
+
+
+@overload
+def overloaded_func(a: int) -> str:
+    ...
+
+
+@overload
+def overloaded_func(a: str) -> str:
+    """Foo bar documentation."""
+    ...
+
+
+def overloaded_func(a):
+    """Foo bar documentation."""
+    return str(a)
+
+
+expect('overloaded_func',
+       "D418: Function/ Method decorated with @overload"
+       " shouldn't contain a docstring")
 
 
 @expect('D200: One-line docstring should fit on one line with quotes '
