@@ -15,6 +15,7 @@ Major Updates
 New Features
 
 * Add flag to disable `# noqa` comment processing in API (#485).
+* Fix the parsing of decorated one line functions (#499).
 * Methods, Functions and Nested functions that have a docstring now throw D418 (#511).
 * Methods decorated with @overload no longer reported as D102 (#511).
 * Functions and nested functions decorated with @overload no longer reported as D103 (#511).
