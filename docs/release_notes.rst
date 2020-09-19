@@ -22,6 +22,7 @@ New Features
 Bug Fixes
 
 * Treat "package" as an imperative verb for D401 (#356).
+* Fix the parsing of decorated one line functions (#499).
 
 5.1.2 - September 13th, 2020
 ----------------------------
