@@ -415,6 +415,11 @@ D417 = D4xx.create_error(
     'argument(s) {0} are missing descriptions in {1!r} docstring',
 )
 
+D418 = D4xx.create_error(
+    'D418',
+    'Function/ Method decorated with @overload shouldn\'t contain a docstring',
+)
+
 
 class AttrDict(dict):
     def __getattr__(self, item: str) -> Any:
@@ -445,6 +450,7 @@ conventions = AttrDict(
             'D415',
             'D416',
             'D417',
+            'D418',
         },
         'numpy': all_errors
         - {

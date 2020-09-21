@@ -215,6 +215,14 @@ class Function(Definition):
             return not self.name.startswith('_')
 
     @property
+    def is_overload(self):
+        """Return True iff the method decorated with overload."""
+        for decorator in self.decorators:
+            if decorator.name == "overload":
+                return True
+        return False
+
+    @property
     def is_test(self):
         """Return True if this function is a test function/method.
 

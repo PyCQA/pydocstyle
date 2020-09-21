@@ -18,10 +18,25 @@ New Features
 * New error code D303 is emitted when an f-string is found in place of a
   docstring. Also fixes a bug where using f-strings as docstrings returned
   ValueError: malformed node or string. (#381)
+* Methods, Functions and Nested functions that have a docstring now throw D418 (#511).
+* Methods decorated with @overload no longer reported as D102 (#511).
+* Functions and nested functions decorated with @overload no longer reported as D103 (#511).
+
 
 Bug Fixes
 
 * Treat "package" as an imperative verb for D401 (#356).
+* Fix the parsing of decorated one line functions (#499).
+
+5.1.2 - September 13th, 2020
+----------------------------
+
+New Features
+
+* Methods, Functions and Nested functions that have a docstring now throw D418 (#511).
+* Methods decorated with @overload no longer reported as D102.
+* Functions and nested functions decorated with @overload no longer reported as D103.
+
 
 5.1.1 - August 29th, 2020
 ---------------------------
