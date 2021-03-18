@@ -10,6 +10,7 @@ import pathlib
 import tempfile
 import textwrap
 import subprocess
+import sys
 
 from unittest import mock
 
@@ -107,9 +108,13 @@ def install_package(request):
     script.
     """
     cwd = os.path.join(os.path.dirname(__file__), '..', '..')
-    subprocess.check_call(shlex.split("pip install -e ."), cwd=cwd)
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "install", "-e", "."], cwd=cwd
+    )
     yield
-    subprocess.check_call(shlex.split("pip uninstall -y pydocstyle"), cwd=cwd)
+    subprocess.check_call(
+        [sys.executable, "-m", "pip", "uninstall", "-y", "pydocstyle"], cwd=cwd
+    )
 
 
 @pytest.yield_fixture(scope="function")
@@ -226,7 +231,7 @@ def test_run_as_named_module():
     """
     # Add --match='' so that no files are actually checked (to make sure that
     # the return code is 0 and to reduce execution time).
-    cmd = shlex.split("python -m pydocstyle --match=''")
+    cmd = [sys.executable, "-m", "pydocstyle", "--match=''"]
     p = subprocess.Popen(cmd,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
