@@ -69,12 +69,14 @@ class ConfigurationParser:
         'add-ignore',
         'match',
         'match-dir',
+        'match-path',
         'ignore-decorators',
     )
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
     DEFAULT_MATCH_RE = r'(?!test_).*\.py'
     DEFAULT_MATCH_DIR_RE = r'[^\.].*'
+    DEFAULT_MATCH_PATH_RE = [r'[^\.].*']
     DEFAULT_IGNORE_DECORATORS_RE = ''
     DEFAULT_CONVENTION = conventions.pep257
 
@@ -149,6 +151,13 @@ class ConfigurationParser:
             match_dir_func = re(conf.match_dir + '$').match
             return match_func, match_dir_func
 
+        def _get_path_matches(conf):
+            """Return a list of `match_path` regexes."""
+            matches = conf.match_path
+            if isinstance(matches, str):
+                matches = matches.split()
+            return [re(x) for x in matches]
+
         def _get_ignore_decorators(conf):
             """Return the `ignore_decorators` as None or regex."""
             return (
@@ -160,14 +169,22 @@ class ConfigurationParser:
                 for root, dirs, filenames in os.walk(name):
                     config = self._get_config(os.path.abspath(root))
                     match, match_dir = _get_matches(config)
+                    match_paths = _get_path_matches(config)
                     ignore_decorators = _get_ignore_decorators(config)
 
                     # Skip any dirs that do not match match_dir
                     dirs[:] = [d for d in dirs if match_dir(d)]
 
                     for filename in filenames:
+                        full_path = os.path.join(root, filename)
+                        relative_posix = os.path.normpath(
+                            os.path.relpath(full_path, start=name)
+                        ).replace(os.path.sep, "/")
+                        if not any(
+                            x.match(relative_posix) for x in match_paths
+                        ):
+                            continue
                         if match(filename):
-                            full_path = os.path.join(root, filename)
                             yield (
                                 full_path,
                                 list(config.checked_codes),
@@ -176,7 +193,11 @@ class ConfigurationParser:
             else:
                 config = self._get_config(os.path.abspath(name))
                 match, _ = _get_matches(config)
+                match_paths = _get_path_matches(config)
                 ignore_decorators = _get_ignore_decorators(config)
+                posix = os.path.normpath(name).replace(os.path.sep, "/")
+                if not any(x.match(posix) for x in match_paths):
+                    continue
                 if match(name):
                     yield (name, list(config.checked_codes), ignore_decorators)
 
@@ -283,7 +304,6 @@ class ConfigurationParser:
             cli_val = getattr(self._override_by_cli, attr)
             conf_val = getattr(config, attr)
             final_config[attr] = cli_val if cli_val is not None else conf_val
-
         config = CheckConfiguration(**final_config)
 
         self._set_add_options(config.checked_codes, self._options)
@@ -371,7 +391,7 @@ class ConfigurationParser:
         self._set_add_options(error_codes, child_options)
 
         kwargs = dict(checked_codes=error_codes)
-        for key in ('match', 'match_dir', 'ignore_decorators'):
+        for key in ('match', 'match_dir', 'match_path', 'ignore_decorators'):
             kwargs[key] = getattr(child_options, key) or getattr(
                 parent_config, key
             )
@@ -405,7 +425,7 @@ class ConfigurationParser:
             checked_codes = cls._get_checked_errors(options)
 
         kwargs = dict(checked_codes=checked_codes)
-        for key in ('match', 'match_dir', 'ignore_decorators'):
+        for key in ('match', 'match_dir', 'match_path', 'ignore_decorators'):
             kwargs[key] = (
                 getattr(cls, f'DEFAULT_{key.upper()}_RE')
                 if getattr(options, key) is None and use_defaults
@@ -721,6 +741,16 @@ class ConfigurationParser:
                 "a dot"
             ).format(cls.DEFAULT_MATCH_DIR_RE),
         )
+        option(
+            '--match-path',
+            metavar='<pattern>',
+            default=None,
+            nargs="+",
+            help=(
+                "search only paths that exactly match <pattern> regular "
+                "expressions. Can take multiple values."
+            ),
+        )
 
         # Decorators
         option(
@@ -743,7 +773,7 @@ class ConfigurationParser:
 # Check configuration - used by the ConfigurationParser class.
 CheckConfiguration = namedtuple(
     'CheckConfiguration',
-    ('checked_codes', 'match', 'match_dir', 'ignore_decorators'),
+    ('checked_codes', 'match', 'match_dir', 'match_path', 'ignore_decorators'),
 )
 
 
