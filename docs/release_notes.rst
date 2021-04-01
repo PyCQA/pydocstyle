@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+New Features
+
+* Add --match-path which operates over relative paths (#529)
+
 
 6.0.0 - March 18th, 2021
 ---------------------------
