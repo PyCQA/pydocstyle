@@ -2,10 +2,12 @@
 
 import copy
 import itertools
+import operator
 import os
 from collections import namedtuple
 from collections.abc import Set
 from configparser import NoOptionError, NoSectionError, RawConfigParser
+from functools import reduce
 from re import compile as re
 
 import toml
@@ -29,7 +31,7 @@ class TomlParser:
     """ConfigParser that partially mimics RawConfigParser but for toml files.
 
     See RawConfigParser for more info. Also, please note that not all
-    RawConfigParser functionality is implemented, but only the subset, that is
+    RawConfigParser functionality is implemented, but only the subset that is
     currently used by pydocstyle.
     """
 
@@ -64,13 +66,14 @@ class TomlParser:
         return read_ok
 
     def _get_section(self, section, allow_none=False):
-        current = self._config
-        for p in section.split('.'):
-            if isinstance(current, dict) and p in current:
-                current = current[p]
-            else:
-                current = None
-                break
+        try:
+            current = reduce(
+                operator.getitem,
+                section.split('.'),
+                self._config,
+            )
+        except KeyError:
+            current = None
 
         if isinstance(current, dict):
             return current
@@ -86,8 +89,6 @@ class TomlParser:
     def options(self, section):
         """Return a list of option names for the given section name."""
         current = self._get_section(section)
-        # current = current.copy()
-        # current.update(self._defaults)
         return list(current.keys())
 
     def get(self, section, option, *, _conv=None):

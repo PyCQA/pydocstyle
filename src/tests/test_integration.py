@@ -59,7 +59,7 @@ class SandboxEnv:
         if name.endswith('.toml'):
             def convert_value(val):
                 if isinstance(val, bool):
-                    return {True: 'true', False: 'false'}[val]
+                    return repr(val).lower()
                 else:
                     return repr(val)
         else:
