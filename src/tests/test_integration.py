@@ -32,12 +32,19 @@ class SandboxEnv:
 
     Result = namedtuple('Result', ('out', 'err', 'code'))
 
-    def __init__(self, script_name='pydocstyle'):
+    def __init__(
+        self,
+        script_name='pydocstyle',
+        section_name='pydocstyle',
+        config_name='tox.ini',
+    ):
         """Initialize the object."""
         self.tempdir = None
         self.script_name = script_name
+        self.section_name = section_name
+        self.config_name = config_name
 
-    def write_config(self, prefix='', name='tox.ini', **kwargs):
+    def write_config(self, prefix='', name=None, **kwargs):
         """Change an environment config file.
 
         Applies changes to `tox.ini` relative to `tempdir/prefix`.
@@ -48,10 +55,23 @@ class SandboxEnv:
         if not os.path.isdir(base):
             self.makedirs(base)
 
+        name = self.config_name if name is None else name
+        if name.endswith('.toml'):
+            def convert_value(val):
+                if isinstance(val, bool):
+                    return {True: 'true', False: 'false'}[val]
+                else:
+                    return repr(val)
+        else:
+            def convert_value(val):
+                return val
+
         with open(os.path.join(base, name), 'wt') as conf:
-            conf.write(f"[{self.script_name}]\n")
+            conf.write(f"[{self.section_name}]\n")
             for k, v in kwargs.items():
-                conf.write("{} = {}\n".format(k.replace('_', '-'), v))
+                conf.write("{} = {}\n".format(
+                    k.replace('_', '-'), convert_value(v)
+                ))
 
     def open(self, path, *args, **kwargs):
         """Open a file in the environment.
