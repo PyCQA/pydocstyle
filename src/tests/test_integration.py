@@ -137,10 +137,20 @@ def install_package(request):
     )
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.yield_fixture(scope="function", params=['ini', 'toml'])
 def env(request):
     """Add a testing environment to a test method."""
-    with SandboxEnv() as test_env:
+    sandbox_settings = {
+        'ini': {
+            'section_name': 'pydocstyle',
+            'config_name': 'tox.ini',
+        },
+        'toml': {
+            'section_name': 'tool.pydocstyle',
+            'config_name': 'pyproject.toml',
+        },
+    }[request.param]
+    with SandboxEnv(**sandbox_settings) as test_env:
         yield test_env
 
 
