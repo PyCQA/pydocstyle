@@ -5,8 +5,10 @@ import itertools
 import os
 from collections import namedtuple
 from collections.abc import Set
-from configparser import RawConfigParser
+from configparser import NoOptionError, NoSectionError, RawConfigParser
 from re import compile as re
+
+import toml
 
 from .utils import __version__, log
 from .violations import ErrorRegistry, conventions
@@ -21,6 +23,98 @@ def check_initialized(method):
         return method(self, *args, **kwargs)
 
     return _decorator
+
+
+class TomlParser:
+    """ConfigParser that partially mimics RawConfigParser but for toml files.
+
+    See RawConfigParser for more info. Also, please note that not all
+    RawConfigParser functionality is implemented, but only the subset, that is
+    currently used by pydocstyle.
+    """
+
+    def __init__(self):
+        """Create a toml parser."""
+        self._config = {}
+
+    def read(self, filenames, encoding=None):
+        """Read and parse a filename or an iterable of filenames.
+
+        Files that cannot be opened are silently ignored; this is
+        designed so that you can specify an iterable of potential
+        configuration file locations (e.g. current directory, user's
+        home directory, systemwide directory), and all existing
+        configuration files in the iterable will be read.  A single
+        filename may also be given.
+
+        Return list of successfully read files.
+        """
+        if isinstance(filenames, (str, bytes, os.PathLike)):
+            filenames = [filenames]
+        read_ok = []
+        for filename in filenames:
+            try:
+                with open(filename, encoding=encoding) as fp:
+                    self._config.update(toml.load(fp))
+            except OSError:
+                continue
+            if isinstance(filename, os.PathLike):
+                filename = os.fspath(filename)
+            read_ok.append(filename)
+        return read_ok
+
+    def _get_section(self, section, allow_none=False):
+        current = self._config
+        for p in section.split('.'):
+            if isinstance(current, dict) and p in current:
+                current = current[p]
+            else:
+                current = None
+                break
+
+        if isinstance(current, dict):
+            return current
+        elif allow_none:
+            return None
+        else:
+            raise NoSectionError(section)
+
+    def has_section(self, section):
+        """Indicate whether the named section is present in the configuration."""
+        return self._get_section(section, allow_none=True) is not None
+
+    def options(self, section):
+        """Return a list of option names for the given section name."""
+        current = self._get_section(section)
+        # current = current.copy()
+        # current.update(self._defaults)
+        return list(current.keys())
+
+    def get(self, section, option, *, _conv=None):
+        """Get an option value for a given section."""
+        d = self._get_section(section)
+        option = option.lower()
+        try:
+            value = d[option]
+        except KeyError:
+            raise NoOptionError(option, section)
+
+        # toml should convert types automatically
+        # don't manually convert, just check, that the type is correct
+        if _conv is not None and not isinstance(value, _conv):
+            raise TypeError(
+                f"The type of {section}.{option} should be {_conv}"
+            )
+
+        return value
+
+    def getboolean(self, section, option):
+        """Get a boolean option value for a given section."""
+        return self.get(section, option, _conv=bool)
+
+    def getint(self, section, option):
+        """Get an integer option value for a given section."""
+        return self.get(section, option, _conv=int)
 
 
 class ConfigurationParser:
