@@ -6,6 +6,7 @@ version = '6.0.1rc'
 
 requirements = [
     'snowballstemmer',
+    'toml',
 ]
 
 
