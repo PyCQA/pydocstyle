@@ -179,6 +179,7 @@ class ConfigurationParser:
         '.pydocstyle.ini',
         '.pydocstylerc',
         '.pydocstylerc.ini',
+        'pyproject.toml',
         # The following is deprecated, but remains for backwards compatibility.
         '.pep257',
     )
@@ -404,7 +405,10 @@ class ConfigurationParser:
         Returns (options, should_inherit).
 
         """
-        parser = RawConfigParser(inline_comment_prefixes=('#', ';'))
+        if path.endswith('.toml'):
+            parser = TomlParser()
+        else:
+            parser = RawConfigParser(inline_comment_prefixes=('#', ';'))
         options = None
         should_inherit = True
 
@@ -527,7 +531,10 @@ class ConfigurationParser:
             path = os.path.dirname(path)
 
         for fn in cls.PROJECT_CONFIG_FILES:
-            config = RawConfigParser(inline_comment_prefixes=('#', ';'))
+            if fn.endswith('.toml'):
+                config = TomlParser()
+            else:
+                config = RawConfigParser(inline_comment_prefixes=('#', ';'))
             full_path = os.path.join(path, fn)
             if config.read(full_path) and cls._get_section_name(config):
                 return full_path
