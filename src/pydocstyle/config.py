@@ -433,7 +433,7 @@ class ConfigurationParser:
             path = os.path.dirname(path)
 
         for fn in cls.PROJECT_CONFIG_FILES:
-            config = RawConfigParser()
+            config = RawConfigParser(inline_comment_prefixes=('#', ';'))
             full_path = os.path.join(path, fn)
             if config.read(full_path) and cls._get_section_name(config):
                 return full_path
