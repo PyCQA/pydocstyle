@@ -653,8 +653,10 @@ class ConfigurationParser:
             file.
 
             """
+            if not isinstance(value_str, list):
+                value_str = value_str.split(",")
             return cls._expand_error_codes(
-                {x.strip() for x in value_str.split(",")} - {""}
+                {x.strip() for x in value_str} - {""}
             )
 
         for opt in optional_set_options:
