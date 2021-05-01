@@ -363,6 +363,31 @@ def test_multiple_lined_config_file(env):
     assert 'D103' not in out
 
 
+@pytest.mark.parametrize(
+    # Don't parametrize over 'tox.ini' since
+    # this test applies only to '.toml' files
+    'env', ['toml'], indirect=True
+)
+def test_accepts_select_error_code_list(env):
+    """Test that .ini files with multi-lined entries are parsed correctly."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            class Foo(object):
+                "Doc string"
+                def foo():
+                    pass
+        """))
+
+    env.write_config(select=['D100', 'D204', 'D300'])
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+    assert 'D204' in out
+    assert 'D300' in out
+    assert 'D103' not in out
+
+
 def test_config_path(env):
     """Test that options are correctly loaded from a specific config file.
 
@@ -520,6 +545,21 @@ def test_ignores_whitespace_in_fixed_option_set(env):
     with env.open('example.py', 'wt') as example:
         example.write("class Foo(object):\n    'Doc string'")
     env.write_config(ignore="D100,\n  # comment\n  D300")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D300' not in out
+    assert err == ''
+
+
+@pytest.mark.parametrize(
+    # Don't parametrize over 'tox.ini' since
+    # this test applies only to '.toml' files
+    'env', ['toml'], indirect=True
+)
+def test_accepts_ignore_error_code_list(env):
+    with env.open('example.py', 'wt') as example:
+        example.write("class Foo(object):\n    'Doc string'")
+    env.write_config(ignore=['D100', 'D300'])
     out, err, code = env.invoke()
     assert code == 1
     assert 'D300' not in out
