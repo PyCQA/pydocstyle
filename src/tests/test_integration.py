@@ -335,6 +335,11 @@ def test_sectionless_config_file(env):
     assert 'file does not contain a pydocstyle section' not in err
 
 
+@pytest.mark.parametrize(
+    # Don't parametrize over 'pyproject.toml'
+    # since this test applies only to '.ini' files
+    'env', ['ini'], indirect=True
+)
 def test_multiple_lined_config_file(env):
     """Test that .ini files with multi-lined entries are parsed correctly."""
     with env.open('example.py', 'wt') as example:
@@ -506,6 +511,11 @@ def test_wildcard_add_ignore_cli(env):
     assert 'D300' not in out
 
 
+@pytest.mark.parametrize(
+    # Don't parametrize over 'pyproject.toml'
+    # since this test applies only to '.ini' files
+    'env', ['ini'], indirect=True
+)
 def test_ignores_whitespace_in_fixed_option_set(env):
     with env.open('example.py', 'wt') as example:
         example.write("class Foo(object):\n    'Doc string'")
