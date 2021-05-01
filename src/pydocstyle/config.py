@@ -184,7 +184,7 @@ class ConfigurationParser:
         '.pep257',
     )
 
-    POSSIBLE_SECTION_NAMES = ('pydocstyle', 'pep257')
+    POSSIBLE_SECTION_NAMES = ('pydocstyle', 'pep257', 'tool.pydocstyle')
 
     def __init__(self):
         """Create a configuration parser."""
