@@ -58,10 +58,11 @@ class SandboxEnv:
         name = self.config_name if name is None else name
         if name.endswith('.toml'):
             def convert_value(val):
-                if isinstance(val, bool):
-                    return repr(val).lower()
-                else:
-                    return repr(val)
+                return (
+                    repr(val).lower()
+                    if isinstance(val, bool)
+                    else repr(val)
+                )
         else:
             def convert_value(val):
                 return val

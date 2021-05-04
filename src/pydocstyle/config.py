@@ -100,6 +100,11 @@ class TomlParser:
         except KeyError:
             raise NoOptionError(option, section)
 
+        if isinstance(value, dict):
+            raise TypeError(
+                f"Expected {section}.{option} to be an option, not a section."
+            )
+
         # toml should convert types automatically
         # don't manually convert, just check, that the type is correct
         if _conv is not None and not isinstance(value, _conv):
@@ -654,7 +659,7 @@ class ConfigurationParser:
             file.
 
             """
-            if not isinstance(value_str, list):
+            if isinstance(value_str, str):
                 value_str = value_str.split(",")
             return cls._expand_error_codes(
                 {x.strip() for x in value_str} - {""}
