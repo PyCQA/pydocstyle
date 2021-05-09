@@ -402,8 +402,12 @@ def test_config_path(env):
                 pass
         """))
 
+    # either my_config.ini or my_config.toml
+    config_ext = env.config_name.split('.')[-1]
+    config_name = 'my_config.' + config_ext
+
     env.write_config(ignore='D100')
-    env.write_config(name='my_config', ignore='D103')
+    env.write_config(name=config_name, ignore='D103')
 
     out, err, code = env.invoke()
     assert code == 1
@@ -411,7 +415,7 @@ def test_config_path(env):
     assert 'D103' in out
 
     out, err, code = env.invoke('--config={} -d'
-                                .format(env.get_path('my_config')))
+                                .format(env.get_path(config_name)))
     assert code == 1, out + err
     assert 'D100' in out
     assert 'D103' not in out
