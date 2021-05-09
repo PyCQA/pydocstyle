@@ -70,7 +70,7 @@ class TomlParser:
             current = reduce(
                 operator.getitem,
                 section.split('.'),
-                self._config,
+                self._config['tool'],
             )
         except KeyError:
             current = None
@@ -190,7 +190,7 @@ class ConfigurationParser:
         '.pep257',
     )
 
-    POSSIBLE_SECTION_NAMES = ('pydocstyle', 'pep257', 'tool.pydocstyle')
+    POSSIBLE_SECTION_NAMES = ('pydocstyle', 'pep257')
 
     def __init__(self):
         """Create a configuration parser."""
