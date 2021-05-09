@@ -10,10 +10,13 @@ from configparser import NoOptionError, NoSectionError, RawConfigParser
 from functools import reduce
 from re import compile as re
 
-import toml
-
 from .utils import __version__, log
 from .violations import ErrorRegistry, conventions
+
+try:
+    import toml
+except ImportError:  # pragma: no cover
+    toml = None  # type: ignore
 
 
 def check_initialized(method):
@@ -57,6 +60,13 @@ class TomlParser:
         for filename in filenames:
             try:
                 with open(filename, encoding=encoding) as fp:
+                    if not toml:
+                        log.warning(
+                            "The %s configuration file was ignored, "
+                            "because the `toml` package is not installed.",
+                            filename,
+                        )
+                        continue
                     self._config.update(toml.load(fp))
             except OSError:
                 continue
