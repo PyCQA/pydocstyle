@@ -7,6 +7,9 @@ version = '6.0.1rc'
 requirements = [
     'snowballstemmer',
 ]
+extra_requirements = {
+    'toml': ['toml'],
+}
 
 
 setup(
@@ -36,6 +39,7 @@ setup(
     package_dir={'': 'src'},
     package_data={'pydocstyle': ['data/*.txt']},
     install_requires=requirements,
+    extras_require=extra_requirements,
     entry_points={
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',

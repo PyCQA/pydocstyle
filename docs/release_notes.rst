@@ -4,6 +4,12 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+New Features
+
+* Enable full toml configuration and pyproject.toml (#534).
 
 6.0.0 - March 18th, 2021
 ---------------------------
