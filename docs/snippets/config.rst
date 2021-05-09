@@ -1,6 +1,6 @@
-``pydocstyle`` supports *ini*-like configuration files.
-In order for ``pydocstyle`` to use it, it must be named one of the following
-options, and have a ``[pydocstyle]`` section.
+``pydocstyle`` supports *ini*-like and *toml* configuration files.
+In order for ``pydocstyle`` to use a configuration file automatically, it must
+be named one of the following options.
 
 * ``setup.cfg``
 * ``tox.ini``
@@ -8,11 +8,20 @@ options, and have a ``[pydocstyle]`` section.
 * ``.pydocstyle.ini``
 * ``.pydocstylerc``
 * ``.pydocstylerc.ini``
+* ``pyproject.toml``
 
 When searching for a configuration file, ``pydocstyle`` looks for one of the
-file specified above *in that exact order*. If a configuration file was not
-found, it keeps looking for one up the directory tree until one is found or
-uses the default configuration.
+file specified above *in that exact order*. *ini*-like configuration files must
+have a ``[pydocstyle]`` section while *toml* configuration files must have a
+``[tool.pydocstyle]`` section. If a configuration file was not found,
+``pydocstyle`` keeps looking for one up the directory tree until one is found
+or uses the default configuration.
+
+.. note::
+
+    *toml* configuration file support is only enabled if the ``toml`` python
+    package is installed. You can ensure that this is the case by installing
+    the ``pydocstyle[toml]`` optional dependency.
 
 .. note::
 
