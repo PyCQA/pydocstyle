@@ -8,6 +8,9 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Bug Fixes
+
+* Split ``--source`` by lines instead of by characters (#536).
 
 6.1.0 - May 17th, 2021
 ---------------------------
