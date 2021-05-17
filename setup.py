@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # Do not update the version manually - it is managed by `bumpversion`.
-version = '6.1.0'
+version = '7.0.0rc'
 
 
 requirements = [
