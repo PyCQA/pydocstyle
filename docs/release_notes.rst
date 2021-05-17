@@ -5,6 +5,14 @@ Release Notes
 `Semantic Versioning <http://semver.org/>`_ specification.
 
 
+Current Development Version
+---------------------------
+
+Major Updates
+
+* Support for Python 3.6 has been dropped (#539).
+
+
 6.1.0 - May 17th, 2021
 ---------------------------
 
