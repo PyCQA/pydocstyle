@@ -6,7 +6,7 @@ from itertools import tee, zip_longest
 from typing import Any, Iterable, Tuple
 
 # Do not update the version manually - it is managed by `bumpversion`.
-__version__ = '7.0.0rc'
+__version__ = '6.1.1rc'
 log = logging.getLogger(__name__)
 
 #: Regular expression for stripping non-alphanumeric characters
