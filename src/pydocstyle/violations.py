@@ -63,7 +63,7 @@ class Error:
         if self.definition is None:
             return ''
         source = ''
-        lines = self.definition.source
+        lines = self.definition.source.splitlines(keepends=True)
         offset = self.definition.start  # type: ignore
         lines_stripped = list(
             reversed(list(dropwhile(is_blank, reversed(lines))))
