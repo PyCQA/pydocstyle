@@ -8,6 +8,9 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Bug Fixes
+
+* Properties no longer cause D401
 
 6.1.1 - May 17th, 2021
 ---------------------------
