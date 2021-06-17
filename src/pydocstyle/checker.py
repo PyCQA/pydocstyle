@@ -500,7 +500,7 @@ class ConventionChecker:
         "Returns the pathname ...".
 
         """
-        if docstring and not function.is_test:
+        if docstring and not function.is_test and not function.is_property:
             stripped = ast.literal_eval(docstring).strip()
             if stripped:
                 first_word = strip_non_alphanumeric(stripped.split()[0])

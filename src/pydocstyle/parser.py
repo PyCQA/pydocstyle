@@ -219,6 +219,14 @@ class Function(Definition):
         return False
 
     @property
+    def is_property(self):
+        """Return True iff the method decorated with property."""
+        for decorator in self.decorators:
+            if "property" in decorator.name:
+                return True
+        return False
+
+    @property
     def is_test(self):
         """Return True if this function is a test function/method.
 
