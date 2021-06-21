@@ -502,7 +502,12 @@ class ConfigurationParser:
         self._set_add_options(error_codes, child_options)
 
         kwargs = dict(checked_codes=error_codes)
-        for key in ('match', 'match_dir', 'ignore_decorators', 'property_decorators'):
+        for key in (
+            'match',
+            'match_dir',
+            'ignore_decorators',
+            'property_decorators',
+        ):
             kwargs[key] = getattr(child_options, key) or getattr(
                 parent_config, key
             )
@@ -536,9 +541,15 @@ class ConfigurationParser:
             checked_codes = cls._get_checked_errors(options)
 
         kwargs = dict(checked_codes=checked_codes)
-        for key in ('match', 'match_dir', 'ignore_decorators', 'property_decorators'):
+        defaults = {
+            'match': "DEFAULT_MATCH_RE",
+            'match_dir': "MATCH_DIR_RE",
+            'ignore_decorators': "IGNORE_DECORATORS_RE",
+            'property_decorators': "PROPERTY_DECORATORS",
+        }
+        for key, default in defaults.items():
             kwargs[key] = (
-                getattr(cls, f'DEFAULT_{key.upper()}_RE')
+                getattr(cls, f"DEFAULT_{default}")
                 if getattr(options, key) is None and use_defaults
                 else getattr(options, key)
             )
