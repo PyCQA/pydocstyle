@@ -42,12 +42,14 @@ def run_pydocstyle():
             filename,
             checked_codes,
             ignore_decorators,
+            property_decorators,
         ) in conf.get_files_to_check():
             errors.extend(
                 check(
                     (filename,),
                     select=checked_codes,
                     ignore_decorators=ignore_decorators,
+                    property_decorators=property_decorators,
                 )
             )
     except IllegalConfiguration as error:

@@ -186,6 +186,7 @@ class ConfigurationParser:
     DEFAULT_MATCH_RE = r'(?!test_).*\.py'
     DEFAULT_MATCH_DIR_RE = r'[^\.].*'
     DEFAULT_IGNORE_DECORATORS_RE = ''
+    DEFAULT_PROPERTY_DECORATORS = "property,cached_property"
     DEFAULT_CONVENTION = conventions.pep257
 
     PROJECT_CONFIG_FILES = (
@@ -266,12 +267,21 @@ class ConfigurationParser:
                 re(conf.ignore_decorators) if conf.ignore_decorators else None
             )
 
+        def _get_property_decorators(conf):
+            """Return the `property_decorators` as None or set."""
+            return (
+                set(conf.property_decorators.split(","))
+                if conf.proprety_decorators
+                else None
+            )
+
         for name in self._arguments:
             if os.path.isdir(name):
                 for root, dirs, filenames in os.walk(name):
                     config = self._get_config(os.path.abspath(root))
                     match, match_dir = _get_matches(config)
                     ignore_decorators = _get_ignore_decorators(config)
+                    property_decorators = _get_property_decorators(config)
 
                     # Skip any dirs that do not match match_dir
                     dirs[:] = [d for d in dirs if match_dir(d)]
@@ -283,13 +293,20 @@ class ConfigurationParser:
                                 full_path,
                                 list(config.checked_codes),
                                 ignore_decorators,
+                                property_decorators,
                             )
             else:
                 config = self._get_config(os.path.abspath(name))
                 match, _ = _get_matches(config)
                 ignore_decorators = _get_ignore_decorators(config)
+                property_decorators = _get_property_decorators(config)
                 if match(name):
-                    yield (name, list(config.checked_codes), ignore_decorators)
+                    yield (
+                        name,
+                        list(config.checked_codes),
+                        ignore_decorators,
+                        property_decorators,
+                    )
 
     # --------------------------- Private Methods -----------------------------
 
@@ -485,7 +502,7 @@ class ConfigurationParser:
         self._set_add_options(error_codes, child_options)
 
         kwargs = dict(checked_codes=error_codes)
-        for key in ('match', 'match_dir', 'ignore_decorators'):
+        for key in ('match', 'match_dir', 'ignore_decorators', 'property_decorators'):
             kwargs[key] = getattr(child_options, key) or getattr(
                 parent_config, key
             )
@@ -519,7 +536,7 @@ class ConfigurationParser:
             checked_codes = cls._get_checked_errors(options)
 
         kwargs = dict(checked_codes=checked_codes)
-        for key in ('match', 'match_dir', 'ignore_decorators'):
+        for key in ('match', 'match_dir', 'ignore_decorators', 'property_decorators'):
             kwargs[key] = (
                 getattr(cls, f'DEFAULT_{key.upper()}_RE')
                 if getattr(options, key) is None and use_defaults
@@ -855,6 +872,19 @@ class ConfigurationParser:
                 )
             ),
         )
+        option(
+            '--property-decorators',
+            metavar='<property-decorators>',
+            default=None,
+            help=(
+                "consider any method decorated with one of these "
+                "decorators as a property, and consequently allow "
+                "a docstring which is not in imperative mood; default "
+                "is --property-decorators='{}'".format(
+                    cls.DEFAULT_PROPERTY_DECORATORS
+                )
+            ),
+        )
 
         return parser
 
@@ -862,7 +892,13 @@ class ConfigurationParser:
 # Check configuration - used by the ConfigurationParser class.
 CheckConfiguration = namedtuple(
     'CheckConfiguration',
-    ('checked_codes', 'match', 'match_dir', 'ignore_decorators'),
+    (
+        'checked_codes',
+        'match',
+        'match_dir',
+        'ignore_decorators',
+        'property_decorators',
+    ),
 )
 
 

@@ -44,6 +44,7 @@ Available options are:
 * ``match``
 * ``match_dir``
 * ``ignore_decorators``
+* ``property_decorators``
 
 See the :ref:`cli_usage` section for more information.
 
