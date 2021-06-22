@@ -542,7 +542,7 @@ class ConfigurationParser:
 
         kwargs = dict(checked_codes=checked_codes)
         defaults = {
-            'match': "DEFAULT_MATCH_RE",
+            'match': "MATCH_RE",
             'match_dir': "MATCH_DIR_RE",
             'ignore_decorators': "IGNORE_DECORATORS_RE",
             'property_decorators': "PROPERTY_DECORATORS",
