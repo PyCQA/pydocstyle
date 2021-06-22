@@ -271,7 +271,7 @@ class ConfigurationParser:
             """Return the `property_decorators` as None or set."""
             return (
                 set(conf.property_decorators.split(","))
-                if conf.proprety_decorators
+                if conf.property_decorators
                 else None
             )
 
