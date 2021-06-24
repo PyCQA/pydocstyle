@@ -186,7 +186,7 @@ class ConfigurationParser:
     DEFAULT_MATCH_RE = r'(?!test_).*\.py'
     DEFAULT_MATCH_DIR_RE = r'[^\.].*'
     DEFAULT_IGNORE_DECORATORS_RE = ''
-    DEFAULT_PROPERTY_DECORATORS = "property,cached_property"
+    DEFAULT_PROPERTY_DECORATORS = "property,cached_property,functools.cached_property"
     DEFAULT_CONVENTION = conventions.pep257
 
     PROJECT_CONFIG_FILES = (
