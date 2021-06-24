@@ -5,6 +5,9 @@ import re
 import pytest
 from pydocstyle.violations import Error, ErrorRegistry
 from pydocstyle.checker import check
+from pydocstyle.config import ConfigurationParser
+
+DEFAULT_PROPERTY_DECORATORS = ConfigurationParser.DEFAULT_PROPERTY_DECORATORS
 
 
 @pytest.mark.parametrize('test_case', [
@@ -40,7 +43,7 @@ def test_complex_file(test_case):
             [test_case_file],
             select=set(ErrorRegistry.get_error_codes()),
             ignore_decorators=re.compile('wraps|ignored_decorator'),
-            property_decorators="property,cached_property,functools.cached_property",
+            property_decorators=DEFAULT_PROPERTY_DECORATORS,
         )
     )
     for error in results:
