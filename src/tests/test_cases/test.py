@@ -1,5 +1,6 @@
 # No docstring, so we can test D100
-from functools import wraps
+import functools
+from functools import cached_property, wraps
 import os
 from .expected import Expectation
 from typing import overload
@@ -46,6 +47,16 @@ class class_:
     def foo(self):
         """The foo of the thing, which isn't in imperitive mood."""
         return "hello"
+
+    @cached_property
+    def bar(self):
+        """The bar of the thing, which also isn't in imperitive mood."""
+        return "bye"
+
+    @functools.cached_property
+    def foobar(self):
+        """The foobar of the thing; not in imperitive mood."""
+        return "hello again"
 
     @expect('D102: Missing docstring in public method')
     def __new__(self=None):
