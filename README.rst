@@ -21,6 +21,10 @@ pydocstyle - docstring style checker
 .. image:: https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336
     :target: https://pycqa.github.io/isort/
 
+.. image:: https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod
+    :target: https://gitpod.io/#https://github.com/PyCQA/pydocstyle
+    :alt: Gitpod ready-to-code
+
 **pydocstyle** is a static analysis tool for checking compliance with Python
 docstring conventions.
 
@@ -43,7 +47,7 @@ Install
 
 
 Run
-^^^^
+^^^
 
 .. code::
 
@@ -56,6 +60,14 @@ Run
         D201: No blank lines allowed before function docstring (found 1)
     ...
 
+Develop
+^^^^^^^
+
+You can use Gitpod to run pre-configured dev envrionment in the cloud right from your browser -
+
+.. image:: https://gitpod.io/button/open-in-gitpod.svg
+    :target: https://gitpod.io/#https://github.com/PyCQA/pydocstyle
+    :alt: Open in Gitpod
 
 Links
 -----
