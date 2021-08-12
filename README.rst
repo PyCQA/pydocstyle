@@ -68,6 +68,8 @@ You can use Gitpod to run pre-configured dev envrionment in the cloud right from
 .. image:: https://gitpod.io/button/open-in-gitpod.svg
     :target: https://gitpod.io/#https://github.com/PyCQA/pydocstyle
     :alt: Open in Gitpod
+    
+Before submitting a PR make sure that you run `make all`.
 
 Links
 -----
