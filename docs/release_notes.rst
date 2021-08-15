@@ -33,9 +33,13 @@ Major Updates
 New Features
 
 * Add flag to disable `# noqa` comment processing in API (#485).
+* New error code D303 is emitted when an f-string is found in place of a
+  docstring. Also fixes a bug where using f-strings as docstrings returned
+  ValueError: malformed node or string. (#381)
 * Methods, Functions and Nested functions that have a docstring now throw D418 (#511).
 * Methods decorated with @overload no longer reported as D102 (#511).
 * Functions and nested functions decorated with @overload no longer reported as D103 (#511).
+
 
 Bug Fixes
 

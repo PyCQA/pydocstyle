@@ -44,6 +44,27 @@ def check_for(kind, terminal=False):
     return decorator
 
 
+FSTRING_REGEX = re(r'^([rR]?)[fF]')
+
+
+def is_fstring(docstring):
+    """Return True if docstring is an f-string."""
+    return FSTRING_REGEX.match(str(docstring))
+
+
+def safe_literal_eval(string):
+    """Safely evaluate a literal even if it is an fstring."""
+    try:
+        return ast.literal_eval(string)
+    except ValueError as error:
+        # If the docstring is a fstring, it is
+        # not considered a valid docstring. See
+        # https://bugs.python.org/issue28739
+        raise ParseError(
+            info="f-strings are not valid as docstrings."
+        ) from error
+
+
 class ConventionChecker:
     """Checker for PEP 257, NumPy and Google conventions.
 
@@ -176,7 +197,23 @@ class ConventionChecker:
             for this_check in vars(type(self)).values()
             if hasattr(this_check, '_check_for')
         ]
+        # This returns the checks in the order they are
+        # listed in the file (since py3.6) if their priority is the same
         return sorted(all, key=lambda this_check: not this_check._terminal)
+
+    # Note - this needs to be listed before other checks
+    # as f string evalutaion may cause malformed AST Nodes.
+    # So we need to run this check first and terminate early.
+    @check_for(Definition, terminal=True)
+    def check_docstring_fstring(self, definition, docstring):
+        """D303: Docstrings may not be f-strings.
+
+        f-strings are not treated as string literals, but they look similar
+        and users may attempt to use them as docstrings. This is an
+        outright mistake so we issue a specific error code.
+        """
+        if is_fstring(docstring):
+            return violations.D303()
 
     @check_for(Definition, terminal=True)
     def check_docstring_missing(self, definition, docstring):
@@ -196,7 +233,7 @@ class ConventionChecker:
             not docstring
             and definition.is_public
             or docstring
-            and is_blank(ast.literal_eval(docstring))
+            and is_blank(safe_literal_eval(docstring))
         ):
             codes = {
                 Module: violations.D100,
@@ -232,7 +269,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            lines = ast.literal_eval(docstring).split('\n')
+            lines = safe_literal_eval(docstring).split('\n')
             if len(lines) > 1:
                 non_empty_lines = sum(1 for l in lines if not is_blank(l))
                 if non_empty_lines == 1:
@@ -308,7 +345,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            lines = ast.literal_eval(docstring).strip().split('\n')
+            lines = safe_literal_eval(docstring).strip().split('\n')
             if len(lines) > 1:
                 post_summary_blanks = list(map(is_blank, lines[1:]))
                 blanks_count = sum(takewhile(bool, post_summary_blanks))
@@ -361,7 +398,7 @@ class ConventionChecker:
         if docstring:
             lines = [
                 l
-                for l in ast.literal_eval(docstring).split('\n')
+                for l in safe_literal_eval(docstring).split('\n')
                 if not is_blank(l)
             ]
             if len(lines) > 1:
@@ -372,7 +409,7 @@ class ConventionChecker:
     def check_surrounding_whitespaces(self, definition, docstring):
         """D210: No whitespaces allowed surrounding docstring text."""
         if docstring:
-            lines = ast.literal_eval(docstring).split('\n')
+            lines = safe_literal_eval(docstring).split('\n')
             if (
                 lines[0].startswith(' ')
                 or len(lines) == 1
@@ -400,7 +437,7 @@ class ConventionChecker:
                 "ur'''",
             ]
 
-            lines = ast.literal_eval(docstring).split('\n')
+            lines = safe_literal_eval(docstring).split('\n')
             if len(lines) > 1:
                 first = docstring.split("\n")[0].strip().lower()
                 if first in start_triple:
@@ -422,7 +459,7 @@ class ConventionChecker:
 
         '''
         if docstring:
-            if '"""' in ast.literal_eval(docstring):
+            if '"""' in safe_literal_eval(docstring):
                 # Allow ''' quotes if docstring contains """, because
                 # otherwise """ quotes could not be expressed inside
                 # docstring. Not in PEP 257.
@@ -466,7 +503,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
+            summary_line = safe_literal_eval(docstring).strip().split('\n')[0]
             if not summary_line.endswith(chars):
                 return violation(summary_line[-1])
 
@@ -501,7 +538,7 @@ class ConventionChecker:
 
         """
         if docstring and not function.is_test:
-            stripped = ast.literal_eval(docstring).strip()
+            stripped = safe_literal_eval(docstring).strip()
             if stripped:
                 first_word = strip_non_alphanumeric(stripped.split()[0])
                 check_word = first_word.lower()
@@ -527,7 +564,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            first_line = ast.literal_eval(docstring).strip().split('\n')[0]
+            first_line = safe_literal_eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
                 return violations.D402()
 
@@ -539,7 +576,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            first_word = ast.literal_eval(docstring).split()[0]
+            first_word = safe_literal_eval(docstring).split()[0]
             if first_word == first_word.upper():
                 return
             for char in first_word:
@@ -571,7 +608,7 @@ class ConventionChecker:
         if not docstring:
             return
 
-        stripped = ast.literal_eval(docstring).strip()
+        stripped = safe_literal_eval(docstring).strip()
         if not stripped:
             return
 

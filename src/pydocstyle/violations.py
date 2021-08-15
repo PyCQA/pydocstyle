@@ -312,6 +312,10 @@ D302 = D3xx.create_error(
     'D302',
     'Deprecated: Use u""" for Unicode docstrings',
 )
+D303 = D3xx.create_error(
+    'D303',
+    'f-strings are not valid as docstrings',
+)
 
 D4xx = ErrorRegistry.create_group('D4', 'Docstring Content Issues')
 D400 = D4xx.create_error(

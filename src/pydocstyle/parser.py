@@ -30,8 +30,12 @@ __all__ = (
 class ParseError(Exception):
     """An error parsing contents of a Python file."""
 
+    def __init__(self, info=""):
+        """Initialize the error with a more specific message."""
+        self.info = info
+
     def __str__(self):
-        return "Cannot parse file."
+        return f"Cannot parse file. {self.info}".strip()
 
 
 class UnexpectedTokenError(ParseError):
