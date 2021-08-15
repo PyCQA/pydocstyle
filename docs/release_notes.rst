@@ -8,9 +8,9 @@ Release Notes
 Current Development Version
 ---------------------------
 
-Bug Fixes
+New Features
 
-* Properties no longer cause D401
+* Add support for `property_decorators` config to ignore  D401
 
 6.1.1 - May 17th, 2021
 ---------------------------
