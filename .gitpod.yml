@@ -1,0 +1,15 @@
+
+tasks:
+  - init: pip install -r requirements.txt && pip install -e .
+
+github:
+  prebuilds:
+    master: true
+    branches: true
+    pullRequests: true
+    pullRequestsFromForks: true
+    addCheck: true
+
+vscode:
+  extensions:
+    - ms-python.python

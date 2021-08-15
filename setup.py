@@ -1,12 +1,15 @@
 from setuptools import setup
 
 # Do not update the version manually - it is managed by `bumpversion`.
-version = '6.0.1rc'
+version = '6.1.2rc'
 
 
 requirements = [
     'snowballstemmer',
 ]
+extra_requirements = {
+    'toml': ['toml'],
+}
 
 
 setup(
@@ -26,6 +29,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3 :: Only',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
@@ -36,6 +40,7 @@ setup(
     package_dir={'': 'src'},
     package_data={'pydocstyle': ['data/*.txt']},
     install_requires=requirements,
+    extras_require=extra_requirements,
     entry_points={
         'console_scripts': [
             'pydocstyle = pydocstyle.cli:main',

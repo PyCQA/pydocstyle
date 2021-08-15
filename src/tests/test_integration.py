@@ -32,12 +32,19 @@ class SandboxEnv:
 
     Result = namedtuple('Result', ('out', 'err', 'code'))
 
-    def __init__(self, script_name='pydocstyle'):
+    def __init__(
+        self,
+        script_name='pydocstyle',
+        section_name='pydocstyle',
+        config_name='tox.ini',
+    ):
         """Initialize the object."""
         self.tempdir = None
         self.script_name = script_name
+        self.section_name = section_name
+        self.config_name = config_name
 
-    def write_config(self, prefix='', name='tox.ini', **kwargs):
+    def write_config(self, prefix='', name=None, **kwargs):
         """Change an environment config file.
 
         Applies changes to `tox.ini` relative to `tempdir/prefix`.
@@ -48,10 +55,24 @@ class SandboxEnv:
         if not os.path.isdir(base):
             self.makedirs(base)
 
+        name = self.config_name if name is None else name
+        if name.endswith('.toml'):
+            def convert_value(val):
+                return (
+                    repr(val).lower()
+                    if isinstance(val, bool)
+                    else repr(val)
+                )
+        else:
+            def convert_value(val):
+                return val
+
         with open(os.path.join(base, name), 'wt') as conf:
-            conf.write(f"[{self.script_name}]\n")
+            conf.write(f"[{self.section_name}]\n")
             for k, v in kwargs.items():
-                conf.write("{} = {}\n".format(k.replace('_', '-'), v))
+                conf.write("{} = {}\n".format(
+                    k.replace('_', '-'), convert_value(v)
+                ))
 
     def open(self, path, *args, **kwargs):
         """Open a file in the environment.
@@ -117,10 +138,20 @@ def install_package(request):
     )
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.yield_fixture(scope="function", params=['ini', 'toml'])
 def env(request):
     """Add a testing environment to a test method."""
-    with SandboxEnv() as test_env:
+    sandbox_settings = {
+        'ini': {
+            'section_name': 'pydocstyle',
+            'config_name': 'tox.ini',
+        },
+        'toml': {
+            'section_name': 'tool.pydocstyle',
+            'config_name': 'pyproject.toml',
+        },
+    }[request.param]
+    with SandboxEnv(**sandbox_settings) as test_env:
         yield test_env
 
 
@@ -305,6 +336,11 @@ def test_sectionless_config_file(env):
     assert 'file does not contain a pydocstyle section' not in err
 
 
+@pytest.mark.parametrize(
+    # Don't parametrize over 'pyproject.toml'
+    # since this test applies only to '.ini' files
+    'env', ['ini'], indirect=True
+)
 def test_multiple_lined_config_file(env):
     """Test that .ini files with multi-lined entries are parsed correctly."""
     with env.open('example.py', 'wt') as example:
@@ -328,6 +364,31 @@ def test_multiple_lined_config_file(env):
     assert 'D103' not in out
 
 
+@pytest.mark.parametrize(
+    # Don't parametrize over 'tox.ini' since
+    # this test applies only to '.toml' files
+    'env', ['toml'], indirect=True
+)
+def test_accepts_select_error_code_list(env):
+    """Test that .ini files with multi-lined entries are parsed correctly."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            class Foo(object):
+                "Doc string"
+                def foo():
+                    pass
+        """))
+
+    env.write_config(select=['D100', 'D204', 'D300'])
+
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D100' in out
+    assert 'D204' in out
+    assert 'D300' in out
+    assert 'D103' not in out
+
+
 def test_config_path(env):
     """Test that options are correctly loaded from a specific config file.
 
@@ -341,8 +402,12 @@ def test_config_path(env):
                 pass
         """))
 
+    # either my_config.ini or my_config.toml
+    config_ext = env.config_name.split('.')[-1]
+    config_name = 'my_config.' + config_ext
+
     env.write_config(ignore='D100')
-    env.write_config(name='my_config', ignore='D103')
+    env.write_config(name=config_name, ignore='D103')
 
     out, err, code = env.invoke()
     assert code == 1
@@ -350,7 +415,7 @@ def test_config_path(env):
     assert 'D103' in out
 
     out, err, code = env.invoke('--config={} -d'
-                                .format(env.get_path('my_config')))
+                                .format(env.get_path(config_name)))
     assert code == 1, out + err
     assert 'D100' in out
     assert 'D103' not in out
@@ -476,10 +541,30 @@ def test_wildcard_add_ignore_cli(env):
     assert 'D300' not in out
 
 
+@pytest.mark.parametrize(
+    # Don't parametrize over 'pyproject.toml'
+    # since this test applies only to '.ini' files
+    'env', ['ini'], indirect=True
+)
 def test_ignores_whitespace_in_fixed_option_set(env):
     with env.open('example.py', 'wt') as example:
         example.write("class Foo(object):\n    'Doc string'")
     env.write_config(ignore="D100,\n  # comment\n  D300")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D300' not in out
+    assert err == ''
+
+
+@pytest.mark.parametrize(
+    # Don't parametrize over 'tox.ini' since
+    # this test applies only to '.toml' files
+    'env', ['toml'], indirect=True
+)
+def test_accepts_ignore_error_code_list(env):
+    with env.open('example.py', 'wt') as example:
+        example.write("class Foo(object):\n    'Doc string'")
+    env.write_config(ignore=['D100', 'D300'])
     out, err, code = env.invoke()
     assert code == 1
     assert 'D300' not in out

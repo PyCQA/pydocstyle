@@ -12,6 +12,24 @@ New Features
 * Add --match-path which operates over relative paths (#529)
 
 
+Current Development Version
+---------------------------
+
+
+6.1.1 - May 17th, 2021
+---------------------------
+
+Bug Fixes
+
+* Split ``--source`` by lines instead of by characters (#536).
+
+6.1.0 - May 17th, 2021
+---------------------------
+
+New Features
+
+* Enable full toml configuration and pyproject.toml (#534).
+
 6.0.0 - March 18th, 2021
 ---------------------------
 
