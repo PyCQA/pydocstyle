@@ -131,8 +131,12 @@ class ConventionChecker:
         source,
         filename,
         ignore_decorators=None,
+        property_decorators=None,
         ignore_inline_noqa=False,
     ):
+        self.property_decorators = (
+            {} if property_decorators is None else property_decorators
+        )
         module = parse(StringIO(source), filename)
         for definition in module:
             for this_check in self.checks:
@@ -500,7 +504,11 @@ class ConventionChecker:
         "Returns the pathname ...".
 
         """
-        if docstring and not function.is_test:
+        if (
+            docstring
+            and not function.is_test
+            and not function.is_property(self.property_decorators)
+        ):
             stripped = ast.literal_eval(docstring).strip()
             if stripped:
                 first_word = strip_non_alphanumeric(stripped.split()[0])
@@ -1040,6 +1048,7 @@ def check(
     select=None,
     ignore=None,
     ignore_decorators=None,
+    property_decorators=None,
     ignore_inline_noqa=False,
 ):
     """Generate docstring errors that exist in `filenames` iterable.
@@ -1092,7 +1101,11 @@ def check(
             with tk.open(filename) as file:
                 source = file.read()
             for error in ConventionChecker().check_source(
-                source, filename, ignore_decorators, ignore_inline_noqa
+                source,
+                filename,
+                ignore_decorators,
+                property_decorators,
+                ignore_inline_noqa,
             ):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:

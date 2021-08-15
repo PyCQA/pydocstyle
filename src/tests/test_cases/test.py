@@ -42,6 +42,11 @@ class class_:
            "D418: Function/ Method decorated with @overload"
            " shouldn't contain a docstring")
 
+    @property
+    def foo(self):
+        """The foo of the thing, which isn't in imperitive mood."""
+        return "hello"
+
     @expect('D102: Missing docstring in public method')
     def __new__(self=None):
         pass

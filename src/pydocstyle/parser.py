@@ -213,10 +213,16 @@ class Function(Definition):
     @property
     def is_overload(self):
         """Return True iff the method decorated with overload."""
-        for decorator in self.decorators:
-            if decorator.name == "overload":
-                return True
-        return False
+        return any(
+            decorator.name == "overload" for decorator in self.decorators
+        )
+
+    def is_property(self, property_decorator_names):
+        """Return True if the method is decorated with any property decorator."""
+        return any(
+            decorator.name in property_decorator_names
+            for decorator in self.decorators
+        )
 
     @property
     def is_test(self):
