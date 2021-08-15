@@ -1393,6 +1393,69 @@ def test_config_file_nearest_match_re(env):
     assert code == 0
 
 
+def test_config_file_nearest_match_path(env):
+    r"""Test that the `match-path` option is handled correctly.
+
+    env_base
+    +-- tox.ini
+    |   This configuration will set `convention=pep257` and
+    |   `match_path=A/[BC]/[bc]\.py\n           A/D/bla.py`.
+    +-- A
+        +-- B
+        |   +-- b.py
+        |       Will violate D100,D103.
+        +-- C
+        |   +-- c.py
+        |   |   Will violate D100,D103.
+        |   +-- bla.py
+        |       Will violate D100.
+        +-- D
+            +-- c.py
+            |   Will violate D100,D103.
+            +-- bla.py
+                Will violate D100.
+
+    We expect the call to pydocstyle to fail, and since we run with verbose the
+    output should contain `A/B/b.py`, `A/C/c.py` and `A/D/bla.py` but not the
+    others.
+    """
+    env.write_config(convention='pep257')
+    env.write_config(match_path='A/[BC]/[bc]\.py\n           A/D/bla.py')
+
+    content = textwrap.dedent("""\
+        def foo():
+            pass
+    """)
+
+    env.makedirs(os.path.join('A', 'B'))
+    env.makedirs(os.path.join('A', 'C'))
+    env.makedirs(os.path.join('A', 'D'))
+    with env.open(os.path.join('A', 'B', 'b.py'), 'wt') as test:
+        test.write(content)
+
+    with env.open(os.path.join('A', 'C', 'c.py'), 'wt') as test:
+        test.write(content)
+
+    with env.open(os.path.join('A', 'C', 'bla.py'), 'wt') as test:
+        test.write('')
+
+    with env.open(os.path.join('A', 'D', 'c.py'), 'wt') as test:
+        test.write(content)
+
+    with env.open(os.path.join('A', 'D', 'bla.py'), 'wt') as test:
+        test.write('')
+
+    out, _, code = env.invoke(args="--verbose")
+
+    assert os.path.join("A", "B", "b.py") in out
+    assert os.path.join("A", "C", "c.py") in out
+    assert os.path.join("A", "C", "bla.py") not in out
+    assert os.path.join("A", "D", "c.py") not in out
+    assert os.path.join("A", "D", "bla.py") in out
+
+    assert code == 1
+
+
 def test_syntax_error_multiple_files(env):
     """Test that a syntax error in a file doesn't prevent further checking."""
     for filename in ('first.py', 'second.py'):
