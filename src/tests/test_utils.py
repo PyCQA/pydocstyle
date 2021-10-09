@@ -1,6 +1,6 @@
 """Unit test for pydocstyle utils.
 
-Use tox or py.test to run the test suite.
+Use tox or pytest to run the test suite.
 """
 from pydocstyle import utils
 
