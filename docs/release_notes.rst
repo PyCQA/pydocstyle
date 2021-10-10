@@ -10,7 +10,8 @@ Current Development Version
 
 New Features
 
-* Add support for `property_decorators` config to ignore  D401
+* Add support for `property_decorators` config to ignore D401.
+* Add support for Python 3.10 (#554).
 
 Bug Fixes
 
