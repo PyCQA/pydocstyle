@@ -960,12 +960,13 @@ class ConventionChecker:
         if capitalized_section in ("Args", "Arguments"):
             yield from cls._check_args_section(docstring, definition, context)
 
-    @staticmethod
-    def _get_section_contexts(lines, valid_section_names):
+    @classmethod
+    def _get_section_contexts(cls, lines, valid_section_names):
         """Generate `SectionContext` objects for valid sections.
 
         Given a list of `valid_section_names`, generate an
         `Iterable[SectionContext]` which provides:
+            * Convention
             * Section Name
             * String value of the previous line
             * The section line
@@ -976,6 +977,14 @@ class ConventionChecker:
 
         """
         lower_section_names = [s.lower() for s in valid_section_names]
+
+        convention = (
+            'numpy'
+            if valid_section_names == cls.NUMPY_SECTION_NAMES
+            else 'google'
+            if valid_section_names == cls.GOOGLE_SECTION_NAMES
+            else 'unknown'
+        )
 
         def _suspected_as_section(_line):
             result = get_leading_words(_line.lower())
@@ -989,6 +998,7 @@ class ConventionChecker:
         SectionContext = namedtuple(
             'SectionContext',
             (
+                'convention',
                 'section_name',
                 'previous_line',
                 'line',
@@ -1002,6 +1012,7 @@ class ConventionChecker:
         # `following_lines` member is until the end of the docstring.
         contexts = (
             SectionContext(
+                convention,
                 get_leading_words(lines[i].strip()),
                 lines[i - 1],
                 lines[i],
@@ -1022,6 +1033,7 @@ class ConventionChecker:
         for a, b in pairwise(contexts, None):
             end = -1 if b is None else b.original_index
             yield SectionContext(
+                convention,
                 a.section_name,
                 a.previous_line,
                 a.line,
@@ -1030,10 +1042,33 @@ class ConventionChecker:
                 b is None,
             )
 
-    def _check_numpy_sections(self, lines, definition, docstring):
-        """NumPy-style docstring sections checks.
+    @classmethod
+    def _get_section_contexts_autodetect(cls, docstring):
+        """Generate `SectionContext` objects for valid sections.
 
-        Check the general format of a sectioned docstring:
+        Generate `Iterable[SectionContext]` as in `_get_section_contexts`, but
+        auto-detecting the docstring convention, with preference for 'numpy'.
+        """
+        if not docstring:
+            return
+        lines = docstring.split("\n")
+        if len(lines) < 2:
+            return
+        found_numpy = False
+        for ctx in cls._get_section_contexts(lines, cls.NUMPY_SECTION_NAMES):
+            found_numpy = True
+            yield ctx
+        if found_numpy:
+            return
+        for ctx in cls._get_section_contexts(lines, cls.GOOGLE_SECTION_NAMES):
+            yield ctx
+
+    @check_for(Definition)
+    def check_docstring_sections(self, definition, docstring):
+        """Check for docstring sections.
+
+        If a Numpy section is found, check the
+        general format of a sectioned Numpy docstring:
             '''This is my one-liner.
 
             Short Summary
@@ -1046,21 +1081,10 @@ class ConventionChecker:
 
             '''
 
-        Section names appear in `NUMPY_SECTION_NAMES`.
         Yields all violation from `_check_numpy_section` for each valid
-        Numpy-style section.
-        """
-        found_any_numpy_section = False
-        for ctx in self._get_section_contexts(lines, self.NUMPY_SECTION_NAMES):
-            found_any_numpy_section = True
-            yield from self._check_numpy_section(docstring, definition, ctx)
+        Numpy-style section (as listed in `NUMPY_SECTION_NAMES`).
 
-        return found_any_numpy_section
-
-    def _check_google_sections(self, lines, definition, docstring):
-        """Google-style docstring section checks.
-
-        Check the general format of a sectioned docstring:
+        Otherwise, check the general format of a sectioned Google docstring:
             '''This is my one-liner.
 
             Note:
@@ -1071,32 +1095,18 @@ class ConventionChecker:
 
             '''
 
-        Section names appear in `GOOGLE_SECTION_NAMES`.
         Yields all violation from `_check_google_section` for each valid
-        Google-style section.
+        Google-style section (as listed in `GOOGLE_SECTION_NAMES`).
         """
-        for ctx in self._get_section_contexts(
-            lines, self.GOOGLE_SECTION_NAMES
-        ):
-            yield from self._check_google_section(docstring, definition, ctx)
-
-    @check_for(Definition)
-    def check_docstring_sections(self, definition, docstring):
-        """Check for docstring sections."""
-        if not docstring:
-            return
-
-        lines = docstring.split("\n")
-        if len(lines) < 2:
-            return
-
-        found_numpy = yield from self._check_numpy_sections(
-            lines, definition, docstring
-        )
-        if not found_numpy:
-            yield from self._check_google_sections(
-                lines, definition, docstring
-            )
+        for ctx in self._get_section_contexts_autodetect(docstring):
+            if ctx.convention == 'numpy':
+                yield from self._check_numpy_section(
+                    docstring, definition, ctx
+                )
+            elif ctx.convention == 'google':
+                yield from self._check_google_section(
+                    docstring, definition, ctx
+                )
 
 
 parse = Parser()
