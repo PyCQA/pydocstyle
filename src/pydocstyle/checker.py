@@ -521,6 +521,9 @@ class ConventionChecker:
         "Returns the pathname ...".
 
         """
+        ctxs = list(self._get_section_contexts_autodetect(docstring))
+        if ctxs and ctxs[0].is_docstring_start:
+            return
         if (
             docstring
             and not function.is_test
@@ -605,6 +608,16 @@ class ConventionChecker:
             return violations.D404()
 
     @staticmethod
+    def _is_at_docstring_start(context):
+        """Return whether a `SectionContext` occurs at the start of a docstring."""
+        return context.original_index == 1 and context.previous_line in [
+            '"',
+            "'",
+            '"""',
+            "'''",
+        ]
+
+    @staticmethod
     def _is_docstring_section(context):
         """Check if the suspected context is really a section header.
 
@@ -656,7 +669,9 @@ class ConventionChecker:
         )
 
         prev_line_looks_like_end_of_paragraph = (
-            prev_line_ends_with_punctuation or is_blank(context.previous_line)
+            prev_line_ends_with_punctuation
+            or is_blank(context.previous_line)
+            or context.is_docstring_start
         )
 
         return (
@@ -766,7 +781,10 @@ class ConventionChecker:
             else:
                 yield violations.D410(capitalized_section)
 
-        if not is_blank(context.previous_line):
+        if (
+            not is_blank(context.previous_line)
+            and not context.is_docstring_start
+        ):
             yield violations.D411(capitalized_section)
 
         yield from cls._check_blanks_and_section_underline(
@@ -1004,6 +1022,7 @@ class ConventionChecker:
                 'line',
                 'following_lines',
                 'original_index',
+                'is_docstring_start',
                 'is_last_section',
             ),
         )
@@ -1019,14 +1038,17 @@ class ConventionChecker:
                 lines[i + 1 :],
                 i,
                 False,
+                False,
             )
             for i in suspected_section_indices
         )
+        contexts = (
+            c._replace(is_docstring_start=cls._is_at_docstring_start(c))
+            for c in contexts
+        )
 
         # Now that we have manageable objects - rule out false positives.
-        contexts = (
-            c for c in contexts if ConventionChecker._is_docstring_section(c)
-        )
+        contexts = (c for c in contexts if cls._is_docstring_section(c))
 
         # Now we shall trim the `following lines` field to only reach the
         # next section name.
@@ -1039,6 +1061,7 @@ class ConventionChecker:
                 a.line,
                 lines[a.original_index + 1 : end],
                 a.original_index,
+                a.is_docstring_start,
                 b is None,
             )
 

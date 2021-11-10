@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+next
+----
+
+Bug Fixes
+
+* No longer emit D401 for sections at the start of docstrings (#556).
+
 6.3.0 - January 17th, 2023
 --------------------------
 
