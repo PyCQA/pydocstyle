@@ -167,10 +167,10 @@ class TestMethod:
                                dunder_all, None, None, '')
 
         cls = parser.Class('ClassName', source, 0, 1, [],
-                           'Docstring for class', children, module, '')
+                           'Docstring for class', children, [], module, '')
 
         return parser.Method(name, source, 0, 1, [],
-                             'Docstring for method', children, cls, '')
+                             'Docstring for method', children, [], cls, '')
 
     def test_is_public_normal(self):
         """Test that methods are normally public, even if decorated."""

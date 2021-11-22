@@ -89,6 +89,7 @@ class Definition(Value):
         'decorators',
         'docstring',
         'children',
+        'call_names',
         'parent',
         'skipped_error_codes',
     )  # type: Tuple[str, ...]
@@ -234,6 +235,11 @@ class Function(Definition):
 
         """
         return self.name.startswith('test') or self.name == 'runTest'
+
+    @property
+    def param_names(self):
+        """Return the parameter names."""
+        return self.call_names
 
 
 class NestedFunction(Function):
@@ -665,8 +671,10 @@ class Parser:
         name = self.current.value
         self.log.debug("parsing %s '%s'", class_.__name__, name)
         self.stream.move()
+        call_names = []
         if self.current.kind == tk.OP and self.current.value == '(':
             parenthesis_level = 0
+            in_default_arg = False
             while True:
                 if self.current.kind == tk.OP:
                     if self.current.value == '(':
@@ -675,6 +683,15 @@ class Parser:
                         parenthesis_level -= 1
                         if parenthesis_level == 0:
                             break
+                    elif self.current.value == ',':
+                        in_default_arg = False
+                elif (
+                    parenthesis_level == 1
+                    and self.current.kind == tk.NAME
+                    and not in_default_arg
+                ):
+                    call_names.append(self.current.value)
+                    in_default_arg = True
                 self.stream.move()
         if self.current.kind != tk.OP or self.current.value != ':':
             self.leapfrog(tk.OP, value=":")
@@ -711,7 +728,8 @@ class Parser:
             decorators,
             docstring,
             children,
-            None,
+            call_names,
+            None,  # parent
             skipped_error_codes,
         )
         for child in definition.children:
