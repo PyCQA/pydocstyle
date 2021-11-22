@@ -47,6 +47,7 @@ def test_function():
     assert function.error_lineno == 2
     assert function.source == code.getvalue()
     assert function.is_public
+    assert function.is_accessible
     assert str(function) == 'in public function `do_something`'
 
 
@@ -76,6 +77,7 @@ def test_simple_fstring():
     assert function.error_lineno == 2
     assert function.source == code.getvalue()
     assert function.is_public
+    assert function.is_accessible
     assert str(function) == 'in public function `do_something`'
 
 
@@ -111,6 +113,7 @@ def test_fstring_with_args():
             return None
     """)
     assert function.is_public
+    assert function.is_accessible
     assert str(function) == 'in public function `do_something`'
 
 
@@ -140,6 +143,7 @@ def test_decorated_function():
             return None
     """)
     assert function.is_public
+    assert function.is_accessible
     assert str(function) == 'in public function `do_something`'
 
 
@@ -167,6 +171,7 @@ def test_nested_function():
     assert outer_function.error_lineno == 2
     assert outer_function.source == code.getvalue()
     assert outer_function.is_public
+    assert outer_function.is_accessible
     assert str(outer_function) == 'in public function `outer_function`'
 
     inner_function, = outer_function.children
@@ -183,8 +188,9 @@ def test_nested_function():
             '''This is the inner function.'''
             return None
     """)
-    assert not inner_function.is_public
-    assert str(inner_function) == 'in private nested function `inner_function`'
+    assert inner_function.is_public
+    assert not inner_function.is_accessible
+    assert str(inner_function) == 'in public inaccessible function `inner_function`'
 
 
 def test_conditional_nested_function():
@@ -211,6 +217,7 @@ def test_conditional_nested_function():
     assert outer_function.end == 7
     assert outer_function.source == code.getvalue()
     assert outer_function.is_public
+    assert outer_function.is_accessible
     assert str(outer_function) == 'in public function `outer_function`'
 
     inner_function, = outer_function.children
@@ -226,8 +233,9 @@ def test_conditional_nested_function():
             '''This is the inner function.'''
             return None
     """)
-    assert not inner_function.is_public
-    assert str(inner_function) == 'in private nested function `inner_function`'
+    assert inner_function.is_public
+    assert not inner_function.is_accessible
+    assert str(inner_function) == 'in public inaccessible function `inner_function`'
 
 
 def test_doubly_nested_function():
@@ -254,6 +262,7 @@ def test_doubly_nested_function():
     assert outer_function.end == 7
     assert outer_function.source == code.getvalue()
     assert outer_function.is_public
+    assert outer_function.is_accessible
     assert str(outer_function) == 'in public function `outer_function`'
 
     middle_function, = outer_function.children
@@ -270,9 +279,10 @@ def test_doubly_nested_function():
                 '''This is the inner function.'''
                 return None
     """)
-    assert not middle_function.is_public
+    assert middle_function.is_public
+    assert not middle_function.is_accessible
     assert (str(middle_function) ==
-            'in private nested function `middle_function`')
+            'in public inaccessible function `middle_function`')
 
     inner_function, = middle_function.children
     assert inner_function.name == 'inner_function'
@@ -287,9 +297,12 @@ def test_doubly_nested_function():
             '''This is the inner function.'''
             return None
     """)
-    assert not inner_function.is_public
-    assert str(inner_function) == 'in private nested function `inner_function`'
+    assert inner_function.is_public
+    assert not inner_function.is_accessible
+    assert str(inner_function) == 'in public inaccessible function `inner_function`'
 
+    # @TODO: Test private inaccessible function
+    # @TODO: Test public/private inaccessible classes
 
 def test_class():
     """Test parsing of a class."""
@@ -313,6 +326,7 @@ def test_class():
     assert klass.error_lineno == 3
     assert klass.source == code.getvalue()
     assert klass.is_public
+    assert klass.is_accessible
     assert str(klass) == 'in public class `TestedClass`'
 
 
@@ -339,6 +353,7 @@ def test_public_method():
     assert klass.error_lineno == 1
     assert klass.source == code.getvalue()
     assert klass.is_public
+    assert klass.is_accessible
     assert str(klass) == 'in public class `TestedClass`'
 
     method, = klass.children
@@ -357,6 +372,7 @@ def test_public_method():
             return None
     """)
     assert method.is_public
+    assert method.is_accessible
     assert not method.is_magic
     assert str(method) == 'in public method `do_it`'
 
@@ -384,6 +400,7 @@ def test_private_method():
     assert klass.error_lineno == 1
     assert klass.source == code.getvalue()
     assert klass.is_public
+    assert klass.is_accessible
     assert str(klass) == 'in public class `TestedClass`'
 
     method, = klass.children
@@ -402,6 +419,7 @@ def test_private_method():
             return None
     """)
     assert not method.is_public
+    assert method.is_accessible
     assert not method.is_magic
     assert str(method) == 'in private method `_do_it`'
 
@@ -427,6 +445,7 @@ def test_magic_method():
     assert klass.error_lineno == 1
     assert klass.source == code.getvalue()
     assert klass.is_public
+    assert klass.is_accessible
     assert str(klass) == 'in public class `TestedClass`'
 
     method, = klass.children[0]
@@ -443,6 +462,7 @@ def test_magic_method():
             return "me"
     """)
     assert method.is_public
+    assert method.is_accessible
     assert method.is_magic
     assert str(method) == 'in public method `__str__`'
 
@@ -469,6 +489,7 @@ def test_nested_class():
     assert outer_class.error_lineno == 2
     assert outer_class.source == code.getvalue()
     assert outer_class.is_public
+    assert outer_class.is_accessible
     assert str(outer_class) == 'in public class `OuterClass`'
 
     inner_class, = outer_class.children
@@ -486,6 +507,7 @@ def test_nested_class():
             "An inner docstring."
     """)
     assert inner_class.is_public
+    assert inner_class.is_accessible
     assert str(inner_class) == 'in public nested class `InnerClass`'
 
 

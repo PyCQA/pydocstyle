@@ -17,10 +17,11 @@ __all__ = (
     'Module',
     'Package',
     'Function',
-    'NestedFunction',
+    'InaccessibleFunction'
     'Method',
     'Class',
     'NestedClass',
+    'InaccessibleClass',
     'AllError',
     'StringIO',
     'ParseError',
@@ -199,8 +200,9 @@ class Function(Definition):
     """A Python source code function."""
 
     _nest = staticmethod(
-        lambda s: {'def': NestedFunction, 'class': NestedClass}[s]
+        lambda s: {'def': InaccessibleFunction, 'class': InaccessibleClass}[s]
     )
+    is_accessible = True
 
     @property
     def is_public(self):
@@ -236,11 +238,18 @@ class Function(Definition):
         return self.name.startswith('test') or self.name == 'runTest'
 
 
-class NestedFunction(Function):
-    """A Python source code nested function."""
+class InaccessibleFunction(Function):
+    """A Python source code function which is inaccessible.
 
-    is_public = False
+    A function is inaccessible if it is defined inside another function.
 
+    Publicness is still evaluated based on the name, to allow devs to signal between public and
+    private if they so wish. (E.g. if a function returns another function, they may want the inner
+    function to be documented. Conversely a purely helper inner function might not need to be
+    documented)
+    """
+
+    is_accessible = False
 
 class Method(Function):
     """A Python source code method."""
@@ -289,6 +298,7 @@ class Class(Definition):
     _nest = staticmethod(lambda s: {'def': Method, 'class': NestedClass}[s])
     is_public = Function.is_public
     is_class = True
+    is_accessible = True
 
 
 class NestedClass(Class):
@@ -303,6 +313,13 @@ class NestedClass(Class):
             and self.parent.is_public
         )
 
+class InaccessibleClass(Class):
+    """A Python source code class, which is inaccessible.
+
+    An class is inaccessible if it is defined inside of a function.
+    """
+
+    is_accessible = False
 
 class Decorator(Value):
     """A decorator for function, method or class."""
