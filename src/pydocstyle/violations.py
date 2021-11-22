@@ -415,6 +415,10 @@ D418 = D4xx.create_error(
     'D418',
     'Function/ Method decorated with @overload shouldn\'t contain a docstring',
 )
+D419 = D4xx.create_error(
+    'D419',
+    'Docstring is empty',
+)
 
 
 class AttrDict(dict):

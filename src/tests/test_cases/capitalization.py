@@ -13,7 +13,7 @@ def not_capitalized():
 
 
 # Make sure empty docstrings don't generate capitalization errors.
-@expect("D103: Missing docstring in public function")
+@expect("D419: Docstring is empty")
 def empty_docstring():
     """"""
 
