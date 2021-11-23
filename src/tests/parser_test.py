@@ -301,8 +301,49 @@ def test_doubly_nested_function():
     assert not inner_function.is_accessible
     assert str(inner_function) == 'in public inaccessible function `inner_function`'
 
-    # @TODO: Test private inaccessible function
-    # @TODO: Test public/private inaccessible classes
+def test_private_nested_function():
+    """Test parsing of a nested function which looks private."""
+    parser = Parser()
+    code = CodeSnippet("""\
+        def outer_function():
+            \"""This is the outer function.\"""
+            if True:
+                def _inner_function():
+                    '''This is the inner function.'''
+                    return None
+            return None
+    """)
+    module = parser.parse(code, 'file_path')
+
+    outer_function, = module.children
+    assert outer_function.name == 'outer_function'
+    assert outer_function.decorators == []
+    assert outer_function.docstring == '"""This is the outer function."""'
+    assert outer_function.kind == 'function'
+    assert outer_function.parent == module
+    assert outer_function.start == 1
+    assert outer_function.end == 7
+    assert outer_function.source == code.getvalue()
+    assert outer_function.is_public
+    assert outer_function.is_accessible
+    assert str(outer_function) == 'in public function `outer_function`'
+
+    inner_function, = outer_function.children
+    assert inner_function.name == '_inner_function'
+    assert inner_function.decorators == []
+    assert inner_function.docstring == "'''This is the inner function.'''"
+    assert inner_function.kind == 'function'
+    assert inner_function.parent == outer_function
+    assert inner_function.start == 4
+    assert inner_function.end == 6
+    assert textwrap.dedent(inner_function.source) == textwrap.dedent("""\
+        def _inner_function():
+            '''This is the inner function.'''
+            return None
+    """)
+    assert not inner_function.is_public
+    assert not inner_function.is_accessible
+    assert str(inner_function) == 'in private inaccessible function `_inner_function`'
 
 def test_class():
     """Test parsing of a class."""
@@ -510,6 +551,89 @@ def test_nested_class():
     assert inner_class.is_accessible
     assert str(inner_class) == 'in public nested class `InnerClass`'
 
+def test_public_inaccessible_class():
+    """Test parsing of a class inside a function."""
+    parser = Parser()
+    code = CodeSnippet("""\
+        def outer_function():
+            '   an outer docstring'
+            class InnerClass(object):
+                "An inner docstring."
+    """)
+    module = parser.parse(code, 'file_path')
+
+    outer_function, = module.children
+    assert outer_function.name == 'outer_function'
+    assert outer_function.decorators == []
+    assert outer_function.docstring == "'   an outer docstring'"
+    assert outer_function.kind == 'function'
+    assert outer_function.parent == module
+    assert outer_function.start == 1
+    assert outer_function.end == 4
+    assert outer_function.source == code.getvalue()
+    assert outer_function.is_public
+    assert outer_function.is_accessible
+    assert str(outer_function) == 'in public function `outer_function`'
+
+    inner_class, = outer_function.children
+    assert inner_class.name == 'InnerClass'
+    assert inner_class.decorators == []
+    assert inner_class.children == []
+    assert inner_class.docstring == '"An inner docstring."'
+    assert inner_class.kind == 'class'
+    assert inner_class.parent == outer_function
+    assert inner_class.start == 3
+    assert inner_class.end == 4
+    assert inner_class.error_lineno == 4
+    assert textwrap.dedent(inner_class.source) == textwrap.dedent("""\
+        class InnerClass(object):
+            "An inner docstring."
+    """)
+    assert inner_class.is_public
+    assert not inner_class.is_accessible
+    assert str(inner_class) == 'in public inaccessible class `InnerClass`'
+
+def test_private_inaccessible_class():
+    """Test parsing of a class inside a function which looks private."""
+    parser = Parser()
+    code = CodeSnippet("""\
+        def outer_function():
+            '   an outer docstring'
+            class _InnerClass(object):
+                "An inner docstring."
+    """)
+    module = parser.parse(code, 'file_path')
+
+    outer_function, = module.children
+    assert outer_function.name == 'outer_function'
+    assert outer_function.decorators == []
+    assert outer_function.docstring == "'   an outer docstring'"
+    assert outer_function.kind == 'function'
+    assert outer_function.parent == module
+    assert outer_function.start == 1
+    assert outer_function.end == 4
+    assert outer_function.source == code.getvalue()
+    assert outer_function.is_public
+    assert outer_function.is_accessible
+    assert str(outer_function) == 'in public function `outer_function`'
+
+    inner_class, = outer_function.children
+    assert inner_class.name == '_InnerClass'
+    assert inner_class.decorators == []
+    assert inner_class.children == []
+    assert inner_class.docstring == '"An inner docstring."'
+    assert inner_class.kind == 'class'
+    assert inner_class.parent == outer_function
+    assert inner_class.start == 3
+    assert inner_class.end == 4
+    assert inner_class.error_lineno == 4
+    assert textwrap.dedent(inner_class.source) == textwrap.dedent("""\
+        class _InnerClass(object):
+            "An inner docstring."
+    """)
+    assert not inner_class.is_public
+    assert not inner_class.is_accessible
+    assert str(inner_class) == 'in private inaccessible class `_InnerClass`'
 
 def test_raise_from():
     """Make sure 'raise x from y' doesn't trip the parser."""
