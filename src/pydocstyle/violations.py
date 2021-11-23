@@ -224,11 +224,11 @@ D107 = D1xx.create_error(
 )
 D121 = D1xx.create_error(
     'D121',
-    'Missing docstring in inaccessible class',
+    'Missing docstring in inaccessible public class',
 )
 D123 = D1xx.create_error(
     'D123',
-    'Missing docstring in inaccessible function',
+    'Missing docstring in inaccessible public function',
 )
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')

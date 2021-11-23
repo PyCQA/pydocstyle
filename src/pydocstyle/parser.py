@@ -17,8 +17,7 @@ __all__ = (
     'Module',
     'Package',
     'Function',
-    'InaccessibleFunction'
-    'Method',
+    'InaccessibleFunction' 'Method',
     'Class',
     'NestedClass',
     'InaccessibleClass',
@@ -251,6 +250,7 @@ class InaccessibleFunction(Function):
 
     is_accessible = False
 
+
 class Method(Function):
     """A Python source code method."""
 
@@ -313,6 +313,7 @@ class NestedClass(Class):
             and self.parent.is_public
         )
 
+
 class InaccessibleClass(Class):
     """A Python source code class, which is inaccessible.
 
@@ -320,6 +321,7 @@ class InaccessibleClass(Class):
     """
 
     is_accessible = False
+
 
 class Decorator(Value):
     """A decorator for function, method or class."""

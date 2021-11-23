@@ -28,15 +28,17 @@ def func_with_inner_func_after():
 
     pass
 
+expect("inner", "D123: Missing docstring in inaccessible public function")
 
 def func_with_inner_async_func_after():
     """Test a function with inner async function after docstring."""
 
-    async def inner():
+    async def inner_async():
         pass
 
     pass
 
+expect("inner_async", "D123: Missing docstring in inaccessible public function")
 
 def fake_decorator(decorated):
     """Fake decorator used to test decorated inner func."""
@@ -47,30 +49,33 @@ def func_with_inner_decorated_func_after():
     """Test a function with inner decorated function after docstring."""
 
     @fake_decorator
-    def inner():
+    def inner_decorated():
         pass
 
     pass
 
+expect("inner_decorated", "D123: Missing docstring in inaccessible public function")
 
 def func_with_inner_decorated_async_func_after():
     """Test a function with inner decorated async function after docstring."""
 
     @fake_decorator
-    async def inner():
+    async def inner_decorated_async():
         pass
 
     pass
 
+expect("inner_decorated_async", "D123: Missing docstring in inaccessible public function")
 
 def func_with_inner_class_after():
     """Test a function with inner class after docstring."""
 
-    class inner():
+    class inner_class():
         pass
 
     pass
 
+expect("inner_class", "D121: Missing docstring in inaccessible public class")
 
 def func_with_weird_backslash():
     """Test a function with a weird backslash.\

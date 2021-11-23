@@ -207,7 +207,7 @@ class ConventionChecker:
                 Module: violations.D100,
                 Class: violations.D101,
                 NestedClass: violations.D106,
-                # InaccessibleClass: violations.D121,  # currently
+                InaccessibleClass: violations.D121,
                 Method: lambda: violations.D105()
                 if definition.is_magic
                 else (
@@ -219,7 +219,7 @@ class ConventionChecker:
                         else None
                     )
                 ),
-                InaccessibleFunction: violations.D109,
+                InaccessibleFunction: violations.D123,
                 Function: (
                     lambda: violations.D103()
                     if not definition.is_overload
