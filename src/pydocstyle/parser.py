@@ -17,7 +17,7 @@ __all__ = (
     'Module',
     'Package',
     'Function',
-    'InaccessibleFunction', 
+    'InaccessibleFunction',
     'Method',
     'Class',
     'NestedClass',
