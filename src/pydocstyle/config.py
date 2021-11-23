@@ -183,7 +183,7 @@ class ConfigurationParser:
     )
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
-    DEFAULT_IGNORE="D15"
+    DEFAULT_IGNORE = {"D121", "D123", "D150", "D151", "D152", "D153", "D154", "D156", "D171", "D173"}
     DEFAULT_MATCH_RE = r'(?!test_).*\.py'
     DEFAULT_MATCH_DIR_RE = r'[^\.].*'
     DEFAULT_IGNORE_DECORATORS_RE = ''
@@ -596,10 +596,12 @@ class ConfigurationParser:
         if options.ignore is not None:
             ignored = cls._expand_error_codes(options.ignore)
             checked_codes = codes - ignored
-        elif options.select is not None:
-            checked_codes = cls._expand_error_codes(options.select)
-        elif options.convention is not None:
-            checked_codes = getattr(conventions, options.convention)
+        else:
+            codes -= cls.DEFAULT_IGNORE
+            if options.select is not None:
+                checked_codes = cls._expand_error_codes(options.select)
+            elif options.convention is not None:
+                checked_codes = getattr(conventions, options.convention)
 
         # To not override the conventions nor the options - copy them.
         return copy.deepcopy(checked_codes)

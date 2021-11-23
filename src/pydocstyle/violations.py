@@ -222,29 +222,46 @@ D107 = D1xx.create_error(
     'D107',
     'Missing docstring in __init__',
 )
-D190 = D1xx.create_error(
+D121 = D1xx.create_error(
+    'D121',
+    'Missing docstring in inaccessible public class',
+)
+D123 = D1xx.create_error(
+    'D123',
+    'Missing docstring in inaccessible public function',
+)
+# For private docstrings, we add 50 to the public flavors
+D150 = D1xx.create_error(
     'D150',
     'Missing docstring in private module',
 )
-D191 = D1xx.create_error(
+D151 = D1xx.create_error(
     'D151',
     'Missing docstring in private class',
 )
-D192 = D1xx.create_error(
+D152 = D1xx.create_error(
     'D152',
     'Missing docstring in private method',
 )
-D193 = D1xx.create_error(
+D153 = D1xx.create_error(
     'D153',
     'Missing docstring in private function',
 )
-D194 = D1xx.create_error(
+D154 = D1xx.create_error(
     'D154',
     'Missing docstring in private package',
 )
-D196 = D1xx.create_error(
+D156 = D1xx.create_error(
     'D156',
     'Missing docstring in private nested class',
+)
+D171 = D1xx.create_error(
+    'D171',
+    'Missing docstring in inaccessible private class',
+)
+D173 = D1xx.create_error(
+    'D173',
+    'Missing docstring in inaccessible private function',
 )
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')

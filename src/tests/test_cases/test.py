@@ -76,11 +76,11 @@ class class_:
 @expect('D103: Missing docstring in public function')
 def function():
     """ """
-    @expect("D193: Missing docstring in private function")
+    @expect('D123: Missing docstring in inaccessible public function')
     def ok_since_nested():
         pass
 
-    @expect('D193: Missing docstring in private function')
+    @expect('D123: Missing docstring in inaccessible public function')
     def nested():
         ''
 
@@ -105,7 +105,8 @@ def function_with_nesting():
 expect('nested_overloaded_func',
        "D418: Function/ Method decorated with @overload"
        " shouldn't contain a docstring")
-
+expect('nested_overloaded_func',
+       "D123: Missing docstring in inaccessible public function")
 
 @overload
 def overloaded_func(a: int) -> str:
