@@ -318,6 +318,11 @@ class InaccessibleClass(Class):
     """A Python source code class, which is inaccessible.
 
     An class is inaccessible if it is defined inside of a function.
+
+    Publicness is still evaluated based on the name, to allow devs to signal between public and
+    private if they so wish. (E.g. if a function returns a class, they may want the returned
+    class to be documented. Conversely a purely helper inner class might not need to be
+    documented)
     """
 
     is_accessible = False
