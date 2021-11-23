@@ -230,7 +230,7 @@ D123 = D1xx.create_error(
     'D123',
     'Missing docstring in inaccessible public function',
 )
-# For private docstrings, we add 50 to the public flavors
+# For private docstrings, we add 50 to the public codes
 D150 = D1xx.create_error(
     'D150',
     'Missing docstring in private module',
@@ -251,9 +251,17 @@ D154 = D1xx.create_error(
     'D154',
     'Missing docstring in private package',
 )
+D155 = D1xx.create_error(
+    'D155',
+    'Missing docstring in private magic method',
+)
 D156 = D1xx.create_error(
     'D156',
     'Missing docstring in private nested class',
+)
+D157 = D1xx.create_error(
+    'D157',
+    'Missing docstring in private __init__',
 )
 D171 = D1xx.create_error(
     'D171',
@@ -464,11 +472,25 @@ class AttrDict(dict):
 
 
 all_errors = set(ErrorRegistry.get_error_codes())
-
+default_ignored = {
+    "D121",
+    "D123",
+    "D150",
+    "D151",
+    "D152",
+    "D153",
+    "D154",
+    "D155",
+    "D156",
+    "D157",
+    "D171",
+    "D173",
+}
 
 conventions = AttrDict(
     {
         'pep257': all_errors
+        - default_ignored
         - {
             'D203',
             'D212',
@@ -490,6 +512,7 @@ conventions = AttrDict(
             'D418',
         },
         'numpy': all_errors
+        - default_ignored
         - {
             'D107',
             'D203',
@@ -502,6 +525,7 @@ conventions = AttrDict(
             'D417',
         },
         'google': all_errors
+        - default_ignored
         - {
             'D203',
             'D204',

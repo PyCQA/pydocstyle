@@ -221,9 +221,7 @@ class ConventionChecker:
                 ),
                 InaccessibleFunction: lambda: 123,
                 Function: (
-                    lambda: 103
-                    if not definition.is_overload
-                    else None
+                    lambda: 103 if not definition.is_overload else None
                 ),
                 Package: lambda: 104,
             }
