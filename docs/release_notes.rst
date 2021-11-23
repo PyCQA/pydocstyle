@@ -12,6 +12,7 @@ New Features
 
 * Add support for `property_decorators` config to ignore D401.
 * Add support for Python 3.10 (#554).
+* Change handling of "inaccessible" functions and classes (#561).
 
 6.1.1 - May 17th, 2021
 ---------------------------
