@@ -222,6 +222,30 @@ D107 = D1xx.create_error(
     'D107',
     'Missing docstring in __init__',
 )
+D190 = D1xx.create_error(
+    'D150',
+    'Missing docstring in private module',
+)
+D191 = D1xx.create_error(
+    'D151',
+    'Missing docstring in private class',
+)
+D192 = D1xx.create_error(
+    'D152',
+    'Missing docstring in private method',
+)
+D193 = D1xx.create_error(
+    'D153',
+    'Missing docstring in private function',
+)
+D194 = D1xx.create_error(
+    'D154',
+    'Missing docstring in private package',
+)
+D196 = D1xx.create_error(
+    'D156',
+    'Missing docstring in private nested class',
+)
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error(

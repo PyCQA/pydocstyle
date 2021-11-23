@@ -22,7 +22,16 @@ class class_:
     def method(self=None):
         pass
 
-    def _ok_since_private(self=None):
+    @expect('D192: Missing docstring in private method')
+    def _private_method(self=None):
+        pass
+
+    @expect('D192: Missing docstring in private method')
+    def __private_mangled_method(self=None):
+        pass
+
+    @expect('D192: Missing docstring in private method')
+    def _private_fancy_method_(self=None):
         pass
 
     @overload
@@ -67,17 +76,19 @@ class class_:
 @expect('D103: Missing docstring in public function')
 def function():
     """ """
+    @expect("D193: Missing docstring in private function")
     def ok_since_nested():
         pass
 
-    @expect('D103: Missing docstring in public function')
+    @expect('D193: Missing docstring in private function')
     def nested():
         ''
 
-
+@expect()
 def function_with_nesting():
     """Foo bar documentation."""
     @overload
+    @expect("D193: Missing docstring in private function", arg_count=1)
     def nested_overloaded_func(a: int) -> str:
         ...
 
@@ -532,3 +543,10 @@ class Blah:  # noqa: D203,D213
 
 expect(os.path.normcase(__file__ if __file__[-1] != 'c' else __file__[:-1]),
        'D100: Missing docstring in public module')
+
+expect('_PrivateClass', 'D191: Missing docstring in private class')
+
+class _PrivateClass:
+    pass
+
+

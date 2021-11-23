@@ -183,6 +183,7 @@ class ConfigurationParser:
     )
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
+    DEFAULT_IGNORE="D15"
     DEFAULT_MATCH_RE = r'(?!test_).*\.py'
     DEFAULT_MATCH_DIR_RE = r'[^\.].*'
     DEFAULT_IGNORE_DECORATORS_RE = ''
@@ -544,6 +545,7 @@ class ConfigurationParser:
 
         kwargs = dict(checked_codes=checked_codes)
         defaults = {
+            'ignore': 'IGNORE',
             'match': "MATCH_RE",
             'match_dir': "MATCH_DIR_RE",
             'ignore_decorators': "IGNORE_DECORATORS_RE",

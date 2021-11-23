@@ -21,13 +21,25 @@ class PublicClass:
         class PublicNestedClassInPublicNestedClass:
             pass
 
+        expect('_PrivateNestedClassInPublicNestedClass',
+               'D196: Missing docstring in private nested class')
+
         class _PrivateNestedClassInPublicNestedClass:
             pass
 
+    expect('_PrivateNestedClass',
+            'D196: Missing docstring in private nested class')
+
     class _PrivateNestedClass:
+
+        expect('PublicNestedClassInPrivateNestedClass',
+               'D196: Missing docstring in private nested class')
 
         class PublicNestedClassInPrivateNestedClass:
             pass
+
+        expect('_PrivateNestedClassInPrivateNestedClass',
+               'D196: Missing docstring in private nested class')
 
         class _PrivateNestedClassInPrivateNestedClass:
             pass

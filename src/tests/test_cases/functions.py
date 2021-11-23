@@ -20,19 +20,24 @@ def func_with_space_after():
     pass
 
 
+@expect()
 def func_with_inner_func_after():
     """Test a function with inner function after docstring."""
 
-    def inner():
+    @expect("D193: Missing docstring in private function")
+    def inner_func():
         pass
 
     pass
 
 
+
+@expect()
 def func_with_inner_async_func_after():
     """Test a function with inner async function after docstring."""
 
-    async def inner():
+    @expect("D193: Missing docstring in private function")
+    async def inner_async_func():
         pass
 
     pass
@@ -43,30 +48,39 @@ def fake_decorator(decorated):
     return decorated
 
 
+@expect()
 def func_with_inner_decorated_func_after():
     """Test a function with inner decorated function after docstring."""
 
     @fake_decorator
-    def inner():
+    @expect("D193: Missing docstring in private function")
+    def inner_decorated_func():
         pass
 
     pass
 
 
+
+
+@expect()
 def func_with_inner_decorated_async_func_after():
     """Test a function with inner decorated async function after docstring."""
 
     @fake_decorator
-    async def inner():
+    @expect("D193: Missing docstring in private function")
+    async def inner_decorated_async_func():
         pass
 
     pass
 
 
+
+@expect()
 def func_with_inner_class_after():
     """Test a function with inner class after docstring."""
+    expect("inner_class", "D196: Missing docstring in private nested class")
 
-    class inner():
+    class inner_class():
         pass
 
     pass
