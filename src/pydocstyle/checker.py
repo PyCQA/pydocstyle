@@ -126,8 +126,7 @@ class ConventionChecker:
         # Might have a new line
         r"\n?",
         # Followed by 1 or more characters - which is the docstring for the parameter
-        ".+",
-        re.MULTILINE,
+        ".+"
     )
 
     def check_source(
