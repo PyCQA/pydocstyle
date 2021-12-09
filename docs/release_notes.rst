@@ -10,7 +10,7 @@ Current Development Version
 
 New Features
 
-* Allow for hanging indent when documenting args in Google style. (#554)
+* Allow for hanging indent when documenting args in Google style. (#449)
 * Add support for `property_decorators` config to ignore D401.
 * Add support for Python 3.10 (#554).
 
