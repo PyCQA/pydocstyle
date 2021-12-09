@@ -838,15 +838,13 @@ class ConventionChecker:
                 except `self` or `cls` if it is a method.
 
         Documentation for each arg should start at the same indentation
-        level. For example::
-    
+        level. For example, in this case x and y are distinguishable.
+
             Args:
                 x: Lorem ipsum dolor sit amet
                 y: Ut enim ad minim veniam
-    
-        In this case x and y are distinguishable.
         
-        Here though, we only recognize x as a documented parameter
+        In the case below, we only recognize x as a documented parameter
         because the rest of the content is indented as if it belongs
         to the description for x::
     
