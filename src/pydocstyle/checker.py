@@ -123,8 +123,11 @@ class ConventionChecker:
         r"\s*"
         # Followed by a colon
         r":"
+        # Might have a new line
+        r"\n?",
         # Followed by 1 or more characters - which is the docstring for the parameter
-        ".+"
+        ".+",
+        re.MULTILINE,
     )
 
     def check_source(
@@ -857,7 +860,7 @@ class ConventionChecker:
         args_content = dedent("\n".join(context.following_lines)).strip()
 
         args_sections = []
-        for line in args_content.split("\n"):
+        for line in args_content.splitlines(keepends=True):
             if not line[:1].isspace():
                 # This line is the start of documentation for the next
                 # parameter because it doesn't start with any whitespace.
