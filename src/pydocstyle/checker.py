@@ -2,6 +2,7 @@
 
 import ast
 import string
+from textwrap import dedent
 import tokenize as tk
 from collections import namedtuple
 from itertools import chain, takewhile
@@ -836,10 +837,42 @@ class ConventionChecker:
             * The section documents all function arguments (D417)
                 except `self` or `cls` if it is a method.
 
+        Documentation for each arg should start at the same indentation
+        level. For example::
+    
+            Args:
+                x: Lorem ipsum dolor sit amet
+                y: Ut enim ad minim veniam
+    
+        In this case x and y are distinguishable.
+        
+        Here though, we only recognize x as a documented parameter
+        because the rest of the content is indented as if it belongs
+        to the description for x::
+    
+            Args:
+                x: Lorem ipsum dolor sit amet
+                    y: Ut enim ad minim veniam
         """
         docstring_args = set()
-        for line in context.following_lines:
-            match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
+        # normalize leading whitespace
+        args_content = dedent("\n".join(context.following_lines)).strip()
+
+        args_sections = []
+        for line in args_content.split("\n"):
+            if not line[:1].isspace():
+                # This line is the start of documentation for the next
+                # parameter because it doesn't start with any whitespace.
+                args_sections.append(line)
+            else:
+                # This is a continuation of documentation for the last
+                # parameter because it does start with whitespace.
+                args_sections[-1] += line
+
+        print(args_sections)
+
+        for section in args_sections:
+            match = ConventionChecker.GOOGLE_ARGS_REGEX.match(section)
             if match:
                 docstring_args.add(match.group(1))
         yield from ConventionChecker._check_missing_args(
