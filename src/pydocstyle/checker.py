@@ -867,8 +867,6 @@ class ConventionChecker:
                 # parameter because it does start with whitespace.
                 args_sections[-1] += line
 
-        print(args_sections)
-
         for section in args_sections:
             match = ConventionChecker.GOOGLE_ARGS_REGEX.match(section)
             if match:
