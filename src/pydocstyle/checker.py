@@ -123,8 +123,8 @@ class ConventionChecker:
         r"\s*"
         # Followed by a colon
         r":"
-        # Might have a new line
-        r"\n?",
+        # Might have a new line and leading whitespace
+        r"\n?\s*"
         # Followed by 1 or more characters - which is the docstring for the parameter
         ".+"
     )
@@ -845,11 +845,11 @@ class ConventionChecker:
             Args:
                 x: Lorem ipsum dolor sit amet
                 y: Ut enim ad minim veniam
-        
+
         In the case below, we only recognize x as a documented parameter
         because the rest of the content is indented as if it belongs
         to the description for x::
-    
+
             Args:
                 x: Lorem ipsum dolor sit amet
                     y: Ut enim ad minim veniam
