@@ -2,11 +2,11 @@
 
 import ast
 import string
-from textwrap import dedent
 import tokenize as tk
 from collections import namedtuple
 from itertools import chain, takewhile
 from re import compile as re
+from textwrap import dedent
 
 from . import violations
 from .config import IllegalConfiguration
