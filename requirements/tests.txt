@@ -1,4 +1,6 @@
 pytest==6.2.5
-mypy==0.782
-black==21.10b0
+mypy==0.930
+black==21.12b0
 isort==5.4.2
+types-toml
+types-setuptools
