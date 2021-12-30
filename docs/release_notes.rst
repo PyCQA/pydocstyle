@@ -15,6 +15,10 @@ New Features
 * Add support for Python 3.10 (#554).
 * Replace D10X errors with D419 if docstring exists but is empty (#559).
 
+Bug Fixes
+
+* Fix ``--match`` option to only consider filename when matching full paths (#550).
+
 6.1.1 - May 17th, 2021
 ---------------------------
 

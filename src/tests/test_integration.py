@@ -1489,3 +1489,25 @@ def test_comment_with_noqa_plus_docstring_file(env):
     out, _, code = env.invoke()
     assert '' == out
     assert code == 0
+
+
+def test_match_considers_basenames_for_path_args(env):
+    """Test that `match` option only considers basenames for path arguments.
+
+    The test environment consists of a single empty module `test_a.py`. The
+    match option is set to a pattern that ignores test_ prefixed .py filenames.
+    When pydocstyle is invoked with full path to `test_a.py`, we expect it to
+    succeed since match option will match against just the file name and not
+    full path.
+    """
+    # Ignore .py files prefixed with 'test_'
+    env.write_config(select='D100', match='(?!test_).+.py')
+
+    # Create an empty module (violates D100)
+    with env.open('test_a.py', 'wt') as test:
+        test.write('')
+
+    # env.invoke calls pydocstyle with full path to test_a.py
+    out, _, code = env.invoke(target='test_a.py')
+    assert '' == out
+    assert code == 0
