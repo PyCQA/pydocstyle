@@ -196,12 +196,7 @@ class ConventionChecker:
               with a single underscore.
 
         """
-        if (
-            not docstring
-            and definition.is_public
-            or docstring
-            and is_blank(ast.literal_eval(docstring))
-        ):
+        if not docstring and definition.is_public:
             codes = {
                 Module: violations.D100,
                 Class: violations.D101,
@@ -226,6 +221,18 @@ class ConventionChecker:
                 Package: violations.D104,
             }
             return codes[type(definition)]()
+
+    @check_for(Definition, terminal=True)
+    def check_docstring_empty(self, definition, docstring):
+        """D419: Docstring is empty.
+
+        If the user provided a docstring but it was empty, it is like they never provided one.
+
+        NOTE: This used to report as D10X errors.
+
+        """
+        if docstring and is_blank(ast.literal_eval(docstring)):
+            return violations.D419()
 
     @check_for(Definition)
     def check_one_liners(self, definition, docstring):
