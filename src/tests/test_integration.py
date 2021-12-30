@@ -769,7 +769,7 @@ def test_overload_nested_function_valid(env):
                 """Foo bar documentation."""
                 return str(a)
             '''))
-    env.write_config(ignore="D100")
+    env.write_config(ignore="D100,D123")
     out, err, code = env.invoke()
     assert code == 0
 

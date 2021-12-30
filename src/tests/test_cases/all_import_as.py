@@ -13,6 +13,6 @@ __all__ = ('public_func', )
 def public_func():
     pass
 
-
+@expect("D153: Missing docstring in private function")
 def private_func():
     pass

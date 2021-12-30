@@ -22,7 +22,16 @@ class class_:
     def method(self=None):
         pass
 
-    def _ok_since_private(self=None):
+    @expect('D152: Missing docstring in private method')
+    def _private_method(self=None):
+        pass
+
+    @expect('D152: Missing docstring in private method')
+    def __private_mangled_method(self=None):
+        pass
+
+    @expect('D152: Missing docstring in private method')
+    def _private_fancy_method_(self=None):
         pass
 
     @overload
@@ -67,10 +76,11 @@ class class_:
 @expect('D103: Missing docstring in public function')
 def function():
     """ """
+    @expect('D123: Missing docstring in inaccessible public function')
     def ok_since_nested():
         pass
 
-    @expect('D103: Missing docstring in public function')
+    @expect('D123: Missing docstring in inaccessible public function')
     def nested():
         ''
 
@@ -94,7 +104,8 @@ def function_with_nesting():
 expect('nested_overloaded_func',
        "D418: Function/ Method decorated with @overload"
        " shouldn't contain a docstring")
-
+expect('nested_overloaded_func',
+       "D123: Missing docstring in inaccessible public function")
 
 @overload
 def overloaded_func(a: int) -> str:
@@ -532,3 +543,29 @@ class Blah:  # noqa: D203,D213
 
 expect(os.path.normcase(__file__ if __file__[-1] != 'c' else __file__[:-1]),
        'D100: Missing docstring in public module')
+
+expect('_PrivateClass', 'D151: Missing docstring in private class')
+
+class _PrivateClass:
+    @expect("D157: Missing docstring in private __init__")
+    def __init__(self=None):
+        pass
+
+    @expect("D152: Missing docstring in private method")
+    def public_method_private_class(self=None):
+        pass
+
+    @expect("D152: Missing docstring in private method")
+    def private_method_private_class(self=None):
+        pass
+
+    @expect("D155: Missing docstring in private magic method")
+    def __str__(self=None):
+        pass
+
+    class PublicNestedClass:
+        pass
+
+    expect('PublicNestedClass', 'D156: Missing docstring in private nested class')
+
+

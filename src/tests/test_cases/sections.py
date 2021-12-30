@@ -277,7 +277,7 @@ def missing_colon_google_style_section():  # noqa: D406, D407
 @expect("D417: Missing argument descriptions in the docstring "
         "(argument(s) y are missing descriptions in "
         "'bar' docstring)", func_name="bar")
-def _test_nested_functions():
+def _test_nested_functions():  # noqa: D153
     x = 1
 
     def bar(y=2):  # noqa: D207, D213, D406, D407

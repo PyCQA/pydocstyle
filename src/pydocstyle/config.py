@@ -11,7 +11,7 @@ from functools import reduce
 from re import compile as re
 
 from .utils import __version__, log
-from .violations import ErrorRegistry, conventions
+from .violations import ErrorRegistry, conventions, default_ignored
 
 try:
     import toml
@@ -594,10 +594,12 @@ class ConfigurationParser:
         if options.ignore is not None:
             ignored = cls._expand_error_codes(options.ignore)
             checked_codes = codes - ignored
-        elif options.select is not None:
-            checked_codes = cls._expand_error_codes(options.select)
-        elif options.convention is not None:
-            checked_codes = getattr(conventions, options.convention)
+        else:
+            codes -= default_ignored
+            if options.select is not None:
+                checked_codes = cls._expand_error_codes(options.select)
+            elif options.convention is not None:
+                checked_codes = getattr(conventions, options.convention)
 
         # To not override the conventions nor the options - copy them.
         return copy.deepcopy(checked_codes)
