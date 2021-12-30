@@ -367,7 +367,7 @@ class TestGoogle:  # noqa: D203
         """
 
     @staticmethod
-    def test_missing_docstring_another(skip, verbose):  # noqa: D213, D407
+    def test_hanging_indent(skip, verbose):  # noqa: D213, D407
         """Do stuff.
 
         Args:
