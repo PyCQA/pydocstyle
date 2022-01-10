@@ -246,7 +246,12 @@ class ConventionChecker:
 
         """
         if docstring:
-            lines = ast.literal_eval(docstring).split('\n')
+            docstring_text = ast.literal_eval(docstring)
+            if isinstance(docstring_text, bytes):
+                docstring_text = docstring_text.decode()
+
+            lines = docstring_text.split('\n')
+
             if len(lines) > 1:
                 non_empty_lines = sum(1 for l in lines if not is_blank(l))
                 if non_empty_lines == 1:
