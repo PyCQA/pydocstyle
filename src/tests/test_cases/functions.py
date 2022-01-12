@@ -75,3 +75,21 @@ def func_with_inner_class_after():
 def func_with_weird_backslash():
     """Test a function with a weird backslash.\
 """
+
+
+def ignored_function():
+    # This function does not need a docstring
+    # because the name matches "ignored_function.*"
+    pass
+
+
+def ignored_function_with_suffix():
+    # This function does not need a docstring
+    # because the name matches "ignored_function.*"
+    pass
+
+
+@expect('D103: Missing docstring in public function')
+def missing_docstring_function():
+    # This function should have a docstring.
+    pass
