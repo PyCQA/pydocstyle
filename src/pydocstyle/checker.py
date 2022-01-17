@@ -200,7 +200,7 @@ class ConventionChecker:
 
         """
         if not docstring and definition.is_public:
-            
+
             def method_violations():
                 if not definition.is_overload:
                     if definition.is_magic:

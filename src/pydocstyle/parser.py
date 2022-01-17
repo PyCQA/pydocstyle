@@ -214,7 +214,8 @@ class Function(Definition):
     def is_overload(self):
         """Return True iff the method decorated with overload."""
         return any(
-            decorator.name in ["overload", "typing.overload"] for decorator in self.decorators
+            decorator.name in ["overload", "typing.overload"]
+            for decorator in self.decorators
         )
 
     def is_property(self, property_decorator_names):
