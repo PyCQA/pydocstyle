@@ -19,7 +19,7 @@ D214, D215, D404, D405, D406, D407, D408, D409, D410, D411, D413, D415, D416
 and D417.
 
 The ``numpy`` convention added in v2.0.0 supports the `numpydoc docstring
-<https://github.com/numpy/numpydoc>`_ standard. This checks all of of the
+<https://github.com/numpy/numpydoc>`_ standard. This checks all of the
 errors except for D107, D203, D212, D213, D402, D413, D415, D416, and D417.
 
 The ``google`` convention added in v4.0.0 supports the `Google Python Style
