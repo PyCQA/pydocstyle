@@ -27,7 +27,7 @@ Guide <https://google.github.io/styleguide/pyguide.html>`_. This checks for
 all the errors except D203, D204, D213, D215, D400, D401, D404, D406, D407,
 D408, D409 and D413.
 
-These conventions may be specified using `--convention=<name>` when
+These conventions may be specified using ``--convention=<name>`` when
 running pydocstyle from the command line or by specifying the
 convention in a configuration file.  See the :ref:`cli_usage` section
 for more details.
