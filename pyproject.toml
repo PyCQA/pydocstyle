@@ -7,3 +7,8 @@ skip-string-normalization = true
 profile = "black"
 src_paths = ["src/pydocstyle"]
 line_length = 79
+
+[tool.mypy]
+ignore_missing_imports = true
+strict_optional = true
+disallow_incomplete_defs = true
