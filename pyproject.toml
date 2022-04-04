@@ -12,3 +12,11 @@ line_length = 79
 ignore_missing_imports = true
 strict_optional = true
 disallow_incomplete_defs = true
+
+[tool.pytest.ini_options]
+norecursedirs = ["docs", ".tox"]
+addopts = """
+    -vv
+    -rw
+    --cache-clear
+    """
