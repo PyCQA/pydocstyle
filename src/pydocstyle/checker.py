@@ -111,7 +111,7 @@ class ConventionChecker:
         # Begins with 0 or more whitespace characters
         r"^\s*"
         # Followed by 1 or more unicode chars, numbers or underscores
-        # The above is captured as the first group as this is the paramater name.
+        # The below is captured as the first group as this is the parameter name.
         r"(\w+)"
         # Followed by 0 or more whitespace characters
         r"\s*"
@@ -127,6 +127,20 @@ class ConventionChecker:
         r"\n?\s*"
         # Followed by 1 or more characters - which is the docstring for the parameter
         ".+"
+    )
+
+    SPHINX_ARGS_REGEX = re(
+        # Begins with 0 or more whitespace characters
+        r"^\s*"
+        # Followed by the parameter marker
+        r":param "
+        # Followed by 1 or more unicode chars, numbers or underscores and a colon
+        # The parameter name is captured as the first group.
+        r"(\w+):"
+        # Followed by 0 or more whitespace characters
+        r"\s*"
+        # Next is the parameter description
+        r".+$"
     )
 
     def check_source(
@@ -906,6 +920,63 @@ class ConventionChecker:
         )
 
     @staticmethod
+    def _find_sphinx_params(lines):
+        """D417: Sphinx param section checks.
+
+        Check for a valid Sphinx-style parameter section.
+            * The section documents all function arguments (D417)
+                except `self` or `cls` if it is a method.
+
+        Documentation for each arg should start at the same indentation
+        level. For example, in this case x and y are distinguishable::
+
+            :param x: Lorem ipsum dolor sit amet
+            :param y: Ut enim ad minim veniam
+
+        In the case below, we only recognize x as a documented parameter
+        because the rest of the content is indented as if it belongs
+        to the description for x::
+
+            :param x: Lorem ipsum dolor sit amet
+                :param y: Ut enim ad minim veniam
+        """
+        params = []
+        for line in lines:
+            match = ConventionChecker.SPHINX_ARGS_REGEX.match(line)
+            if match:
+                params.append(match.group(1))
+        return params
+
+    @staticmethod
+    def _check_sphinx_params(lines, definition):
+        """D417: Sphinx param section checks.
+
+        Check for a valid Sphinx-style parameter section.
+            * The section documents all function arguments (D417)
+                except `self` or `cls` if it is a method.
+
+        Documentation for each arg should start at the same indentation
+        level. For example, in this case x and y are distinguishable::
+
+            :param x: Lorem ipsum dolor sit amet
+            :param y: Ut enim ad minim veniam
+
+        In the case below, we only recognize x as a documented parameter
+        because the rest of the content is indented as if it belongs
+        to the description for x::
+
+            :param x: Lorem ipsum dolor sit amet
+                :param y: Ut enim ad minim veniam
+        """
+        docstring_args = set(ConventionChecker._find_sphinx_params(lines))
+        if docstring_args:
+            yield from ConventionChecker._check_missing_args(
+                docstring_args, definition
+            )
+            return True
+        return False
+
+    @staticmethod
     def _check_missing_args(docstring_args, definition):
         """D417: Yield error for missing arguments in docstring.
 
@@ -1093,10 +1164,14 @@ class ConventionChecker:
         found_numpy = yield from self._check_numpy_sections(
             lines, definition, docstring
         )
-        if not found_numpy:
-            yield from self._check_google_sections(
-                lines, definition, docstring
-            )
+        if found_numpy:
+            return
+
+        found_sphinx = yield from self._check_sphinx_params(lines, definition)
+        if found_sphinx:
+            return
+
+        yield from self._check_google_sections(lines, definition, docstring)
 
 
 parse = Parser()
