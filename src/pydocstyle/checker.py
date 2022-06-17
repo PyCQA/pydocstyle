@@ -928,17 +928,10 @@ class ConventionChecker:
                 except `self` or `cls` if it is a method.
 
         Documentation for each arg should start at the same indentation
-        level. For example, in this case x and y are distinguishable::
+        level::
 
             :param x: Lorem ipsum dolor sit amet
             :param y: Ut enim ad minim veniam
-
-        In the case below, we only recognize x as a documented parameter
-        because the rest of the content is indented as if it belongs
-        to the description for x::
-
-            :param x: Lorem ipsum dolor sit amet
-                :param y: Ut enim ad minim veniam
         """
         params = []
         for line in lines:
