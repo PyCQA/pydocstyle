@@ -87,7 +87,7 @@ def run_pydocstyle():
         else:
             exit_code = ReturnCode.violations_found
             print(f"FAIL")
-        print(f"Total {round(calculate_percentage, 2)}% of Files still have inccorrect docstyle")
+        print(f"Total {round(calculate_percentage, 2)}% of Files still have incorrect docstyle")
     else:
         if count == 0:
             exit_code = ReturnCode.no_violations_found
