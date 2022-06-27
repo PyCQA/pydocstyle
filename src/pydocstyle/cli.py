@@ -80,18 +80,21 @@ def run_pydocstyle():
 
     if run_conf.max_error_percentage:
         calculate_percentage = error_files/total_file*100
+        print(f"Error Files {error_files} of {total_file}")
         if calculate_percentage < float((run_conf.max_error_percentage)):
-            print(f"Total {round(calculate_percentage, 2)}% of Files still have inccorrect docstyle")
             exit_code = ReturnCode.no_violations_found
+            print(f"PASS")
         else:
             exit_code = ReturnCode.violations_found
+            print(f"FAIL")
+        print(f"Total {round(calculate_percentage, 2)}% of Files still have inccorrect docstyle")
     else:
         if count == 0:
             exit_code = ReturnCode.no_violations_found
         else:
             exit_code = ReturnCode.violations_found
     if run_conf.count:
-        print(count)
+        print(f"{count} error found inside those files")
     return exit_code
 
 
