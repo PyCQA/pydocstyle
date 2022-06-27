@@ -1080,6 +1080,45 @@ class ConventionChecker:
 
 parse = Parser()
 
+def error_file(filenames,
+    select=None,
+    ignore=None,
+    ignore_decorators=None,
+    property_decorators=None,
+    ignore_inline_noqa=False,
+):
+    if select is not None and ignore is not None:
+        raise IllegalConfiguration(
+            'Cannot pass both select and ignore. '
+            'They are mutually exclusive.'
+        )
+    elif select is not None:
+        checked_codes = select
+    elif ignore is not None:
+        checked_codes = list(
+            set(violations.ErrorRegistry.get_error_codes()) - set(ignore)
+        )
+    else:
+        checked_codes = violations.conventions.pep257
+    for filename in filenames:
+        try:
+            with tk.open(filename) as file:
+                source = file.read()
+            for error in ConventionChecker().check_source(
+                source,
+                filename,
+                ignore_decorators,
+                property_decorators,
+                ignore_inline_noqa,
+            ):
+                code = getattr(error, 'code', None)
+                if code in checked_codes:
+                    yield error
+                break
+        except (OSError, AllError, ParseError) as error:
+            yield error
+        except tk.TokenError:
+            yield SyntaxError('invalid syntax in file %s' % filename)
 
 def check(
     filenames,

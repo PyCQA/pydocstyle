@@ -2,7 +2,7 @@
 import logging
 import sys
 
-from .checker import check
+from .checker import check, error_file
 from .config import ConfigurationParser, IllegalConfiguration
 from .utils import log
 from .violations import Error
@@ -37,6 +37,8 @@ def run_pydocstyle():
     Error.source = run_conf.source
 
     errors = []
+    scanned_file = []
+    total_file = 0
     try:
         for (
             filename,
@@ -52,6 +54,15 @@ def run_pydocstyle():
                     property_decorators=property_decorators,
                 )
             )
+            scanned_file.extend(
+                error_file(
+                    (filename,),
+                    select=checked_codes,
+                    ignore_decorators=ignore_decorators,
+                    property_decorators=property_decorators,
+                )
+            )
+            total_file += 1
     except IllegalConfiguration as error:
         # An illegal configuration file was found during file generation.
         log.error(error.args[0])
@@ -62,10 +73,23 @@ def run_pydocstyle():
         if hasattr(error, 'code'):
             sys.stdout.write('%s\n' % error)
         count += 1
-    if count == 0:
-        exit_code = ReturnCode.no_violations_found
+
+    error_files = 0
+    for error in scanned_file:  # type: ignore
+        error_files += 1
+
+    if run_conf.max_error_percentage:
+        calculate_percentage = error_files/total_file*100
+        if calculate_percentage < float((run_conf.max_error_percentage)):
+            print(f"Total {round(calculate_percentage, 2)}% of Files still have inccorrect docstyle")
+            exit_code = ReturnCode.no_violations_found
+        else:
+            exit_code = ReturnCode.violations_found
     else:
-        exit_code = ReturnCode.violations_found
+        if count == 0:
+            exit_code = ReturnCode.no_violations_found
+        else:
+            exit_code = ReturnCode.violations_found
     if run_conf.count:
         print(count)
     return exit_code

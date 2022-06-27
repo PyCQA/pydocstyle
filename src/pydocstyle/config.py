@@ -180,6 +180,7 @@ class ConfigurationParser:
         'match',
         'match-dir',
         'ignore-decorators',
+        'max-error-percentage'
     )
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
@@ -801,6 +802,13 @@ class ConfigurationParser:
 
         # Error check options
         add_check(
+            '--max-error-percentage',
+            metavar='<codes>',
+            default=0,
+            help='set max errors percentage to pass'
+        )
+
+        add_check(
             '--select',
             metavar='<codes>',
             default=None,
@@ -910,7 +918,7 @@ CheckConfiguration = namedtuple(
         'match',
         'match_dir',
         'ignore_decorators',
-        'property_decorators',
+        'property_decorators'
     ),
 )
 
@@ -924,5 +932,5 @@ class IllegalConfiguration(Exception):
 # General configurations for pydocstyle run.
 RunConfiguration = namedtuple(
     'RunConfiguration',
-    ('explain', 'source', 'debug', 'verbose', 'count', 'config'),
+    ('explain', 'source', 'debug', 'verbose', 'count', 'config', 'max_error_percentage'),
 )
