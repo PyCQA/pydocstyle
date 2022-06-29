@@ -63,7 +63,7 @@ Run
 Develop
 ^^^^^^^
 
-You can use Gitpod to run pre-configured dev envrionment in the cloud right from your browser -
+You can use Gitpod to run pre-configured dev environment in the cloud right from your browser -
 
 .. image:: https://gitpod.io/button/open-in-gitpod.svg
     :target: https://gitpod.io/#https://github.com/PyCQA/pydocstyle
