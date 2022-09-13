@@ -2,6 +2,7 @@
 
 import ast
 import string
+import sys
 import tokenize as tk
 from collections import namedtuple
 from itertools import chain, takewhile
@@ -34,6 +35,126 @@ from .utils import (
 from .wordlists import IMPERATIVE_BLACKLIST, IMPERATIVE_VERBS, stem
 
 __all__ = ('check',)
+
+
+CHECKS_EXPLANATIONS = {
+    "check_docstring_missing": """D10{0,1,2,3}: Public definitions should have docstrings.
+
+All modules should normally have docstrings.  [...] all functions and
+classes exported by a module should also have docstrings. Public
+methods (including the __init__ constructor) should also have
+docstrings.
+
+Note: Public (exported) definitions are either those with names listed
+      in __all__ variable (if present), or those that do not start
+      with a single underscore.
+""",
+    "check_docstring_empty": """D419: Docstring is empty.
+
+If the user provided a docstring but it was empty, it is like they never provided one.
+
+NOTE: This used to report as D10X errors.
+""",
+    "check_one_liners": """D200: One-liner docstrings should fit on one line with quotes.
+
+The closing quotes are on the same line as the opening quotes.
+This looks better for one-liners.
+""",
+    "check_no_blank_before": """D20{1,2}: No blank lines allowed around function/method docstring.
+
+There's no blank line either before or after the docstring unless directly
+followed by an inner function or class.
+""",
+    "check_blank_before_after_class": """D20{3,4}: Class docstring should have 1 blank line around them.
+
+Insert a blank line before and after all docstrings (one-line or
+multi-line) that document a class -- generally speaking, the class's
+methods are separated from each other by a single blank line, and the
+docstring needs to be offset from the first method by a blank line;
+for symmetry, put a blank line between the class header and the
+docstring.
+""",
+    "check_blank_after_summary": """D205: Put one blank line between summary line and description.
+
+Multi-line docstrings consist of a summary line just like a one-line
+docstring, followed by a blank line, followed by a more elaborate
+description. The summary line may be used by automatic indexing tools;
+it is important that it fits on one line and is separated from the
+rest of the docstring by a blank line.
+""",
+    "check_indent": """D20{6,7,8}: The entire docstring should be indented same as code.
+
+The entire docstring is indented the same as the quotes at its
+first line.
+""",
+    "check_newline_after_last_paragraph": """D209: Put multi-line docstring closing quotes on separate line.
+
+Unless the entire docstring fits on a line, place the closing
+quotes on a line by themselves.
+""",
+    "check_surrounding_whitespaces": "D210: No whitespaces allowed surrounding docstring text.",
+    "check_multi_line_summary_start": """D21{2,3}: Multi-line docstring summary style check.
+
+A multi-line docstring summary should start either at the first,
+or separately at the second line of a docstring.
+""",
+    "check_triple_double_quotes": r'''D300: Use """triple double quotes""".
+
+For consistency, always use """triple double quotes""" around
+docstrings. Use r"""raw triple double quotes""" if you use any
+backslashes in your docstrings. For Unicode docstrings, use
+u"""Unicode triple-quoted strings""".
+
+Note: Exception to this is made if the docstring contains
+      """ quotes in its body.
+''',
+    "check_backslashes": r'''D301: Use r""" if any backslashes in a docstring.
+
+Use r"""raw triple double quotes""" if you use any backslashes
+(\) in your docstrings.
+
+Exceptions are backslashes for line-continuation and unicode escape
+sequences \N... and \u... These are considered intended unescaped
+content in docstrings.
+''',
+    "check_ends_with_period": """D400: First line should end with a period.
+
+The [first line of a] docstring is a phrase ending in a period.
+""",
+    "check_ends_with_punctuation": """D415: should end with proper punctuation.
+
+The [first line of a] docstring is a phrase ending in a period,
+question mark, or exclamation point
+
+""",
+    "check_imperative_mood": """D401: First line should be in imperative mood: 'Do', not 'Does'.
+
+[Docstring] prescribes the function or method's effect as a command:
+("Do this", "Return that"), not as a description; e.g. don't write
+"Returns the pathname ...".
+""",
+    "check_no_signature": """D402: First line should not be function's or method's "signature".
+
+The one-line docstring should NOT be a "signature" reiterating the
+function/method parameters (which can be obtained by introspection).
+""",
+    "check_capitalized": """D403: First word of the first line should be properly capitalized.
+
+The [first line of a] docstring is a phrase ending in a period.
+""",
+    "check_if_needed": """D418: Function decorated with @overload shouldn't contain a docstring.
+
+Functions that are decorated with @overload are definitions,
+and are for the benefit of the type checker only,
+since they will be overwritten by the non-@overload-decorated definition.
+""",
+    "check_starts_with_this": """D404: First word of the docstring should not be `This`.
+
+Docstrings should use short, simple language. They should not begin
+with "This class is [..]" or "This module contains [..]".
+""",
+    "check_docstring_sections": "Check for docstring sections.",
+}
 
 
 def check_for(kind, terminal=False):
@@ -142,7 +263,7 @@ class ConventionChecker:
         )
         module = parse(StringIO(source), filename)
         for definition in module:
-            for this_check in self.checks:
+            for this_check in self.checks():
                 terminate = False
                 if isinstance(definition, this_check._check_for):
                     skipping_all = definition.skipped_error_codes == 'all'
@@ -164,7 +285,10 @@ class ConventionChecker:
                             ignore_inline_noqa
                             or error.code not in definition.skipped_error_codes
                         ):
-                            partition = this_check.__doc__.partition('.\n')
+                            this_check_doc = CHECKS_EXPLANATIONS[
+                                this_check.__name__
+                            ]
+                            partition = this_check_doc.partition('.\n')
                             message, _, explanation = partition
                             error.set_context(
                                 explanation=explanation, definition=definition
@@ -176,29 +300,17 @@ class ConventionChecker:
                 if terminate:
                     break
 
-    @property
-    def checks(self):
+    @classmethod
+    def checks(cls):
         all = [
             this_check
-            for this_check in vars(type(self)).values()
+            for this_check in vars(cls).values()
             if hasattr(this_check, '_check_for')
         ]
         return sorted(all, key=lambda this_check: not this_check._terminal)
 
     @check_for(Definition, terminal=True)
     def check_docstring_missing(self, definition, docstring):
-        """D10{0,1,2,3}: Public definitions should have docstrings.
-
-        All modules should normally have docstrings.  [...] all functions and
-        classes exported by a module should also have docstrings. Public
-        methods (including the __init__ constructor) should also have
-        docstrings.
-
-        Note: Public (exported) definitions are either those with names listed
-              in __all__ variable (if present), or those that do not start
-              with a single underscore.
-
-        """
         if not docstring and definition.is_public:
             codes = {
                 Module: violations.D100,
@@ -227,24 +339,11 @@ class ConventionChecker:
 
     @check_for(Definition, terminal=True)
     def check_docstring_empty(self, definition, docstring):
-        """D419: Docstring is empty.
-
-        If the user provided a docstring but it was empty, it is like they never provided one.
-
-        NOTE: This used to report as D10X errors.
-
-        """
         if docstring and is_blank(ast.literal_eval(docstring)):
             return violations.D419()
 
     @check_for(Definition)
     def check_one_liners(self, definition, docstring):
-        """D200: One-liner docstrings should fit on one line with quotes.
-
-        The closing quotes are on the same line as the opening quotes.
-        This looks better for one-liners.
-
-        """
         if docstring:
             lines = ast.literal_eval(docstring).split('\n')
             if len(lines) > 1:
@@ -254,11 +353,6 @@ class ConventionChecker:
 
     @check_for(Function)
     def check_no_blank_before(self, function, docstring):  # def
-        """D20{1,2}: No blank lines allowed around function/method docstring.
-
-        There's no blank line either before or after the docstring unless directly
-        followed by an inner function or class.
-        """
         if docstring:
             before, _, after = function.source.partition(docstring)
             blanks_before = list(map(is_blank, before.split('\n')[:-1]))
@@ -279,16 +373,6 @@ class ConventionChecker:
 
     @check_for(Class)
     def check_blank_before_after_class(self, class_, docstring):
-        """D20{3,4}: Class docstring should have 1 blank line around them.
-
-        Insert a blank line before and after all docstrings (one-line or
-        multi-line) that document a class -- generally speaking, the class's
-        methods are separated from each other by a single blank line, and the
-        docstring needs to be offset from the first method by a blank line;
-        for symmetry, put a blank line between the class header and the
-        docstring.
-
-        """
         # NOTE: this gives false-positive in this case
         # class Foo:
         #
@@ -312,15 +396,6 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_blank_after_summary(self, definition, docstring):
-        """D205: Put one blank line between summary line and description.
-
-        Multi-line docstrings consist of a summary line just like a one-line
-        docstring, followed by a blank line, followed by a more elaborate
-        description. The summary line may be used by automatic indexing tools;
-        it is important that it fits on one line and is separated from the
-        rest of the docstring by a blank line.
-
-        """
         if docstring:
             lines = ast.literal_eval(docstring).strip().split('\n')
             if len(lines) > 1:
@@ -338,12 +413,6 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_indent(self, definition, docstring):
-        """D20{6,7,8}: The entire docstring should be indented same as code.
-
-        The entire docstring is indented the same as the quotes at its
-        first line.
-
-        """
         if docstring:
             indent = self._get_docstring_indent(definition, docstring)
             lines = docstring.split('\n')
@@ -366,12 +435,6 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_newline_after_last_paragraph(self, definition, docstring):
-        """D209: Put multi-line docstring closing quotes on separate line.
-
-        Unless the entire docstring fits on a line, place the closing
-        quotes on a line by themselves.
-
-        """
         if docstring:
             lines = [
                 l
@@ -384,7 +447,6 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_surrounding_whitespaces(self, definition, docstring):
-        """D210: No whitespaces allowed surrounding docstring text."""
         if docstring:
             lines = ast.literal_eval(docstring).split('\n')
             if (
@@ -396,12 +458,6 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_multi_line_summary_start(self, definition, docstring):
-        """D21{2,3}: Multi-line docstring summary style check.
-
-        A multi-line docstring summary should start either at the first,
-        or separately at the second line of a docstring.
-
-        """
         if docstring:
             start_triple = [
                 '"""',
@@ -424,17 +480,6 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_triple_double_quotes(self, definition, docstring):
-        r'''D300: Use """triple double quotes""".
-
-        For consistency, always use """triple double quotes""" around
-        docstrings. Use r"""raw triple double quotes""" if you use any
-        backslashes in your docstrings. For Unicode docstrings, use
-        u"""Unicode triple-quoted strings""".
-
-        Note: Exception to this is made if the docstring contains
-              """ quotes in its body.
-
-        '''
         if docstring:
             if '"""' in ast.literal_eval(docstring):
                 # Allow ''' quotes if docstring contains """, because
@@ -451,15 +496,6 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_backslashes(self, definition, docstring):
-        r'''D301: Use r""" if any backslashes in a docstring.
-
-        Use r"""raw triple double quotes""" if you use any backslashes
-        (\) in your docstrings.
-
-        Exceptions are backslashes for line-continuation and unicode escape
-        sequences \N... and \u... These are considered intended unescaped
-        content in docstrings.
-        '''
         # Just check that docstring is raw, check_triple_double_quotes
         # ensures the correct quotes.
 
@@ -486,34 +522,16 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_ends_with_period(self, definition, docstring):
-        """D400: First line should end with a period.
-
-        The [first line of a] docstring is a phrase ending in a period.
-
-        """
         return self._check_ends_with(docstring, '.', violations.D400)
 
     @check_for(Definition)
     def check_ends_with_punctuation(self, definition, docstring):
-        """D415: should end with proper punctuation.
-
-        The [first line of a] docstring is a phrase ending in a period,
-        question mark, or exclamation point
-
-        """
         return self._check_ends_with(
             docstring, ('.', '!', '?'), violations.D415
         )
 
     @check_for(Function)
     def check_imperative_mood(self, function, docstring):  # def context
-        """D401: First line should be in imperative mood: 'Do', not 'Does'.
-
-        [Docstring] prescribes the function or method's effect as a command:
-        ("Do this", "Return that"), not as a description; e.g. don't write
-        "Returns the pathname ...".
-
-        """
         if (
             docstring
             and not function.is_test
@@ -538,12 +556,6 @@ class ConventionChecker:
 
     @check_for(Function)
     def check_no_signature(self, function, docstring):  # def context
-        """D402: First line should not be function's or method's "signature".
-
-        The one-line docstring should NOT be a "signature" reiterating the
-        function/method parameters (which can be obtained by introspection).
-
-        """
         if docstring:
             first_line = ast.literal_eval(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
@@ -551,11 +563,6 @@ class ConventionChecker:
 
     @check_for(Function)
     def check_capitalized(self, function, docstring):
-        """D403: First word of the first line should be properly capitalized.
-
-        The [first line of a] docstring is a phrase ending in a period.
-
-        """
         if docstring:
             first_word = ast.literal_eval(docstring).split()[0]
             if first_word == first_word.upper():
@@ -568,24 +575,11 @@ class ConventionChecker:
 
     @check_for(Function)
     def check_if_needed(self, function, docstring):
-        """D418: Function decorated with @overload shouldn't contain a docstring.
-
-        Functions that are decorated with @overload are definitions,
-        and are for the benefit of the type checker only,
-        since they will be overwritten by the non-@overload-decorated definition.
-
-        """
         if docstring and function.is_overload:
             return violations.D418()
 
     @check_for(Definition)
     def check_starts_with_this(self, function, docstring):
-        """D404: First word of the docstring should not be `This`.
-
-        Docstrings should use short, simple language. They should not begin
-        with "This class is [..]" or "This module contains [..]".
-
-        """
         if not docstring:
             return
 
@@ -1061,7 +1055,6 @@ class ConventionChecker:
 
     @check_for(Definition)
     def check_docstring_sections(self, definition, docstring):
-        """Check for docstring sections."""
         if not docstring:
             return
 
@@ -1076,6 +1069,12 @@ class ConventionChecker:
             yield from self._check_google_sections(
                 lines, definition, docstring
             )
+
+
+if sys.flags.optimize < 2:
+    # not using PYTHONOPTIMIZE=2, set checker methods docstrings
+    for this_check in ConventionChecker.checks():
+        this_check.__doc__ = CHECKS_EXPLANATIONS[this_check.__name__]
 
 
 parse = Parser()
