@@ -18,6 +18,7 @@ New Features
 Bug Fixes
 
 * Fix ``--match`` option to only consider filename when matching full paths (#550).
+* Fix error raised when running with `PYTHONOPTIMIZE=2` environment variable (#607).
 
 6.1.1 - May 17th, 2021
 ---------------------------
