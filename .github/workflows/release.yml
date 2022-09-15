@@ -12,6 +12,8 @@ jobs:
   release-pypi:
     name: Upload release to PyPI
     runs-on: ubuntu-latest
+    environment:
+      name: pypi-prod
     steps:
       - name: Check out code from Github
         uses: actions/checkout@v3.0.0
