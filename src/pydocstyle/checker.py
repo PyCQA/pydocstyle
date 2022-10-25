@@ -216,12 +216,7 @@ class ConventionChecker:
                 return violations.D102()
             return None
 
-        if (
-            not docstring
-            and definition.is_public
-            or docstring
-            and is_blank(ast.literal_eval(docstring))
-        ):
+        if not docstring and definition.is_public:
             codes = {
                 Module: violations.D100,
                 Class: violations.D101,
