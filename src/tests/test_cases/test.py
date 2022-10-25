@@ -13,7 +13,7 @@ expect('class_', 'D101: Missing docstring in public class')
 
 class class_:
 
-    expect('meta', 'D106: Missing docstring in public nested class')
+    expect('meta', 'D419: Docstring is empty')
 
     class meta:
         """"""
@@ -64,14 +64,14 @@ class class_:
         pass
 
 
-@expect('D103: Missing docstring in public function')
+@expect('D419: Docstring is empty')
 def function():
     """ """
     @expect('D123: Missing docstring in inaccessible public function')
     def ok_since_nested():
         pass
 
-    @expect('D123: Missing docstring in inaccessible public function')
+    @expect('D419: Docstring is empty')
     def nested():
         ''
 

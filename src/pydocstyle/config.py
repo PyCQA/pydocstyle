@@ -289,7 +289,7 @@ class ConfigurationParser:
                     # Skip any dirs that do not match match_dir
                     dirs[:] = [d for d in dirs if match_dir(d)]
 
-                    for filename in filenames:
+                    for filename in map(os.path.basename, filenames):
                         if match(filename):
                             full_path = os.path.join(root, filename)
                             yield (
@@ -303,7 +303,7 @@ class ConfigurationParser:
                 match, _ = _get_matches(config)
                 ignore_decorators = _get_ignore_decorators(config)
                 property_decorators = _get_property_decorators(config)
-                if match(name):
+                if match(os.path.basename(name)):
                     yield (
                         name,
                         list(config.checked_codes),
