@@ -6,6 +6,7 @@ import tokenize as tk
 from collections import namedtuple
 from itertools import chain, takewhile
 from re import compile as re
+from textwrap import dedent
 
 from . import violations
 from .config import IllegalConfiguration
@@ -122,6 +123,8 @@ class ConventionChecker:
         r"\s*"
         # Followed by a colon
         r":"
+        # Might have a new line and leading whitespace
+        r"\n?\s*"
         # Followed by 1 or more characters - which is the docstring for the parameter
         ".+"
     )
@@ -233,6 +236,18 @@ class ConventionChecker:
                 Package: violations.D104,
             }
             return codes[type(definition)]()
+
+    @check_for(Definition, terminal=True)
+    def check_docstring_empty(self, definition, docstring):
+        """D419: Docstring is empty.
+
+        If the user provided a docstring but it was empty, it is like they never provided one.
+
+        NOTE: This used to report as D10X errors.
+
+        """
+        if docstring and is_blank(ast.literal_eval(docstring)):
+            return violations.D419()
 
     @check_for(Definition)
     def check_one_liners(self, definition, docstring):
@@ -843,10 +858,38 @@ class ConventionChecker:
             * The section documents all function arguments (D417)
                 except `self` or `cls` if it is a method.
 
+        Documentation for each arg should start at the same indentation
+        level. For example, in this case x and y are distinguishable::
+
+            Args:
+                x: Lorem ipsum dolor sit amet
+                y: Ut enim ad minim veniam
+
+        In the case below, we only recognize x as a documented parameter
+        because the rest of the content is indented as if it belongs
+        to the description for x::
+
+            Args:
+                x: Lorem ipsum dolor sit amet
+                    y: Ut enim ad minim veniam
         """
         docstring_args = set()
-        for line in context.following_lines:
-            match = ConventionChecker.GOOGLE_ARGS_REGEX.match(line)
+        # normalize leading whitespace
+        args_content = dedent("\n".join(context.following_lines)).strip()
+
+        args_sections = []
+        for line in args_content.splitlines(keepends=True):
+            if not line[:1].isspace():
+                # This line is the start of documentation for the next
+                # parameter because it doesn't start with any whitespace.
+                args_sections.append(line)
+            else:
+                # This is a continuation of documentation for the last
+                # parameter because it does start with whitespace.
+                args_sections[-1] += line
+
+        for section in args_sections:
+            match = ConventionChecker.GOOGLE_ARGS_REGEX.match(section)
             if match:
                 docstring_args.add(match.group(1))
         yield from ConventionChecker._check_missing_args(
