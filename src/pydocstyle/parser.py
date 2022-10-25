@@ -89,7 +89,7 @@ class Definition(Value):
         'decorators',
         'docstring',
         'children',
-        'call_names',
+        'callable_args',
         'parent',
         'skipped_error_codes',
     )  # type: Tuple[str, ...]
@@ -239,7 +239,7 @@ class Function(Definition):
     @property
     def param_names(self):
         """Return the parameter names."""
-        return self.call_names
+        return self.callable_args
 
 
 class NestedFunction(Function):
@@ -671,7 +671,7 @@ class Parser:
         name = self.current.value
         self.log.debug("parsing %s '%s'", class_.__name__, name)
         self.stream.move()
-        call_names = []
+        callable_args = []
         if self.current.kind == tk.OP and self.current.value == '(':
             parenthesis_level = 0
             in_default_arg = False
@@ -690,7 +690,7 @@ class Parser:
                     and self.current.kind == tk.NAME
                     and not in_default_arg
                 ):
-                    call_names.append(self.current.value)
+                    callable_args.append(self.current.value)
                     in_default_arg = True
                 self.stream.move()
         if self.current.kind != tk.OP or self.current.value != ':':
@@ -728,7 +728,7 @@ class Parser:
             decorators,
             docstring,
             children,
-            call_names,
+            callable_args,
             None,  # parent
             skipped_error_codes,
         )
