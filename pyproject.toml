@@ -1,3 +1,39 @@
+[tool.poetry]
+name = "pydocstyle"
+version = "0.0.0-dev"
+description = "Python docstring style checker"
+authors = ["Amir Rachum <amir@rachum.com>", "Sambhav Kothari <sambhavs.email@gmail.com"]
+license = "MIT"
+readme = "README.rst"
+documentation = "https://www.pydocstyle.org/en/stable/"
+homepage = "https://www.pydocstyle.org/en/stable/"
+repository = "https://github.com/PyCQA/pydocstyle"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: OS Independent"
+]
+
+[tool.poetry.urls]
+"Release Notes" = "https://www.pydocstyle.org/en/stable/release_notes.html"
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+snowballstemmer = ">=2.2.0"
+toml = {version = ">=0.10.2", optional = true}
+importlib-metadata = {version = ">=2.0.0,<5.0.0", python = "<3.8"}
+
+[tool.poetry.extras]
+toml = ["toml"]
+
+[tool.poetry.scripts]
+pydocstyle = "pydocstyle.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 line-length = 79
 target-version = ['py36']
