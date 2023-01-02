@@ -5,3 +5,5 @@ sphinx==1.6.2
 # Pinned to 3.0.3 to prevent an issue with Sphinx
 # See https://github.com/PyCQA/pydocstyle/pull/585
 Jinja2==3.0.3
+# adding . so that pydocstyle gets installed
+.
