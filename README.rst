@@ -74,8 +74,8 @@ Before submitting a PR make sure that you run `make all`.
 Links
 -----
 
-* `Read the full documentation here <http://pydocstyle.org/en/stable/>`_.
+* `Read the full documentation here <https://pydocstyle.org/en/stable/>`_.
 
-* `Fork pydocstyle on GitHub <http://github.com/PyCQA/pydocstyle>`_.
+* `Fork pydocstyle on GitHub <https://github.com/PyCQA/pydocstyle>`_.
 
 * `PyPI project page <https://pypi.python.org/pypi/pydocstyle>`_.
