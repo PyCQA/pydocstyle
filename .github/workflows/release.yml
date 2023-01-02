@@ -16,7 +16,10 @@ jobs:
     name: Upload release to PyPI
     runs-on: ubuntu-latest
     environment:
-      name: PyPI
+      name: pypi-dev
+      url: https://test.pypi.org/project/pydocstyle/
+    environment:
+      name: pypi-prod
       url: https://pypi.org/project/pydocstyle/
     steps:
       - name: Check out code from Github
