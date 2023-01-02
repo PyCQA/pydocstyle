@@ -10,7 +10,8 @@ from configparser import NoOptionError, NoSectionError, RawConfigParser
 from functools import reduce
 from re import compile as re
 
-from .utils import __version__, log
+from ._version import __version__
+from .utils import log
 from .violations import ErrorRegistry, conventions
 
 try:
