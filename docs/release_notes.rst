@@ -5,14 +5,20 @@ Release Notes
 `Semantic Versioning <http://semver.org/>`_ specification.
 
 
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Fix decorator parsing for async function. Resolves some false positives
+  with async functions and ``overload``. (#577)
+
 6.2.1 - January 3rd, 2023
 ---------------------------
 
 Bug Fixes
 
 * Use tomllib/tomli to correctly read .toml files (#599, #600).
-* Fix decorator parsing for async function. Resolves some false positives
-  with async functions and ``overload``. (#577)
 
 6.2.0 - January 2nd, 2023
 ---------------------------
