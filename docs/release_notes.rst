@@ -11,6 +11,8 @@ Current Development Version
 Bug Fixes
 
 * Use tomllib/tomli to correctly read .toml files (#599, #600).
+* Fix decorator parsing for async function. Resolves some false positives
+  with async functions and ``overload``. (#577)
 
 6.2.0 - January 2nd, 2023
 ---------------------------
@@ -25,8 +27,6 @@ New Features
 Bug Fixes
 
 * Fix ``--match`` option to only consider filename when matching full paths (#550).
-* Fix decorator parsing for async function. Resolves some false positives
-  with async functions and ``overload``. (#577)
 
 6.1.1 - May 17th, 2021
 ---------------------------
