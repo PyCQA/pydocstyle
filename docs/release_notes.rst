@@ -5,6 +5,13 @@ Release Notes
 `Semantic Versioning <http://semver.org/>`_ specification.
 
 
+Current development version
+---------------------------
+
+Bug Fixes
+
+* Fix false positives of D417 in google convention docstrings (#619).
+
 6.2.1 - January 3rd, 2023
 ---------------------------
 
