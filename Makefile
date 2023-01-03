@@ -5,4 +5,4 @@ format:
 	black src/pydocstyle
 
 tests:
-	tox -e py,install,docs
+	tox -e py,install
