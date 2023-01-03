@@ -1,9 +1,5 @@
+Jinja2
+sphinx
 sphinx_rtd_theme
-# Pinned to 1.6.2 due to a bug in 1.6.3. See GitHub PR #270 for details.
-# TODO: remove this restriction once 1.6.4 or later is released.
-sphinx==1.6.2
-# Pinned to 3.0.3 to prevent an issue with Sphinx
-# See https://github.com/PyCQA/pydocstyle/pull/585
-Jinja2==3.0.3
 # adding . so that pydocstyle gets installed
 .
