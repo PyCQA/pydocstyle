@@ -764,7 +764,7 @@ def test_overload_async_function_valid(env):
             ...
 
 
-        def overloaded_func(a):
+        async def overloaded_func(a):
             """Foo bar documentation."""
             return str(a)
 
