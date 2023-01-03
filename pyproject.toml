@@ -1,3 +1,39 @@
+[tool.poetry]
+name = "pydocstyle"
+version = "0.0.0-dev"
+description = "Python docstring style checker"
+authors = ["Amir Rachum <amir@rachum.com>", "Sambhav Kothari <sambhavs.email@gmail.com"]
+license = "MIT"
+readme = "README.rst"
+documentation = "https://www.pydocstyle.org/en/stable/"
+homepage = "https://www.pydocstyle.org/en/stable/"
+repository = "https://github.com/PyCQA/pydocstyle"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Environment :: Console",
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: OS Independent"
+]
+
+[tool.poetry.urls]
+"Release Notes" = "https://www.pydocstyle.org/en/stable/release_notes.html"
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+snowballstemmer = ">=2.2.0"
+tomli = {version = ">=1.2.3", optional = true, python = "<3.11"}
+importlib-metadata = {version = ">=2.0.0,<5.0.0", python = "<3.8"}
+
+[tool.poetry.extras]
+toml = ["tomli"]
+
+[tool.poetry.scripts]
+pydocstyle = "pydocstyle.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 line-length = 79
 target-version = ['py36']
@@ -7,3 +43,16 @@ skip-string-normalization = true
 profile = "black"
 src_paths = ["src/pydocstyle"]
 line_length = 79
+
+[tool.mypy]
+ignore_missing_imports = true
+strict_optional = true
+disallow_incomplete_defs = true
+
+[tool.pytest.ini_options]
+norecursedirs = ["docs", ".tox"]
+addopts = """
+    -vv
+    -rw
+    --cache-clear
+    """

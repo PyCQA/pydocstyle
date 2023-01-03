@@ -121,7 +121,7 @@ class SandboxEnv:
         pass
 
 
-@pytest.yield_fixture(scope="module")
+@pytest.fixture(scope="module")
 def install_package(request):
     """Install the package in development mode for the tests.
 
@@ -138,7 +138,7 @@ def install_package(request):
     )
 
 
-@pytest.yield_fixture(scope="function", params=['ini', 'toml'])
+@pytest.fixture(scope="function", params=['ini', 'toml'])
 def env(request):
     """Add a testing environment to a test method."""
     sandbox_settings = {
