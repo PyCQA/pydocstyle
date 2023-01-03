@@ -5,6 +5,13 @@ Release Notes
 `Semantic Versioning <http://semver.org/>`_ specification.
 
 
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Use tomllib/tomli to correctly read .toml files (#599, #600).
+
 6.2.0 - January 2nd, 2023
 ---------------------------
 

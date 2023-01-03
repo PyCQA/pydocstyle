@@ -4,6 +4,7 @@ import copy
 import itertools
 import operator
 import os
+import sys
 from collections import namedtuple
 from collections.abc import Set
 from configparser import NoOptionError, NoSectionError, RawConfigParser
@@ -14,10 +15,13 @@ from ._version import __version__
 from .utils import log
 from .violations import ErrorRegistry, conventions
 
-try:
-    import toml
-except ImportError:  # pragma: no cover
-    toml = None  # type: ignore
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    try:
+        import tomli as tomllib
+    except ImportError:  # pragma: no cover
+        tomllib = None  # type: ignore
 
 
 def check_initialized(method):
@@ -60,15 +64,15 @@ class TomlParser:
         read_ok = []
         for filename in filenames:
             try:
-                with open(filename, encoding=encoding) as fp:
-                    if not toml:
+                with open(filename, "rb") as fp:
+                    if not tomllib:
                         log.warning(
                             "The %s configuration file was ignored, "
-                            "because the `toml` package is not installed.",
+                            "because the `tomli` package is not installed.",
                             filename,
                         )
                         continue
-                    self._config.update(toml.load(fp))
+                    self._config.update(tomllib.load(fp))
             except OSError:
                 continue
             if isinstance(filename, os.PathLike):
