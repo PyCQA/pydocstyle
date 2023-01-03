@@ -8,6 +8,13 @@ Release Notes
 Current Development Version
 ---------------------------
 
+Bug Fixes
+
+* Use tomllib/tomli to correctly read .toml files (#599, #600).
+
+6.2.0 - January 2nd, 2023
+---------------------------
+
 New Features
 
 * Allow for hanging indent when documenting args in Google style. (#449)
