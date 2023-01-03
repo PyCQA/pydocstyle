@@ -5,7 +5,7 @@ Release Notes
 `Semantic Versioning <http://semver.org/>`_ specification.
 
 
-Current development version
+6.2.2 - January 3rd, 2023
 ---------------------------
 
 Bug Fixes
