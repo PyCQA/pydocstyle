@@ -7,6 +7,8 @@ Release Notes
 6.2.3 - January 8th, 2023
 ---------------------------
 
+Bug Fixes
+
 * Fix decorator parsing for async function. Resolves some false positives
   with async functions and ``overload``. (#577)
 
