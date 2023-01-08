@@ -1,12 +1,10 @@
 """General shared utilities."""
-import ast
 import logging
 import re
 from itertools import tee, zip_longest
 from typing import Any, Iterable, Tuple
 
 # Do not update the version manually - it is managed by `bumpversion`.
-__version__ = '6.1.2rc'
 log = logging.getLogger(__name__)
 
 #: Regular expression for stripping non-alphanumeric characters
