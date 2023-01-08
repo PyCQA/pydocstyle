@@ -21,11 +21,11 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.6"
 snowballstemmer = ">=2.2.0"
-toml = {version = ">=0.10.2", optional = true}
+tomli = {version = ">=1.2.3", optional = true, python = "<3.11"}
 importlib-metadata = {version = ">=2.0.0,<5.0.0", python = "<3.8"}
 
 [tool.poetry.extras]
-toml = ["toml"]
+toml = ["tomli"]
 
 [tool.poetry.scripts]
 pydocstyle = "pydocstyle.cli:main"

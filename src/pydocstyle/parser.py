@@ -492,6 +492,7 @@ class Parser:
                 self.current.value,
             )
             if self.current.kind == tk.NAME and self.current.value in [
+                'async',
                 'def',
                 'class',
             ]:
