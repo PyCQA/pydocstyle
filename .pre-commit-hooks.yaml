@@ -4,4 +4,3 @@
     entry: pydocstyle
     language: python
     types: [python]
-    pass_filenames: false
