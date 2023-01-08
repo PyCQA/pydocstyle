@@ -869,8 +869,22 @@ class ConventionChecker:
                     y: Ut enim ad minim veniam
         """
         docstring_args = set()
+
         # normalize leading whitespace
-        args_content = dedent("\n".join(context.following_lines)).strip()
+        if context.following_lines:
+            # any lines with shorter indent than the first one should be disregarded
+            first_line = context.following_lines[0]
+            leading_whitespaces = first_line[: -len(first_line.lstrip())]
+
+        args_content = dedent(
+            "\n".join(
+                [
+                    line
+                    for line in context.following_lines
+                    if line.startswith(leading_whitespaces) or line == ""
+                ]
+            )
+        ).strip()
 
         args_sections = []
         for line in args_content.splitlines(keepends=True):

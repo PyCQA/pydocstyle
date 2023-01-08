@@ -621,6 +621,36 @@ def test_overload_function(env):
     assert 'D103' not in out
 
 
+def test_overload_async_function(env):
+    """Async functions decorated with @overload trigger D418 error."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''\
+        from typing import overload
+
+
+        @overload
+        async def overloaded_func(a: int) -> str:
+            ...
+
+
+        @overload
+        async def overloaded_func(a: str) -> str:
+            """Foo bar documentation."""
+            ...
+
+
+        async def overloaded_func(a):
+            """Foo bar documentation."""
+            return str(a)
+
+        '''))
+    env.write_config(ignore="D100")
+    out, err, code = env.invoke()
+    assert code == 1
+    assert 'D418' in out
+    assert 'D103' not in out
+
+
 def test_overload_method(env):
     """Methods decorated with @overload trigger D418 error."""
     with env.open('example.py', 'wt') as example:
@@ -705,6 +735,36 @@ def test_overload_function_valid(env):
 
 
         def overloaded_func(a):
+            """Foo bar documentation."""
+            return str(a)
+
+        '''))
+    env.write_config(ignore="D100")
+    out, err, code = env.invoke()
+    assert code == 0
+
+
+def test_overload_async_function_valid(env):
+    """Valid case for overload decorated async functions.
+
+    This shouldn't throw any errors.
+    """
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent('''\
+        from typing import overload
+
+
+        @overload
+        async def overloaded_func(a: int) -> str:
+            ...
+
+
+        @overload
+        async def overloaded_func(a: str) -> str:
+            ...
+
+
+        async def overloaded_func(a):
             """Foo bar documentation."""
             return str(a)
 

@@ -63,7 +63,7 @@ Run
 Develop
 ^^^^^^^
 
-You can use Gitpod to run pre-configured dev envrionment in the cloud right from your browser -
+You can use Gitpod to run pre-configured dev environment in the cloud right from your browser -
 
 .. image:: https://gitpod.io/button/open-in-gitpod.svg
     :target: https://gitpod.io/#https://github.com/PyCQA/pydocstyle
@@ -74,8 +74,8 @@ Before submitting a PR make sure that you run `make all`.
 Links
 -----
 
-* `Read the full documentation here <http://pydocstyle.org/en/stable/>`_.
+* `Read the full documentation here <https://pydocstyle.org/en/stable/>`_.
 
-* `Fork pydocstyle on GitHub <http://github.com/PyCQA/pydocstyle>`_.
+* `Fork pydocstyle on GitHub <https://github.com/PyCQA/pydocstyle>`_.
 
 * `PyPI project page <https://pypi.python.org/pypi/pydocstyle>`_.
