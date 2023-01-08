@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+6.2.3 - January 8th, 2023
+---------------------------
+
+Bug Fixes
+
+* Fix decorator parsing for async function. Resolves some false positives
+  with async functions and ``overload``. (#577)
 
 6.2.2 - January 3rd, 2023
 ---------------------------
