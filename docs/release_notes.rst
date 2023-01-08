@@ -11,6 +11,7 @@ Bug Fixes
 
 * Fix decorator parsing for async function. Resolves some false positives
   with async functions and ``overload``. (#577)
+* Obey match rules in pre-commit usage (#610).
 
 6.2.2 - January 3rd, 2023
 ---------------------------
@@ -39,7 +40,6 @@ New Features
 Bug Fixes
 
 * Fix ``--match`` option to only consider filename when matching full paths (#550).
-* Obey match rules in pre-commit usage (#610).
 
 6.1.1 - May 17th, 2021
 ---------------------------
