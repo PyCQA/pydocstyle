@@ -270,6 +270,34 @@ def test_run_as_named_module():
     assert p.returncode == 0, out.decode('utf-8') + err.decode('utf-8')
 
 
+def test_run_with_python_optimizations_enabled(env):
+    """Test that pydocstyle can be run with the environment variable PYTHONOPTIMIZE=2.
+
+    This means that the following should run pydocstyle:
+
+        python -OO -m pydocstyle
+
+    """
+    test_content = textwrap.dedent("""\
+        def foo():
+            pass
+    """)
+
+    with env.open('foo.py', 'wt') as test:
+        test.write(test_content)
+
+    cmd = [sys.executable, "-OO", "-m", "pydocstyle", "foo.py"]
+    p = subprocess.Popen(cmd,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         cwd=env.tempdir)
+    out, err = p.communicate()
+
+    assert b"Missing docstring in public module" in out
+    assert b"Missing docstring in public function" in out
+    assert p.returncode == 1, out.decode('utf-8') + err.decode('utf-8')
+
+
 def test_config_file(env):
     """Test that options are correctly loaded from a config file.
 
