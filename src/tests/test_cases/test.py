@@ -67,6 +67,7 @@ class class_:
 @expect('D419: Docstring is empty')
 def function():
     """ """
+    @expect('D123: Missing docstring in inaccessible public function')
     def ok_since_nested():
         pass
 
@@ -94,7 +95,8 @@ def function_with_nesting():
 expect('nested_overloaded_func',
        "D418: Function/ Method decorated with @overload"
        " shouldn't contain a docstring")
-
+expect('nested_overloaded_func',
+       "D123: Missing docstring in inaccessible public function")
 
 @overload
 def overloaded_func(a: int) -> str:

@@ -222,6 +222,14 @@ D107 = D1xx.create_error(
     'D107',
     'Missing docstring in __init__',
 )
+D121 = D1xx.create_error(
+    'D121',
+    'Missing docstring in inaccessible public class',
+)
+D123 = D1xx.create_error(
+    'D123',
+    'Missing docstring in inaccessible public function',
+)
 
 D2xx = ErrorRegistry.create_group('D2', 'Whitespace Issues')
 D200 = D2xx.create_error(
