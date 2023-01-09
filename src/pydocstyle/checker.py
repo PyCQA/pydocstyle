@@ -200,21 +200,21 @@ class ConventionChecker:
 
         """
         if not docstring and definition.is_public:
+
+            def method_violations():
+                if not definition.is_overload:
+                    if definition.is_magic:
+                        return violations.D105()
+                    if definition.is_init:
+                        return violations.D107()
+                    return violations.D102()
+                return None
+
             codes = {
                 Module: violations.D100,
                 Class: violations.D101,
                 NestedClass: violations.D106,
-                Method: lambda: violations.D105()
-                if definition.is_magic
-                else (
-                    violations.D107()
-                    if definition.is_init
-                    else (
-                        violations.D102()
-                        if not definition.is_overload
-                        else None
-                    )
-                ),
+                Method: method_violations,
                 NestedFunction: violations.D103,
                 Function: (
                     lambda: violations.D103()
