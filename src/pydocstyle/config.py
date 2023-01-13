@@ -185,6 +185,7 @@ class ConfigurationParser:
         'match',
         'match-dir',
         'ignore-decorators',
+        'ignore-functions',
     )
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
@@ -194,6 +195,7 @@ class ConfigurationParser:
     DEFAULT_PROPERTY_DECORATORS = (
         "property,cached_property,functools.cached_property"
     )
+    DEFAULT_IGNORE_FUNCTIONS_RE = ''
     DEFAULT_CONVENTION = conventions.pep257
 
     PROJECT_CONFIG_FILES = (
@@ -268,6 +270,10 @@ class ConfigurationParser:
             match_dir_func = re(conf.match_dir + '$').match
             return match_func, match_dir_func
 
+        def _get_ignore_functions(conf):
+            """Return the `ignore_functions` as None or regex."""
+            return re(conf.ignore_functions) if conf.ignore_functions else None
+
         def _get_ignore_decorators(conf):
             """Return the `ignore_decorators` as None or regex."""
             return (
@@ -289,6 +295,7 @@ class ConfigurationParser:
                     match, match_dir = _get_matches(config)
                     ignore_decorators = _get_ignore_decorators(config)
                     property_decorators = _get_property_decorators(config)
+                    ignore_functions = _get_ignore_functions(config)
 
                     # Skip any dirs that do not match match_dir
                     dirs[:] = [d for d in dirs if match_dir(d)]
@@ -301,18 +308,22 @@ class ConfigurationParser:
                                 list(config.checked_codes),
                                 ignore_decorators,
                                 property_decorators,
+                                ignore_functions,
                             )
             else:
                 config = self._get_config(os.path.abspath(name))
                 match, _ = _get_matches(config)
                 ignore_decorators = _get_ignore_decorators(config)
                 property_decorators = _get_property_decorators(config)
+                ignore_functions = _get_ignore_functions(config)
+
                 if match(os.path.basename(name)):
                     yield (
                         name,
                         list(config.checked_codes),
                         ignore_decorators,
                         property_decorators,
+                        ignore_functions,
                     )
 
     # --------------------------- Private Methods -----------------------------
@@ -514,6 +525,7 @@ class ConfigurationParser:
             'match_dir',
             'ignore_decorators',
             'property_decorators',
+            'ignore_functions',
         ):
             kwargs[key] = getattr(child_options, key) or getattr(
                 parent_config, key
@@ -553,6 +565,7 @@ class ConfigurationParser:
             'match_dir': "MATCH_DIR_RE",
             'ignore_decorators': "IGNORE_DECORATORS_RE",
             'property_decorators': "PROPERTY_DECORATORS",
+            'ignore_functions': "IGNORE_FUNCTIONS_RE",
         }
         for key, default in defaults.items():
             kwargs[key] = (
@@ -785,9 +798,10 @@ class ConfigurationParser:
             OptionGroup(
                 parser,
                 'Note',
-                'When using --match, --match-dir or --ignore-decorators consider '
-                'whether you should use a single quote (\') or a double quote ("), '
-                'depending on your OS, Shell, etc.',
+                'When using --match, --match-dir, --ignore-decorators or '
+                '--ignore-functions consider whether you should use a single '
+                'quote (\') or a double quote ("), depending on your OS, '
+                'Shell, etc.',
             )
         )
 
@@ -904,6 +918,19 @@ class ConfigurationParser:
             ),
         )
 
+        # Function selection
+        option(
+            '--ignore-functions',
+            metavar='<functions>',
+            default=None,
+            help=(
+                "ignore any functions or methods whose names fit "
+                "the <functions> regular expression; default is "
+                "--ignore-functions='{}' which does not ignore any "
+                "functions.".format(cls.DEFAULT_IGNORE_DECORATORS_RE)
+            ),
+        )
+
         return parser
 
 
@@ -916,6 +943,7 @@ CheckConfiguration = namedtuple(
         'match_dir',
         'ignore_decorators',
         'property_decorators',
+        'ignore_functions',
     ),
 )
 

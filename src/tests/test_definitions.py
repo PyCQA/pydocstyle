@@ -44,6 +44,7 @@ def test_complex_file(test_case):
             select=set(ErrorRegistry.get_error_codes()),
             ignore_decorators=re.compile('wraps|ignored_decorator'),
             property_decorators=DEFAULT_PROPERTY_DECORATORS,
+            ignore_functions=re.compile("ignored_function.*"),
         )
     )
     for error in results:

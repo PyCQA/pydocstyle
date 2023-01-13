@@ -136,6 +136,7 @@ class ConventionChecker:
         ignore_decorators=None,
         property_decorators=None,
         ignore_inline_noqa=False,
+        ignore_functions=None,
     ):
         self.property_decorators = (
             {} if property_decorators is None else property_decorators
@@ -150,9 +151,19 @@ class ConventionChecker:
                         len(ignore_decorators.findall(dec.name)) > 0
                         for dec in definition.decorators
                     )
+                    # Only skip checking the docstring if absent.
+                    # If the docstring is present, then check it as normal
+                    name_skip = (
+                        ignore_functions is not None
+                        and not definition.docstring
+                        and bool(ignore_functions.findall(definition.name))
+                    )
+
                     if (
-                        ignore_inline_noqa or not skipping_all
-                    ) and not decorator_skip:
+                        (ignore_inline_noqa or not skipping_all)
+                        and not decorator_skip
+                        and not name_skip
+                    ):
                         error = this_check(
                             self, definition, definition.docstring
                         )
@@ -1102,6 +1113,7 @@ def check(
     ignore_decorators=None,
     property_decorators=None,
     ignore_inline_noqa=False,
+    ignore_functions=None,
 ):
     """Generate docstring errors that exist in `filenames` iterable.
 
@@ -1155,9 +1167,10 @@ def check(
             for error in ConventionChecker().check_source(
                 source,
                 filename,
-                ignore_decorators,
-                property_decorators,
-                ignore_inline_noqa,
+                ignore_decorators=ignore_decorators,
+                property_decorators=property_decorators,
+                ignore_inline_noqa=ignore_inline_noqa,
+                ignore_functions=ignore_functions,
             ):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:
