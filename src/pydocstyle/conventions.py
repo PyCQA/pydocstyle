@@ -1,7 +1,8 @@
 """This module contains the convention definitions."""
 
+from typing import Set
 
-from typing import Literal, Set
+from typing_extensions import Literal
 
 from pydocstyle.violations import all_errors
 
