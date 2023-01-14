@@ -1,21 +1,20 @@
 """Use tox or pytest to run the test-suite."""
 
-from collections import namedtuple
-
 import os
+import pathlib
 import shlex
 import shutil
-import pytest
-import pathlib
-import tempfile
-import textwrap
 import subprocess
 import sys
-
+import tempfile
+import textwrap
+from collections import namedtuple
 from unittest import mock
 
-from pydocstyle import checker, violations
+import pytest
 
+from pydocstyle import checker
+from pydocstyle.conventions import Convention
 
 __all__ = ()
 
@@ -187,7 +186,7 @@ def test_pep257_conformance():
                  if excluded not in path.parents)
 
     ignored = {'D104', 'D105'}
-    select = violations.conventions.pep257 - ignored
+    select = Convention("pep257").error_codes - ignored
     errors = list(checker.check(src_files, select=select))
     assert errors == [], errors
 

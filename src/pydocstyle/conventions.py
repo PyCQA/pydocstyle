@@ -84,10 +84,7 @@ class Convention:
             ValueError: _description_
         """
         if name not in CONVENTION_NAMES:
-            raise ValueError(
-                f"Convention '{name}' is invalid. Must be one "
-                f"of {CONVENTION_NAMES}."
-            )
+            name = "pep257"
 
         self.name = name
         self.error_codes = convention_errors[name]

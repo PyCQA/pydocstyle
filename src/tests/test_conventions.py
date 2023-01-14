@@ -7,17 +7,13 @@ import pytest
 from pydocstyle.conventions import CONVENTION_NAMES, Convention
 
 
-def test_only_specific_convention_names_are_allowed() -> None:
-    """Test that an error is raised if an invalid convention name is used."""
-    with pytest.raises(
-        ValueError, match="Convention 'invalid_convention' is invalid"
-    ):
-        convention = Convention("invalid_convention")
-
-
 def test_default_convention_is_pep257() -> None:
     """Test that pep257 is used as the default convention."""
     convention = Convention()
+
+    assert convention.name == "pep257"
+
+    convention = Convention("invalid_convention")
 
     assert convention.name == "pep257"
 

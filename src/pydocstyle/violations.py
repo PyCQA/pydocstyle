@@ -3,12 +3,12 @@
 from collections import namedtuple
 from functools import partial
 from itertools import dropwhile
-from typing import Any, Callable, Iterable, List, Optional
+from typing import Callable, Iterable, List, Optional
 
 from .parser import Definition
 from .utils import is_blank
 
-__all__ = ('Error', 'ErrorRegistry', 'conventions')
+__all__ = ('Error', 'ErrorRegistry')
 
 
 ErrorParams = namedtuple('ErrorParams', ['code', 'short_desc', 'context'])
@@ -421,63 +421,4 @@ D419 = D4xx.create_error(
 )
 
 
-class AttrDict(dict):
-    def __getattr__(self, item: str) -> Any:
-        return self[item]
-
-
 all_errors = set(ErrorRegistry.get_error_codes())
-
-
-conventions = AttrDict(
-    {
-        'pep257': all_errors
-        - {
-            'D203',
-            'D212',
-            'D213',
-            'D214',
-            'D215',
-            'D404',
-            'D405',
-            'D406',
-            'D407',
-            'D408',
-            'D409',
-            'D410',
-            'D411',
-            'D413',
-            'D415',
-            'D416',
-            'D417',
-            'D418',
-        },
-        'numpy': all_errors
-        - {
-            'D107',
-            'D203',
-            'D212',
-            'D213',
-            'D402',
-            'D413',
-            'D415',
-            'D416',
-            'D417',
-        },
-        'google': all_errors
-        - {
-            'D203',
-            'D204',
-            'D213',
-            'D215',
-            'D400',
-            'D401',
-            'D404',
-            'D406',
-            'D407',
-            'D408',
-            'D409',
-            'D413',
-        },
-    }
-)
