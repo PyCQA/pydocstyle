@@ -2,8 +2,6 @@
 
 from typing import Set
 
-from typing_extensions import Literal
-
 from pydocstyle.violations import all_errors
 
 CONVENTION_NAMES = ("pep257", "numpy", "google")
