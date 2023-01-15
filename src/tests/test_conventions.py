@@ -13,9 +13,13 @@ def test_default_convention_is_pep257() -> None:
 
     assert convention.name == "pep257"
 
-    convention = Convention("invalid_convention")
 
-    assert convention.name == "pep257"
+def test_invalid_convention_raises_error() -> None:
+    """Test that using an invalid convention name raises an error."""
+    with pytest.raises(
+        ValueError, match="Unknown convention: 'invalid_convention'"
+    ):
+        Convention("invalid_convention")
 
 
 @pytest.mark.parametrize("convention_name", CONVENTION_NAMES)
