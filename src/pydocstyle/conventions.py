@@ -78,7 +78,7 @@ class Convention:
             name: The convention to use. Defaults to "pep257".
 
         Raises:
-            ValueError: _description_
+            ValueError: If an unsupported convention is specified.
         """
         if name not in CONVENTION_NAMES:
             raise ValueError(f"Unknown convention: '{name}'")
@@ -90,7 +90,7 @@ class Convention:
         """Add additional error codes to the convention.
 
         Args:
-            error_codes (Set[str]): The error codes to also check.
+            error_codes: The error codes to also check.
         """
         self.error_codes = self.error_codes.union(error_codes)
 
@@ -98,6 +98,6 @@ class Convention:
         """Remove error codes from the convention.
 
         Args:
-            error_codes (Set[str]): The error codes to ignore.
+            error_codes: The error codes to ignore.
         """
         self.error_codes = self.error_codes - error_codes
