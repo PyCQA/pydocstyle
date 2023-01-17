@@ -1551,6 +1551,20 @@ def test_comment_with_noqa_plus_docstring_file(env):
     assert code == 0
 
 
+def test_ignore_self_only_init(env):
+    """Test that ignore_self_only_init works ignores __init__ with only self."""
+    with env.open('example.py', 'wt') as example:
+        example.write(textwrap.dedent("""\
+            class Foo:
+                def __init__(self):
+                    pass
+        """))
+
+    env.write_config(ignore_self_only_init=True, select="D107")
+    out, err, code = env.invoke()
+    assert '' == out
+    assert code == 0
+
 def test_match_considers_basenames_for_path_args(env):
     """Test that `match` option only considers basenames for path arguments.
 

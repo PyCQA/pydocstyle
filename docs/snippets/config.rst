@@ -45,6 +45,7 @@ Available options are:
 * ``match_dir``
 * ``ignore_decorators``
 * ``property_decorators``
+* ``ignore_self_only_init``
 
 See the :ref:`cli_usage` section for more information.
 

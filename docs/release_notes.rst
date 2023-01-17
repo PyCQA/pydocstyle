@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+6.3.0 - January 17th, 2023
+--------------------------
+
+New Features
+
+* Add `ignore-self-only-init` config (#560).
+
 6.2.3 - January 8th, 2023
 ---------------------------
 

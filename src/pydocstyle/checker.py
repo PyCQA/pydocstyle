@@ -136,10 +136,12 @@ class ConventionChecker:
         ignore_decorators=None,
         property_decorators=None,
         ignore_inline_noqa=False,
+        ignore_self_only_init=False,
     ):
         self.property_decorators = (
             {} if property_decorators is None else property_decorators
         )
+        self.ignore_self_only_init = ignore_self_only_init
         module = parse(StringIO(source), filename)
         for definition in module:
             for this_check in self.checks:
@@ -199,22 +201,27 @@ class ConventionChecker:
               with a single underscore.
 
         """
+
+        def method_violation():
+            if definition.is_magic:
+                return violations.D105()
+            if definition.is_init:
+                if (
+                    self.ignore_self_only_init
+                    and len(definition.param_names) == 1
+                ):
+                    return None
+                return violations.D107()
+            if not definition.is_overload:
+                return violations.D102()
+            return None
+
         if not docstring and definition.is_public:
             codes = {
                 Module: violations.D100,
                 Class: violations.D101,
                 NestedClass: violations.D106,
-                Method: lambda: violations.D105()
-                if definition.is_magic
-                else (
-                    violations.D107()
-                    if definition.is_init
-                    else (
-                        violations.D102()
-                        if not definition.is_overload
-                        else None
-                    )
-                ),
+                Method: method_violation,
                 NestedFunction: violations.D103,
                 Function: (
                     lambda: violations.D103()
@@ -1102,6 +1109,7 @@ def check(
     ignore_decorators=None,
     property_decorators=None,
     ignore_inline_noqa=False,
+    ignore_self_only_init=False,
 ):
     """Generate docstring errors that exist in `filenames` iterable.
 
@@ -1120,6 +1128,8 @@ def check(
     a base set to add or remove errors from.
 
     `ignore_inline_noqa` controls if `# noqa` comments are respected or not.
+
+    `ignore_self_only_init` controls if D107 is reported on __init__ only containing `self`.
 
     Examples
     ---------
@@ -1158,6 +1168,7 @@ def check(
                 ignore_decorators,
                 property_decorators,
                 ignore_inline_noqa,
+                ignore_self_only_init,
             ):
                 code = getattr(error, 'code', None)
                 if code in checked_codes:

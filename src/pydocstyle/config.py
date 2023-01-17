@@ -185,6 +185,7 @@ class ConfigurationParser:
         'match',
         'match-dir',
         'ignore-decorators',
+        'ignore-self-only-init',
     )
     BASE_ERROR_SELECTION_OPTIONS = ('ignore', 'select', 'convention')
 
@@ -195,6 +196,7 @@ class ConfigurationParser:
         "property,cached_property,functools.cached_property"
     )
     DEFAULT_CONVENTION = conventions.pep257
+    DEFAULT_IGNORE_SELF_ONLY_INIT = False
 
     PROJECT_CONFIG_FILES = (
         'setup.cfg',
@@ -301,6 +303,7 @@ class ConfigurationParser:
                                 list(config.checked_codes),
                                 ignore_decorators,
                                 property_decorators,
+                                config.ignore_self_only_init,
                             )
             else:
                 config = self._get_config(os.path.abspath(name))
@@ -313,6 +316,7 @@ class ConfigurationParser:
                         list(config.checked_codes),
                         ignore_decorators,
                         property_decorators,
+                        config.ignore_self_only_init,
                     )
 
     # --------------------------- Private Methods -----------------------------
@@ -514,9 +518,13 @@ class ConfigurationParser:
             'match_dir',
             'ignore_decorators',
             'property_decorators',
+            'ignore_self_only_init',
         ):
-            kwargs[key] = getattr(child_options, key) or getattr(
-                parent_config, key
+            child_value = getattr(child_options, key)
+            kwargs[key] = (
+                child_value
+                if child_value is not None
+                else getattr(parent_config, key)
             )
         return CheckConfiguration(**kwargs)
 
@@ -553,6 +561,7 @@ class ConfigurationParser:
             'match_dir': "MATCH_DIR_RE",
             'ignore_decorators': "IGNORE_DECORATORS_RE",
             'property_decorators': "PROPERTY_DECORATORS",
+            'ignore_self_only_init': "IGNORE_SELF_ONLY_INIT",
         }
         for key, default in defaults.items():
             kwargs[key] = (
@@ -849,6 +858,12 @@ class ConfigurationParser:
             'basic list previously set by --select, --ignore '
             'or --convention.',
         )
+        add_check(
+            '--ignore-self-only-init',
+            default=None,
+            action='store_true',
+            help='ignore __init__ methods which only have a self param.',
+        )
 
         parser.add_option_group(check_group)
 
@@ -916,6 +931,7 @@ CheckConfiguration = namedtuple(
         'match_dir',
         'ignore_decorators',
         'property_decorators',
+        'ignore_self_only_init',
     ),
 )
 
