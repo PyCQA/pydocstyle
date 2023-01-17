@@ -4,8 +4,8 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
-6.2.4
------
+6.3.0 - January 17th, 2023
+--------------------------
 
 New Features
 
