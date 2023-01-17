@@ -11,6 +11,11 @@ New Features
 
 * Add `ignore-self-only-init` config (#560).
 
+Bug Fixes
+
+* Revert - Obey match rules in pre-commit usage (#610).
+
+
 6.2.3 - January 8th, 2023
 ---------------------------
 
