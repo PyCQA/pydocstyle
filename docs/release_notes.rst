@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+6.2.4
+-----
+
+New Features
+
+* Add `ignore-self-only-init` config (#560).
+
 6.2.3 - January 8th, 2023
 ---------------------------
 
@@ -35,7 +42,6 @@ New Features
 * Allow for hanging indent when documenting args in Google style. (#449)
 * Add support for `property_decorators` config to ignore D401.
 * Add support for Python 3.10 (#554).
-* Add `ignore-self-only-init` config (#560).
 * Replace D10X errors with D419 if docstring exists but is empty (#559).
 
 Bug Fixes
