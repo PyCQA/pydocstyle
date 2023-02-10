@@ -43,6 +43,7 @@ def run_pydocstyle():
             checked_codes,
             ignore_decorators,
             property_decorators,
+            ignore_self_only_init,
         ) in conf.get_files_to_check():
             errors.extend(
                 check(
@@ -50,6 +51,7 @@ def run_pydocstyle():
                     select=checked_codes,
                     ignore_decorators=ignore_decorators,
                     property_decorators=property_decorators,
+                    ignore_self_only_init=ignore_self_only_init,
                 )
             )
     except IllegalConfiguration as error:

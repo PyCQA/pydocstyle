@@ -130,6 +130,21 @@ class TestParser:
         assert 'first_decorator' == decorators[0].name
         assert '' == decorators[0].arguments
 
+    def test_parse_async_function_decorator(self):
+        """Decorators for async functions are also accumulated."""
+        code = textwrap.dedent("""\
+            @first_decorator
+            async def some_method(self):
+                pass
+        """)
+
+        module = checker.parse(io.StringIO(code), 'dummy.py')
+        decorators = module.children[0].decorators
+
+        assert 1 == len(decorators)
+        assert 'first_decorator' == decorators[0].name
+        assert '' == decorators[0].arguments
+
     def test_parse_method_nested_decorator(self):
         """Method decorators are accumulated for nested methods."""
         code = textwrap.dedent("""\
@@ -167,10 +182,10 @@ class TestMethod:
                                dunder_all, None, None, '')
 
         cls = parser.Class('ClassName', source, 0, 1, [],
-                           'Docstring for class', children, module, '')
+                           'Docstring for class', children, [], module, '')
 
         return parser.Method(name, source, 0, 1, [],
-                             'Docstring for method', children, cls, '')
+                             'Docstring for method', children, [], cls, '')
 
     def test_is_public_normal(self):
         """Test that methods are normally public, even if decorated."""

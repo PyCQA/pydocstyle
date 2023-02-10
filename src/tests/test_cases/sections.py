@@ -318,6 +318,17 @@ class TestGoogle:  # noqa: D203
 
         """
 
+    def test_detailed_description(self, test, another_test, _):  # noqa: D213, D407
+        """Test a valid args section.
+
+        Args:
+            test: A parameter.
+            another_test: Another parameter.
+
+        Detailed description.
+
+        """
+
     @expect("D417: Missing argument descriptions in the docstring "
             "(argument(s) test, y, z are missing descriptions in "
             "'test_missing_args' docstring)", arg_count=5)
