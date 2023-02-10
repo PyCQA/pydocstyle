@@ -248,7 +248,8 @@ class ConventionChecker:
         if docstring:
             docstring_text = ast.literal_eval(docstring)
             if isinstance(docstring_text, bytes):
-                docstring_text = docstring_text.decode()
+                # bytes objects are not valid docstrings.
+                return
 
             lines = docstring_text.split('\n')
 
