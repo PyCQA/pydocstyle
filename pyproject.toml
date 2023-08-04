@@ -2,7 +2,7 @@
 name = "pydocstyle"
 version = "0.0.0-dev"
 description = "Python docstring style checker"
-authors = ["Amir Rachum <amir@rachum.com>", "Sambhav Kothari <sambhavs.email@gmail.com"]
+authors = ["Amir Rachum <amir@rachum.com>", "Sambhav Kothari <sambhavs.email@gmail.com>"]
 license = "MIT"
 readme = "README.rst"
 documentation = "https://www.pydocstyle.org/en/stable/"
