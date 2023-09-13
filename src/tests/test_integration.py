@@ -1585,3 +1585,12 @@ def test_match_considers_basenames_for_path_args(env):
     out, _, code = env.invoke(target='test_a.py')
     assert '' == out
     assert code == 0
+
+def test_fstring(env):
+    """Test that f-strings do not cause a crash."""
+    env.write_config(select='D')
+    with env.open("test.py", 'wt') as fobj:
+        fobj.write('''f"bar {123}"''')
+    _, err, code = env.invoke(args="-v")
+    assert code == 1
+    assert "ValueError" not in err
