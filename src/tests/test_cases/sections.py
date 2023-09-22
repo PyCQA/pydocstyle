@@ -408,6 +408,18 @@ of the entire world.
 
     """
 
+@expect(_D213)
+@expect("D417: Missing argument descriptions in the docstring "
+        "(argument(s) y are missing descriptions in "
+        "'test_missing_sphynx_args' docstring)")
+def test_missing_sphynx_args(_private_arg=0, x=1, y=2):  # noqa: D406, D407
+    """Toggle the gizmo.
+
+    :param x: The greatest integer in the history \
+of the entire world.
+
+    """
+
 
 class TestNumpy:  # noqa: D203
     """Test class."""
