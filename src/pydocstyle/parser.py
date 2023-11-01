@@ -479,6 +479,29 @@ class Parser:
             )
             self.stream.move()
             return docstring
+        if (sys.version_info.major, sys.version_info.minor) >= (
+            3,
+            12,
+        ) and self.current.kind == tk.FSTRING_START:
+
+            def fstring(string):
+                """Recursively parse fstring tokens to output it as one string."""
+                while self.current.kind != tk.FSTRING_END:
+                    self.stream.move()
+                    string += self.current.value
+                    if self.current.kind == tk.FSTRING_START:
+                        string = fstring(string)
+                        self.stream.move()
+                        string += self.current.value
+                return string
+
+            # Reattach fstring tokens together into a string to deal with PEP 701 in python3.12
+            start = self.current.start[0]
+            string = fstring(self.current.value)
+            end = self.current.end[0]
+            docstring = Docstring(string, start, end)
+            self.stream.move()
+            return docstring
         return None
 
     def parse_decorators(self):
