@@ -1,6 +1,41 @@
 pydocstyle - docstring style checker
 ====================================
 
+======================================
+Deprecation Notice: Pydocstyle
+======================================
+
+.. IMPORTANT: Deprecation Notice
+   :style: alert
+
+.. image:: https://img.shields.io/badge/deprecated-red
+   :target: https://github.com/PyCQA/pydocstyle
+   :alt: Deprecated
+
+The Pydocstyle project is officially deprecated, and it is no longer actively maintained. 
+
+
+
+Ruff: A Modern Alternative
+--------------------------
+
+- **GitHub Repository:** `ruff <https://github.com/astral-sh/ruff>`_
+
+Ruff offers full parity with pydocstyle along with advanced features, better support for the latest Python versions, and ongoing development to ensure a top-notch linting experience. We highly recommend pydocstyle users to switch over to ruff for a seamless transition.
+
+
+A Heartfelt Thank You
+-----------------------
+
+We want to express our heartfelt gratitude to the pydocstyle community, maintainers, and contributors for their support and dedication over the years. Your contributions have been invaluable, and we appreciate the time and effort you've invested in making pydocstyle a valuable tool for the Python community.
+
+Thank you for your support of pydocstyle in the past.
+
+
+
+---------
+
+
 
 .. image:: https://github.com/PyCQA/pydocstyle/workflows/Run%20tests/badge.svg
     :target: https://github.com/PyCQA/pydocstyle/actions?query=workflow%3A%22Run+tests%22+branch%3Amaster
