@@ -4,6 +4,14 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+
+Current development version
+---------------------------
+
+Bug Fixes
+
+* Add support for PEP-701 fixing fstring parsing in python3.12 (#656).
+
 6.3.0 - January 17th, 2023
 --------------------------
 
