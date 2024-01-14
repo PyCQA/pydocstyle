@@ -4,6 +4,13 @@ Release Notes
 **pydocstyle** version numbers follow the
 `Semantic Versioning <http://semver.org/>`_ specification.
 
+Current Development Version
+---------------------------
+
+Bug Fixes
+
+* Fix a crash when f-strings are used as docstrings (#653).
+
 6.3.0 - January 17th, 2023
 --------------------------
 

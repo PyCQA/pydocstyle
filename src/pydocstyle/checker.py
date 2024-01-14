@@ -35,6 +35,15 @@ from .wordlists import IMPERATIVE_BLACKLIST, IMPERATIVE_VERBS, stem
 
 __all__ = ('check',)
 
+FSTRING_REGEX = re(r'^([rR]?)[fF]')
+
+
+def eval_docstring(docstring):
+    """Safely evaluate docstring."""
+    if FSTRING_REGEX.match(str(docstring)):
+        return ""
+    return ast.literal_eval(docstring)
+
 
 def check_for(kind, terminal=False):
     def decorator(f):
@@ -255,7 +264,7 @@ class ConventionChecker:
         NOTE: This used to report as D10X errors.
 
         """
-        if docstring and is_blank(ast.literal_eval(docstring)):
+        if docstring and is_blank(eval_docstring(docstring)):
             return violations.D419()
 
     @check_for(Definition)
@@ -267,7 +276,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            lines = ast.literal_eval(docstring).split('\n')
+            lines = eval_docstring(docstring).split('\n')
             if len(lines) > 1:
                 non_empty_lines = sum(1 for l in lines if not is_blank(l))
                 if non_empty_lines == 1:
@@ -343,7 +352,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            lines = ast.literal_eval(docstring).strip().split('\n')
+            lines = eval_docstring(docstring).strip().split('\n')
             if len(lines) > 1:
                 post_summary_blanks = list(map(is_blank, lines[1:]))
                 blanks_count = sum(takewhile(bool, post_summary_blanks))
@@ -396,7 +405,7 @@ class ConventionChecker:
         if docstring:
             lines = [
                 l
-                for l in ast.literal_eval(docstring).split('\n')
+                for l in eval_docstring(docstring).split('\n')
                 if not is_blank(l)
             ]
             if len(lines) > 1:
@@ -407,7 +416,7 @@ class ConventionChecker:
     def check_surrounding_whitespaces(self, definition, docstring):
         """D210: No whitespaces allowed surrounding docstring text."""
         if docstring:
-            lines = ast.literal_eval(docstring).split('\n')
+            lines = eval_docstring(docstring).split('\n')
             if (
                 lines[0].startswith(' ')
                 or len(lines) == 1
@@ -435,7 +444,7 @@ class ConventionChecker:
                 "ur'''",
             ]
 
-            lines = ast.literal_eval(docstring).split('\n')
+            lines = eval_docstring(docstring).split('\n')
             if len(lines) > 1:
                 first = docstring.split("\n")[0].strip().lower()
                 if first in start_triple:
@@ -457,7 +466,7 @@ class ConventionChecker:
 
         '''
         if docstring:
-            if '"""' in ast.literal_eval(docstring):
+            if '"""' in eval_docstring(docstring):
                 # Allow ''' quotes if docstring contains """, because
                 # otherwise """ quotes could not be expressed inside
                 # docstring. Not in PEP 257.
@@ -501,7 +510,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            summary_line = ast.literal_eval(docstring).strip().split('\n')[0]
+            summary_line = eval_docstring(docstring).strip().split('\n')[0]
             if not summary_line.endswith(chars):
                 return violation(summary_line[-1])
 
@@ -540,7 +549,7 @@ class ConventionChecker:
             and not function.is_test
             and not function.is_property(self.property_decorators)
         ):
-            stripped = ast.literal_eval(docstring).strip()
+            stripped = eval_docstring(docstring).strip()
             if stripped:
                 first_word = strip_non_alphanumeric(stripped.split()[0])
                 check_word = first_word.lower()
@@ -566,7 +575,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            first_line = ast.literal_eval(docstring).strip().split('\n')[0]
+            first_line = eval_docstring(docstring).strip().split('\n')[0]
             if function.name + '(' in first_line.replace(' ', ''):
                 return violations.D402()
 
@@ -578,7 +587,7 @@ class ConventionChecker:
 
         """
         if docstring:
-            first_word = ast.literal_eval(docstring).split()[0]
+            first_word = eval_docstring(docstring).split()[0]
             if first_word == first_word.upper():
                 return
             for char in first_word:
@@ -610,7 +619,7 @@ class ConventionChecker:
         if not docstring:
             return
 
-        stripped = ast.literal_eval(docstring).strip()
+        stripped = eval_docstring(docstring).strip()
         if not stripped:
             return
 
